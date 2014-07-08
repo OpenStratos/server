@@ -1,5 +1,9 @@
 #ifndef CAMERA_HPP
 
+#include <cstdlib>
+#include <sstream>
+#include <fstream>
+#include <iterator>
 #include <ctime>
 #include <vector>
 
