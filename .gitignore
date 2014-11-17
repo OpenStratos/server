@@ -14,6 +14,11 @@
 *.so.*
 *.dylib
 
+#miscelanea
+*.log
+*.status
+*.m4
+
 # Executables
 *.exe
 *.out
@@ -21,3 +26,20 @@
 *.i*86
 *.x86_64
 *.hex
+openstratos
+
+# http://www.gnu.org/software/automake
+
+*.in
+
+# http://www.gnu.org/software/autoconf
+
+/autom4te.cache
+/aclocal.m4
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
+/stamp-h1
+/.deps

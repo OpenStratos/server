@@ -66,8 +66,8 @@ void cam::stop_video()
 	system("pkill raspivid");
 }
 
-int main(void)
-{
-	cam::start_video();
-	return 0;
-}
+// int main(void)
+// {
+// 	cam::start_video();
+// 	return 0;
+// }

@@ -1,0 +1,2 @@
+bin_PROGRAMS=openstratos
+openstratos_SOURCES=openstratos.cpp
