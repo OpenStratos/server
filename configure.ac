@@ -16,7 +16,6 @@ AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 
 AC_LANG([C++])
-AX_CXX_COMPILE_STDCXX_11
 
 # Checks for libraries.
 

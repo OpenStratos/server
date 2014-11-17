@@ -96,7 +96,7 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_openstratos_OBJECTS = openstratos.$(OBJEXT)
 openstratos_OBJECTS = $(am_openstratos_OBJECTS)
-openstratos_LDADD = $(LDADD)
+openstratos_DEPENDENCIES =
 AM_V_P = $(am__v_P_$(V))
 am__v_P_ = $(am__v_P_$(AM_DEFAULT_VERBOSITY))
 am__v_P_0 = false
@@ -258,6 +258,7 @@ top_build_prefix =
 top_builddir = .
 top_srcdir = .
 openstratos_SOURCES = openstratos.cpp
+openstratos_LDADD = -lwiringPi -lpthread
 all: config.hpp
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
