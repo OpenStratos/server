@@ -1,42 +1,36 @@
-#ifndef GPSFRAME_H
-	#define GPSFRAME_H
+#ifndef GPS_H
+	#define GPS_H
 
 	#include <ctime>
 	#include <string>
-
 	using namespace std;
 
 	namespace gps {
 
-		struct coordinate {
-			double latitude;
-			double longitude;
-		};
-
-		class GPSFrame
+		class GPS: public IGPS
 		{
 		private:
 			string raw_frame;
 			time_t time;
-			bool is_valid;
+			bool isActive;
 			coordinate coord;
 			double velocity;
 			double angle;
 
 			// TODO checksum, height
 
-			GPSFrame();
+			GPS();
 			void setTime(time_t t);
-			void setValid(bool valid);
+			void setActive(bool active);
 			void setCoordinate(coordinate c);
 			void setVelocity(double v);
 			void setAngle(double a);
 
 		public:
-			static GPSFrame parse(string frame);
+			static GPS parse(string frame);
 
 			time_t getTime();
-			bool isValid();
+			bool isActive();
 			coordinate getCoordinate();
 			double getVelocity();
 			double getAngle();
