@@ -6,7 +6,7 @@
 		class Camera
 		{
 		private:
-			Camera();
+			Camera() = default;
 			~Camera();
 			void recordThread(int time);
 
