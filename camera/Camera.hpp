@@ -7,6 +7,7 @@
 		{
 		private:
 			Camera();
+			~Camera();
 			void recordThread(int time);
 
 			bool recording = false;

@@ -14,6 +14,11 @@ Camera& Camera::getCamera()
 	return camera;
 }
 
+Camera::~Camera()
+{
+	if (this->recording) this->stop();
+}
+
 void Camera::recordThread(int time)
 {
 	this_thread::sleep_for(chrono::milliseconds(time));
