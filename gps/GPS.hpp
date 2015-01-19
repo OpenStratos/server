@@ -1,7 +1,6 @@
 #ifndef GPS_H
 	#define GPS_H
 
-	#include <ctime>
 	#include <string>
 	#include <thread>
 
@@ -25,7 +24,8 @@
 			float angle;
 			float altitude;
 
-			// TODO checksum, height
+			// TODO checksum
+			// TODO? satellites, accuracy?
 
 			void serialPoll();
 			void parse(string frame);
