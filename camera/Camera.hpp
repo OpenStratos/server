@@ -5,7 +5,14 @@
 
 		class Camera
 		{
+		private:
+			Camera();
+			void recordThread(int time);
+
+			bool recording = false;
 		public:
+			static Camera& getCamera();
+
 			void record(int time);
 			void record();
 			void stop();
