@@ -3,31 +3,42 @@
 
 	#include <ctime>
 	#include <string>
+	#include <thread>
+
 	using namespace std;
 
-	namespace gps {
+	namespace os {
+		struct coordinate {
+			double latitude;
+			double longitude;
+		};
 
-		class GPS: public IGPS
+		class GPS
 		{
 		private:
-			string raw_frame;
+			int fd;
+			thread gpsThread;
+
 			time_t time;
-			bool isActive;
+			bool active;
 			coordinate coord;
 			double velocity;
 			double angle;
 
 			// TODO checksum, height
+			static void parse(string frame);
 
-			GPS();
 			void setTime(time_t t);
 			void setActive(bool active);
 			void setCoordinate(coordinate c);
 			void setVelocity(double v);
 			void setAngle(double a);
 
+			void serialPoll(int fd);
+
 		public:
-			static GPS parse(string frame);
+			GPS(string serialURL);
+			~GPS(); //Close serial etc
 
 			time_t getTime();
 			bool isActive();
@@ -36,4 +47,4 @@
 			double getAngle();
 		};
 	}
-#ifndef
+#endif

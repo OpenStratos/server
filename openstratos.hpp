@@ -1,4 +1,6 @@
 #include "config.hpp"
 
-#include <cstdio>
+#include <iostream>
 #include <wiringPi.h>
+
+using namespace std;

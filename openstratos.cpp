@@ -2,12 +2,12 @@
 
 int main(void)
 {
-	printf("[OpenStratos] Starting\n");
+	cout << "[OpenStratos] Starting" << endl;
 	wiringPiSetupSys();
 
-	printf("[OpenStratos] Sleeping for 10s before running checks\n");
+	cout << "[OpenStratos] Sleeping for 10s before running checks" << endl;
 	delay(10000);
 
-	printf("[OpenStratos] Starting checks\n");
+	cout << "[OpenStratos] Starting checks" << endl;
 	return 0;
 }
