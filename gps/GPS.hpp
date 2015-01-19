@@ -19,32 +19,32 @@
 			int fd;
 			thread gpsThread;
 
-			time_t time;
 			bool active;
 			coordinate coord;
-			double velocity;
-			double angle;
+			float velocity;
+			float angle;
+			float altitude;
 
 			// TODO checksum, height
-			static void parse(string frame);
 
-			void setTime(time_t t);
+			void serialPoll();
+			void parse(string frame);
+
 			void setActive(bool active);
 			void setCoordinate(coordinate c);
-			void setVelocity(double v);
-			void setAngle(double a);
-
-			void serialPoll(int fd);
+			void setVelocity(float v);
+			void setAngle(float a);
+			void setAltitude(float a);
 
 		public:
 			GPS(string serialURL);
-			~GPS(); //Close serial etc
+			~GPS(); // Close serial etc
 
-			time_t getTime();
-			bool isActive();
-			coordinate getCoordinate();
-			double getVelocity();
-			double getAngle();
+			bool isActive() const;
+			coordinate getCoordinate() const;
+			float getVelocity() const;
+			float getAngle() const;
+			float getAltitude() const;
 		};
 	}
 #endif
