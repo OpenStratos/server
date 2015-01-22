@@ -1,3 +1,12 @@
 language: cpp
 script: ./configure && make utesting && ./utesting
 compiler: gcc
+
+sudo: false
+branches:
+only:
+- master
+- develop
+- /^feature\/.+$/
+- /^release\/.+$/
+- /^hotfix\/.+$/
