@@ -6,7 +6,7 @@ go_bandit([](){
 	describe("our first test", [](){
 
 		it("should fail", [&](){
-			AssertThat(5, Equals(6));
+			AssertThat(5, Equals(5));
 		});
 
  	});
