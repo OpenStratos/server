@@ -1,0 +1,5 @@
+language: cpp
+script: ./configure && make utesting && ./utesting
+compiler:
+  - clang
+  - gcc

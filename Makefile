@@ -77,11 +77,13 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 bin_PROGRAMS = openstratos$(EXEEXT)
+EXTRA_PROGRAMS = utesting$(EXEEXT)
 subdir = .
 DIST_COMMON = INSTALL NEWS README AUTHORS ChangeLog \
 	$(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
-	$(srcdir)/config.hpp.in depcomp COPYING install-sh missing
+	$(srcdir)/config.hpp.in depcomp COPYING compile install-sh \
+	missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -94,9 +96,13 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_openstratos_OBJECTS = openstratos.$(OBJEXT)
+am_openstratos_OBJECTS = openstratos-openstratos.$(OBJEXT)
 openstratos_OBJECTS = $(am_openstratos_OBJECTS)
 openstratos_DEPENDENCIES =
+am__dirstamp = $(am__leading_dot)dirstamp
+am_utesting_OBJECTS = testing/utesting-testing.$(OBJEXT)
+utesting_OBJECTS = $(am_utesting_OBJECTS)
+utesting_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_$(V))
 am__v_P_ = $(am__v_P_$(AM_DEFAULT_VERBOSITY))
 am__v_P_0 = false
@@ -113,6 +119,10 @@ DEFAULT_INCLUDES = -I.
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
+AM_V_lt = $(am__v_lt_$(V))
+am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
+am__v_lt_0 = --silent
+am__v_lt_1 = 
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 AM_V_CXX = $(am__v_CXX_$(V))
@@ -126,8 +136,8 @@ AM_V_CXXLD = $(am__v_CXXLD_$(V))
 am__v_CXXLD_ = $(am__v_CXXLD_$(AM_DEFAULT_VERBOSITY))
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(openstratos_SOURCES)
-DIST_SOURCES = $(openstratos_SOURCES)
+SOURCES = $(openstratos_SOURCES) $(utesting_SOURCES)
+DIST_SOURCES = $(openstratos_SOURCES) $(utesting_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -179,6 +189,10 @@ AUTOCONF = ${SHELL} /home/razican/workspace/os-server/missing autoconf
 AUTOHEADER = ${SHELL} /home/razican/workspace/os-server/missing autoheader
 AUTOMAKE = ${SHELL} /home/razican/workspace/os-server/missing automake-1.14
 AWK = mawk
+CC = gcc
+CCDEPMODE = depmode=gcc3
+CFLAGS = -g -O2
+CPP = gcc -E
 CPPFLAGS = 
 CXX = g++
 CXXDEPMODE = depmode=gcc3
@@ -189,7 +203,9 @@ DEPDIR = .deps
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
+EGREP = /bin/grep -E
 EXEEXT = 
+GREP = /bin/grep
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -197,8 +213,7 @@ INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LDFLAGS = 
 LIBOBJS = 
-LIBS = 
-LN_S = ln -s
+LIBS = -lwiringPi -lpthread 
 LTLIBOBJS = 
 MAKEINFO = ${SHELL} /home/razican/workspace/os-server/missing makeinfo
 MKDIR_P = /bin/mkdir -p
@@ -219,6 +234,7 @@ abs_builddir = /home/razican/workspace/os-server
 abs_srcdir = /home/razican/workspace/os-server
 abs_top_builddir = /home/razican/workspace/os-server
 abs_top_srcdir = /home/razican/workspace/os-server
+ac_ct_CC = gcc
 ac_ct_CXX = g++
 am__include = include
 am__leading_dot = .
@@ -259,6 +275,9 @@ top_builddir = .
 top_srcdir = .
 openstratos_SOURCES = openstratos.cpp
 openstratos_LDADD = -lwiringPi -lpthread
+openstratos_CPPFLAGS = -std=c++11
+utesting_SOURCES = testing/testing.cpp
+utesting_CPPFLAGS = -std=c++11 -Itesting/bandit
 all: config.hpp
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -359,28 +378,72 @@ clean-binPROGRAMS:
 openstratos$(EXEEXT): $(openstratos_OBJECTS) $(openstratos_DEPENDENCIES) $(EXTRA_openstratos_DEPENDENCIES) 
 	@rm -f openstratos$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(openstratos_OBJECTS) $(openstratos_LDADD) $(LIBS)
+testing/$(am__dirstamp):
+	@$(MKDIR_P) testing
+	@: > testing/$(am__dirstamp)
+testing/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) testing/$(DEPDIR)
+	@: > testing/$(DEPDIR)/$(am__dirstamp)
+testing/utesting-testing.$(OBJEXT): testing/$(am__dirstamp) \
+	testing/$(DEPDIR)/$(am__dirstamp)
+
+utesting$(EXEEXT): $(utesting_OBJECTS) $(utesting_DEPENDENCIES) $(EXTRA_utesting_DEPENDENCIES) 
+	@rm -f utesting$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(utesting_OBJECTS) $(utesting_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f testing/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
-include ./$(DEPDIR)/openstratos.Po
+include ./$(DEPDIR)/openstratos-openstratos.Po
+include testing/$(DEPDIR)/utesting-testing.Po
 
 .cpp.o:
-	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+	$(am__mv) $$depbase.Tpo $$depbase.Po
 #	$(AM_V_CXX)source='$<' object='$@' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXXCOMPILE) -c -o $@ $<
 
 .cpp.obj:
-	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+	$(am__mv) $$depbase.Tpo $$depbase.Po
 #	$(AM_V_CXX)source='$<' object='$@' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+openstratos-openstratos.o: openstratos.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(openstratos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT openstratos-openstratos.o -MD -MP -MF $(DEPDIR)/openstratos-openstratos.Tpo -c -o openstratos-openstratos.o `test -f 'openstratos.cpp' || echo '$(srcdir)/'`openstratos.cpp
+	$(AM_V_at)$(am__mv) $(DEPDIR)/openstratos-openstratos.Tpo $(DEPDIR)/openstratos-openstratos.Po
+#	$(AM_V_CXX)source='openstratos.cpp' object='openstratos-openstratos.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(openstratos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o openstratos-openstratos.o `test -f 'openstratos.cpp' || echo '$(srcdir)/'`openstratos.cpp
+
+openstratos-openstratos.obj: openstratos.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(openstratos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT openstratos-openstratos.obj -MD -MP -MF $(DEPDIR)/openstratos-openstratos.Tpo -c -o openstratos-openstratos.obj `if test -f 'openstratos.cpp'; then $(CYGPATH_W) 'openstratos.cpp'; else $(CYGPATH_W) '$(srcdir)/openstratos.cpp'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/openstratos-openstratos.Tpo $(DEPDIR)/openstratos-openstratos.Po
+#	$(AM_V_CXX)source='openstratos.cpp' object='openstratos-openstratos.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(openstratos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o openstratos-openstratos.obj `if test -f 'openstratos.cpp'; then $(CYGPATH_W) 'openstratos.cpp'; else $(CYGPATH_W) '$(srcdir)/openstratos.cpp'; fi`
+
+testing/utesting-testing.o: testing/testing.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(utesting_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT testing/utesting-testing.o -MD -MP -MF testing/$(DEPDIR)/utesting-testing.Tpo -c -o testing/utesting-testing.o `test -f 'testing/testing.cpp' || echo '$(srcdir)/'`testing/testing.cpp
+	$(AM_V_at)$(am__mv) testing/$(DEPDIR)/utesting-testing.Tpo testing/$(DEPDIR)/utesting-testing.Po
+#	$(AM_V_CXX)source='testing/testing.cpp' object='testing/utesting-testing.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(utesting_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o testing/utesting-testing.o `test -f 'testing/testing.cpp' || echo '$(srcdir)/'`testing/testing.cpp
+
+testing/utesting-testing.obj: testing/testing.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(utesting_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT testing/utesting-testing.obj -MD -MP -MF testing/$(DEPDIR)/utesting-testing.Tpo -c -o testing/utesting-testing.obj `if test -f 'testing/testing.cpp'; then $(CYGPATH_W) 'testing/testing.cpp'; else $(CYGPATH_W) '$(srcdir)/testing/testing.cpp'; fi`
+	$(AM_V_at)$(am__mv) testing/$(DEPDIR)/utesting-testing.Tpo testing/$(DEPDIR)/utesting-testing.Po
+#	$(AM_V_CXX)source='testing/testing.cpp' object='testing/utesting-testing.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(utesting_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o testing/utesting-testing.obj `if test -f 'testing/testing.cpp'; then $(CYGPATH_W) 'testing/testing.cpp'; else $(CYGPATH_W) '$(srcdir)/testing/testing.cpp'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -637,6 +700,8 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f testing/$(DEPDIR)/$(am__dirstamp)
+	-rm -f testing/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -647,7 +712,7 @@ clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -rf ./$(DEPDIR)
+	-rm -rf ./$(DEPDIR) testing/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-tags
@@ -695,7 +760,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-	-rm -rf ./$(DEPDIR)
+	-rm -rf ./$(DEPDIR) testing/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
