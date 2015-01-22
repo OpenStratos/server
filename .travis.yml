@@ -1,5 +1,12 @@
 language: cpp
-script: ./configure && make utesting && ./utesting
+script:
+  - aclocal
+  - autoheader
+  - automake --add-missing
+  - autoconf
+  - ./configure
+  - make utesting
+  - ./utesting
 compiler: gcc
 
 sudo: false
