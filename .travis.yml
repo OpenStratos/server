@@ -1,15 +1,12 @@
-language: cpp
-script:
-  - aclocal
-  - autoheader
-  - automake --add-missing
-  - autoconf
-  - ./configure
-  - make utesting
-  - ./utesting
-compiler: gcc
+language: erlang # We are creating ARM emulation on travis, so no need for language features
 
-sudo: false
+env:
+  - ARCH=x64
+  - ARCH=arm
+
+script:
+  - "bash -ex ./testing/.travis-ci.sh"
+
 branches:
 only:
 - master
