@@ -1,3 +1,3 @@
 [submodule "testing/bandit"]
 	path = testing/bandit
-	url = git@github.com:joakimkarlsson/bandit.git
+	url = https://github.com/joakimkarlsson/bandit.git
