@@ -1,8 +1,6 @@
 language: erlang # We are creating ARM emulation on travis, so no need for language features
 
-env:
-  - ARCH=x64
-  - ARCH=arm
+env: ARCH=arm
 
 script:
   - "bash -ex ./testing/.travis-ci.sh"

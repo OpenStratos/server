@@ -3,7 +3,7 @@
 
 CHROOT_DIR=/tmp/arm-chroot
 MIRROR=http://archive.raspbian.org/raspbian
-VERSION=jessie
+VERSION=wheezy
 CHROOT_ARCH=armhf
 
 # Debian package dependencies for the host
@@ -34,8 +34,15 @@ function setup_arm_chroot {
     echo "export TRAVIS_BUILD_DIR=${TRAVIS_BUILD_DIR}" >> envvars.sh
     chmod a+x envvars.sh
 
-    # Install dependencies inside chroot
+    # Udate to Jessie and install dependencies inside chroot
+    sudo chroot ${CHROOT_DIR} bash -c "rm /etc/apt/sources.list"
+    sudo chroot ${CHROOT_DIR} bash -c "echo \"deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi\" >> /etc/apt/sources.list"
+    sudo chroot ${CHROOT_DIR} bash -c "echo \"deb http://archive.raspbian.org/raspbian jessie main contrib non-free rpi\" >> /etc/apt/sources.list"
+    sudo chroot ${CHROOT_DIR} bash -c "echo \"deb-src http://archive.raspbian.org/raspbian jessie main contrib non-free rpi\" >> /etc/apt/sources.list"
+
     sudo chroot ${CHROOT_DIR} apt-get update
+    sudo chroot ${CHROOT_DIR} apt-get dist-upgrade -y
+    sudo chroot ${CHROOT_DIR} apt-get autoremove -y
     sudo chroot ${CHROOT_DIR} apt-get --allow-unauthenticated install \
         -qq -y ${GUEST_DEPENDENCIES}
 
@@ -56,11 +63,9 @@ if [ -e "/.chroot_is_done" ]; then
 
   . ./envvars.sh
 else
-  if [ "${ARCH}" = "arm" ]; then
-    # ARM test run, need to set up chrooted environment first
-    echo "Setting up chrooted ARM environment"
-    setup_arm_chroot
-  fi
+  # ARM test run, need to set up chrooted environment first
+  echo "Setting up chrooted ARM environment"
+  setup_arm_chroot
 fi
 
 echo "Running tests"
