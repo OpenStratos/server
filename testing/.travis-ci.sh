@@ -12,9 +12,6 @@ HOST_DEPENDENCIES="debootstrap qemu-user-static binfmt-support sbuild"
 # Debian package dependencies for the chrooted environment
 GUEST_DEPENDENCIES="git g++ make sudo autoconf automake m4"
 
-# Command used to run the tests
-TEST_COMMAND="aclocal && autoheader && automake --add-missing && autoconf && ./configure && make utesting && ./utesting"
-
 function setup_arm_chroot {
     # Host dependencies
     sudo apt-get install -qq -y ${HOST_DEPENDENCIES}
@@ -79,4 +76,10 @@ cd WiringPi
 ./build
 cd ..
 
-${TEST_COMMAND}
+aclocal
+autoheader
+automake --add-missing
+autoconf
+./configure
+make utesting
+./utesting
