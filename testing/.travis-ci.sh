@@ -30,15 +30,16 @@ function setup_arm_chroot {
     chmod a+x envvars.sh
 
     # Udate to Jessie and install dependencies inside chroot
-    echo "Updating to Raspbian Jessie"
+    echo "Upgrading to Raspbian Jessie"
     sudo chroot ${CHROOT_DIR} bash -c "rm /etc/apt/sources.list"
     sudo chroot ${CHROOT_DIR} bash -c "echo \"deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi\" >> /etc/apt/sources.list"
     sudo chroot ${CHROOT_DIR} bash -c "echo \"deb http://archive.raspbian.org/raspbian jessie main contrib non-free rpi\" >> /etc/apt/sources.list"
     sudo chroot ${CHROOT_DIR} bash -c "echo \"deb-src http://archive.raspbian.org/raspbian jessie main contrib non-free rpi\" >> /etc/apt/sources.list"
 
     sudo chroot ${CHROOT_DIR} apt-get update > /dev/null
-    sudo chroot ${CHROOT_DIR} apt-get dist-upgrade -y > /dev/null
-    sudo chroot ${CHROOT_DIR} apt-get autoremove -y > /dev/null
+    sudo chroot ${CHROOT_DIR} apt-get dist-upgrade -qq -y
+    echo "Upgraded"
+    sudo chroot ${CHROOT_DIR} apt-get autoremove -qq -y
 
     echo "Installing guest dependencies"
     sudo chroot ${CHROOT_DIR} apt-get --allow-unauthenticated install \
