@@ -58,35 +58,36 @@ function setup_arm_chroot {
 }
 
 if [ -e "/.chroot_is_done" ]; then
+  echo "|------------------------------------------------------------|"
   # We are inside ARM chroot
-  echo "Running inside chrooted environment"
+  printf "\n\n\n\n\n\n"
+  echo "|------------------------------------------------------------|"
+  echo "Running tests"
+  echo "Environment: $(uname -a)"
 
   . ./envvars.sh
+
+  # Installing WiringPi
+  git clone https://github.com/OpenStratos/WiringPi.git
+  cd WiringPi
+  ./build
+  cd ..
+
+  # Updating nested submodules
+  cd testing/bandit
+  git submodule init
+  git submodule update
+  cd ../..
+
+  aclocal
+  autoheader
+  automake --add-missing
+  autoconf
+  ./configure
+  make utesting
+  ./utesting
 else
   # ARM test run, need to set up chrooted environment first
   echo "Setting up chrooted ARM environment"
   setup_arm_chroot
 fi
-
-echo "Running tests"
-echo "Environment: $(uname -a)"
-
-# Installing WiringPi
-git clone https://github.com/OpenStratos/WiringPi.git
-cd WiringPi
-./build
-cd ..
-
-# Updating nested submodules
-cd testing/bandit
-git submodule init
-git submodule update
-cd ../..
-
-aclocal
-autoheader
-automake --add-missing
-autoconf
-./configure
-make utesting
-./utesting
