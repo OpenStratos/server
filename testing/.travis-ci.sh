@@ -31,8 +31,8 @@ function setup_arm_chroot {
 
     # Udate to Jessie and install dependencies inside chroot
     echo "Updating to Raspbian Jessie"
-    sudo chroot ${CHROOT_DIR} locale-gen en_US.UTF-8
-    sudo chroot ${CHROOT_DIR} dpkg-reconfigure locales
+    sudo chroot ${CHROOT_DIR} bash -c "locale-gen en_US.UTF-8"
+    sudo chroot ${CHROOT_DIR} bash -c "dpkg-reconfigure locales"
     sudo chroot ${CHROOT_DIR} bash -c "rm /etc/apt/sources.list"
     sudo chroot ${CHROOT_DIR} bash -c "echo \"deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi\" >> /etc/apt/sources.list"
     sudo chroot ${CHROOT_DIR} bash -c "echo \"deb http://archive.raspbian.org/raspbian jessie main contrib non-free rpi\" >> /etc/apt/sources.list"
