@@ -50,6 +50,9 @@ function setup_arm_chroot {
     sudo mkdir -p ${CHROOT_DIR}/${TRAVIS_BUILD_DIR}
     sudo rsync -av ${TRAVIS_BUILD_DIR}/ ${CHROOT_DIR}/${TRAVIS_BUILD_DIR}/
 
+    # Give executable permissions to testing script
+    sudo chroot ${CHROOT_DIR} bash -c "sudo chmod a+x ${TRAVIS_BUILD_DIR}/testing/.travis-ci.sh"
+
     # Indicate chroot environment has been set up
     sudo touch ${CHROOT_DIR}/.chroot_is_done
 
