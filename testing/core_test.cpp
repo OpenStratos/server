@@ -3,9 +3,9 @@ using namespace bandit;
 
 go_bandit([](){
 
-	describe("our first test", [](){
+	describe("testing integration", [](){
 
-		it("should fail", [&](){
+		it("unit test", [&](){
 			AssertThat(5, Equals(5));
 		});
 
