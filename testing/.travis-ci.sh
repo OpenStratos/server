@@ -14,38 +14,44 @@ GUEST_DEPENDENCIES="git g++ make sudo autoconf automake m4"
 
 function setup_arm_chroot {
     # Host dependencies
+    echo "Installing host dependencies"
     sudo apt-get install -qq -y ${HOST_DEPENDENCIES}
 
     # Create chrooted environment
+    echo "Creating chrooted environment"
     sudo mkdir ${CHROOT_DIR}
     sudo debootstrap --foreign --no-check-gpg --include=fakeroot,build-essential \
-        --arch=${CHROOT_ARCH} ${VERSION} ${CHROOT_DIR} ${MIRROR}
+        --arch=${CHROOT_ARCH} ${VERSION} ${CHROOT_DIR} ${MIRROR} > /dev/null
     sudo cp /usr/bin/qemu-arm-static ${CHROOT_DIR}/usr/bin/
+    echo "Doing chroot"
     sudo chroot ${CHROOT_DIR} ./debootstrap/debootstrap --second-stage
     sudo sbuild-createchroot --arch=${CHROOT_ARCH} --foreign --setup-only \
-        ${VERSION} ${CHROOT_DIR} ${MIRROR}
+        ${VERSION} ${CHROOT_DIR} ${MIRROR} > /dev/null
 
     # Create file with environment variables which will be used inside chrooted
     # environment
-    echo "export ARCH=${ARCH}" > envvars.sh
     echo "export TRAVIS_BUILD_DIR=${TRAVIS_BUILD_DIR}" >> envvars.sh
     chmod a+x envvars.sh
 
     # Udate to Jessie and install dependencies inside chroot
+    echo "Updating to Raspbian Jessie"
     sudo chroot ${CHROOT_DIR} bash -c "rm /etc/apt/sources.list"
     sudo chroot ${CHROOT_DIR} bash -c "echo \"deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi\" >> /etc/apt/sources.list"
     sudo chroot ${CHROOT_DIR} bash -c "echo \"deb http://archive.raspbian.org/raspbian jessie main contrib non-free rpi\" >> /etc/apt/sources.list"
     sudo chroot ${CHROOT_DIR} bash -c "echo \"deb-src http://archive.raspbian.org/raspbian jessie main contrib non-free rpi\" >> /etc/apt/sources.list"
 
-    sudo chroot ${CHROOT_DIR} apt-get update
-    sudo chroot ${CHROOT_DIR} apt-get dist-upgrade -y
-    sudo chroot ${CHROOT_DIR} apt-get autoremove -y
+    sudo chroot ${CHROOT_DIR} apt-get update > /dev/null
+    sudo chroot ${CHROOT_DIR} apt-get dist-upgrade -y > /dev/null
+    sudo chroot ${CHROOT_DIR} apt-get autoremove -y > /dev/null
+
+    echo "Installing guest dependencies"
     sudo chroot ${CHROOT_DIR} apt-get --allow-unauthenticated install \
-        -qq -y ${GUEST_DEPENDENCIES}
+        -qq -y ${GUEST_DEPENDENCIES} > /dev/null
 
     # Create build dir and copy travis build files to our chroot environment
+    echo "Copying build files to chroot environment"
     sudo mkdir -p ${CHROOT_DIR}/${TRAVIS_BUILD_DIR}
-    sudo rsync -av ${TRAVIS_BUILD_DIR}/ ${CHROOT_DIR}/${TRAVIS_BUILD_DIR}/
+    sudo rsync -av ${TRAVIS_BUILD_DIR}/ ${CHROOT_DIR}/${TRAVIS_BUILD_DIR}/ > /dev/null
 
     # Give executable permissions to testing script
     sudo chroot ${CHROOT_DIR} bash -c "sudo chmod a+x ${TRAVIS_BUILD_DIR}/testing/.travis-ci.sh"
@@ -58,9 +64,8 @@ function setup_arm_chroot {
 }
 
 if [ -e "/.chroot_is_done" ]; then
-  echo "|------------------------------------------------------------|"
   # We are inside ARM chroot
-  printf "\n\n\n\n\n\n"
+  printf "\n\n"
   echo "|------------------------------------------------------------|"
   echo "Running tests"
   echo "Environment: $(uname -a)"
@@ -68,16 +73,19 @@ if [ -e "/.chroot_is_done" ]; then
   . ./envvars.sh
 
   # Installing WiringPi
-  git clone https://github.com/OpenStratos/WiringPi.git
+  echo "Installing WiringPi"
+  git clone https://github.com/OpenStratos/WiringPi.git > /dev/null
   cd WiringPi
-  ./build
+  ./build > /dev/null
   cd ..
 
   # Updating nested submodules
   cd testing/bandit
-  git submodule init
-  git submodule update
+  git submodule init > /dev/null
+  git submodule update > /dev/null
   cd ../..
+
+  echo "Starting build"
 
   aclocal
   autoheader

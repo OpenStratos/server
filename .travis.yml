@@ -1,14 +1,21 @@
 language: erlang # We are creating ARM emulation on travis, so no need for language features
 
-env: ARCH=arm
-
 script:
   - "bash -ex ./testing/.travis-ci.sh"
 
 branches:
-only:
-- master
-- develop
-- /^feature\/.+$/
-- /^release\/.+$/
-- /^hotfix\/.+$/
+  only:
+    - master
+    - develop
+    - /^feature\/.+$/
+    - /^release\/.+$/
+    - /^hotfix\/.+$/
+
+notifications:
+  email:
+    recipients:
+      - iban.eguia@opendeusto.es
+      - jordan.aranda@opendeusto.es
+      - aritzbilbao@deusto.es
+    on_success: change
+    on_failure: always
