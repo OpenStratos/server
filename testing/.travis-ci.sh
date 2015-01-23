@@ -71,10 +71,17 @@ fi
 echo "Running tests"
 echo "Environment: $(uname -a)"
 
+# Installing WiringPi
 git clone https://github.com/OpenStratos/WiringPi.git
 cd WiringPi
 ./build
 cd ..
+
+# Updating nested submodules
+cd testing/bandit
+git submodule init
+git submodule update
+cd ../..
 
 aclocal
 autoheader
