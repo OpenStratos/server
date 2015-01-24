@@ -96,11 +96,14 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_openstratos_OBJECTS = openstratos-openstratos.$(OBJEXT)
+am__dirstamp = $(am__leading_dot)dirstamp
+am_openstratos_OBJECTS = openstratos-openstratos.$(OBJEXT) \
+	camera/openstratos-Camera.$(OBJEXT) \
+	gps/openstratos-GPS.$(OBJEXT)
 openstratos_OBJECTS = $(am_openstratos_OBJECTS)
 openstratos_DEPENDENCIES =
-am__dirstamp = $(am__leading_dot)dirstamp
-am_utesting_OBJECTS = testing/utesting-testing.$(OBJEXT)
+am_utesting_OBJECTS = testing/utesting-testing.$(OBJEXT) \
+	camera/utesting-Camera.$(OBJEXT) gps/utesting-GPS.$(OBJEXT)
 utesting_OBJECTS = $(am_utesting_OBJECTS)
 utesting_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_$(V))
@@ -226,6 +229,7 @@ PACKAGE_TARNAME = openstratos
 PACKAGE_URL = 
 PACKAGE_VERSION = 0.0.1-SNAPSHOT
 PATH_SEPARATOR = :
+RASPIVID = 
 SET_MAKE = 
 SHELL = /bin/bash
 STRIP = 
@@ -273,11 +277,11 @@ target_alias =
 top_build_prefix = 
 top_builddir = .
 top_srcdir = .
-openstratos_SOURCES = openstratos.cpp
+openstratos_SOURCES = openstratos.cpp camera/Camera.cpp gps/GPS.cpp
 openstratos_LDADD = -lwiringPi -lpthread
-openstratos_CPPFLAGS = -std=c++11
-utesting_SOURCES = testing/testing.cpp
-utesting_CPPFLAGS = -std=c++11 -Itesting/bandit
+openstratos_CPPFLAGS = -std=c++11 -Wno-unused-result
+utesting_SOURCES = testing/testing.cpp camera/Camera.cpp gps/GPS.cpp
+utesting_CPPFLAGS = -std=c++11 -Itesting/bandit -Wno-unused-result
 all: config.hpp
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -374,6 +378,22 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+camera/$(am__dirstamp):
+	@$(MKDIR_P) camera
+	@: > camera/$(am__dirstamp)
+camera/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) camera/$(DEPDIR)
+	@: > camera/$(DEPDIR)/$(am__dirstamp)
+camera/openstratos-Camera.$(OBJEXT): camera/$(am__dirstamp) \
+	camera/$(DEPDIR)/$(am__dirstamp)
+gps/$(am__dirstamp):
+	@$(MKDIR_P) gps
+	@: > gps/$(am__dirstamp)
+gps/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) gps/$(DEPDIR)
+	@: > gps/$(DEPDIR)/$(am__dirstamp)
+gps/openstratos-GPS.$(OBJEXT): gps/$(am__dirstamp) \
+	gps/$(DEPDIR)/$(am__dirstamp)
 
 openstratos$(EXEEXT): $(openstratos_OBJECTS) $(openstratos_DEPENDENCIES) $(EXTRA_openstratos_DEPENDENCIES) 
 	@rm -f openstratos$(EXEEXT)
@@ -386,6 +406,10 @@ testing/$(DEPDIR)/$(am__dirstamp):
 	@: > testing/$(DEPDIR)/$(am__dirstamp)
 testing/utesting-testing.$(OBJEXT): testing/$(am__dirstamp) \
 	testing/$(DEPDIR)/$(am__dirstamp)
+camera/utesting-Camera.$(OBJEXT): camera/$(am__dirstamp) \
+	camera/$(DEPDIR)/$(am__dirstamp)
+gps/utesting-GPS.$(OBJEXT): gps/$(am__dirstamp) \
+	gps/$(DEPDIR)/$(am__dirstamp)
 
 utesting$(EXEEXT): $(utesting_OBJECTS) $(utesting_DEPENDENCIES) $(EXTRA_utesting_DEPENDENCIES) 
 	@rm -f utesting$(EXEEXT)
@@ -393,12 +417,18 @@ utesting$(EXEEXT): $(utesting_OBJECTS) $(utesting_DEPENDENCIES) $(EXTRA_utesting
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f camera/*.$(OBJEXT)
+	-rm -f gps/*.$(OBJEXT)
 	-rm -f testing/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
 include ./$(DEPDIR)/openstratos-openstratos.Po
+include camera/$(DEPDIR)/openstratos-Camera.Po
+include camera/$(DEPDIR)/utesting-Camera.Po
+include gps/$(DEPDIR)/openstratos-GPS.Po
+include gps/$(DEPDIR)/utesting-GPS.Po
 include testing/$(DEPDIR)/utesting-testing.Po
 
 .cpp.o:
@@ -431,6 +461,34 @@ openstratos-openstratos.obj: openstratos.cpp
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(openstratos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o openstratos-openstratos.obj `if test -f 'openstratos.cpp'; then $(CYGPATH_W) 'openstratos.cpp'; else $(CYGPATH_W) '$(srcdir)/openstratos.cpp'; fi`
 
+camera/openstratos-Camera.o: camera/Camera.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(openstratos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT camera/openstratos-Camera.o -MD -MP -MF camera/$(DEPDIR)/openstratos-Camera.Tpo -c -o camera/openstratos-Camera.o `test -f 'camera/Camera.cpp' || echo '$(srcdir)/'`camera/Camera.cpp
+	$(AM_V_at)$(am__mv) camera/$(DEPDIR)/openstratos-Camera.Tpo camera/$(DEPDIR)/openstratos-Camera.Po
+#	$(AM_V_CXX)source='camera/Camera.cpp' object='camera/openstratos-Camera.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(openstratos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o camera/openstratos-Camera.o `test -f 'camera/Camera.cpp' || echo '$(srcdir)/'`camera/Camera.cpp
+
+camera/openstratos-Camera.obj: camera/Camera.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(openstratos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT camera/openstratos-Camera.obj -MD -MP -MF camera/$(DEPDIR)/openstratos-Camera.Tpo -c -o camera/openstratos-Camera.obj `if test -f 'camera/Camera.cpp'; then $(CYGPATH_W) 'camera/Camera.cpp'; else $(CYGPATH_W) '$(srcdir)/camera/Camera.cpp'; fi`
+	$(AM_V_at)$(am__mv) camera/$(DEPDIR)/openstratos-Camera.Tpo camera/$(DEPDIR)/openstratos-Camera.Po
+#	$(AM_V_CXX)source='camera/Camera.cpp' object='camera/openstratos-Camera.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(openstratos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o camera/openstratos-Camera.obj `if test -f 'camera/Camera.cpp'; then $(CYGPATH_W) 'camera/Camera.cpp'; else $(CYGPATH_W) '$(srcdir)/camera/Camera.cpp'; fi`
+
+gps/openstratos-GPS.o: gps/GPS.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(openstratos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gps/openstratos-GPS.o -MD -MP -MF gps/$(DEPDIR)/openstratos-GPS.Tpo -c -o gps/openstratos-GPS.o `test -f 'gps/GPS.cpp' || echo '$(srcdir)/'`gps/GPS.cpp
+	$(AM_V_at)$(am__mv) gps/$(DEPDIR)/openstratos-GPS.Tpo gps/$(DEPDIR)/openstratos-GPS.Po
+#	$(AM_V_CXX)source='gps/GPS.cpp' object='gps/openstratos-GPS.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(openstratos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gps/openstratos-GPS.o `test -f 'gps/GPS.cpp' || echo '$(srcdir)/'`gps/GPS.cpp
+
+gps/openstratos-GPS.obj: gps/GPS.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(openstratos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gps/openstratos-GPS.obj -MD -MP -MF gps/$(DEPDIR)/openstratos-GPS.Tpo -c -o gps/openstratos-GPS.obj `if test -f 'gps/GPS.cpp'; then $(CYGPATH_W) 'gps/GPS.cpp'; else $(CYGPATH_W) '$(srcdir)/gps/GPS.cpp'; fi`
+	$(AM_V_at)$(am__mv) gps/$(DEPDIR)/openstratos-GPS.Tpo gps/$(DEPDIR)/openstratos-GPS.Po
+#	$(AM_V_CXX)source='gps/GPS.cpp' object='gps/openstratos-GPS.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(openstratos_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gps/openstratos-GPS.obj `if test -f 'gps/GPS.cpp'; then $(CYGPATH_W) 'gps/GPS.cpp'; else $(CYGPATH_W) '$(srcdir)/gps/GPS.cpp'; fi`
+
 testing/utesting-testing.o: testing/testing.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(utesting_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT testing/utesting-testing.o -MD -MP -MF testing/$(DEPDIR)/utesting-testing.Tpo -c -o testing/utesting-testing.o `test -f 'testing/testing.cpp' || echo '$(srcdir)/'`testing/testing.cpp
 	$(AM_V_at)$(am__mv) testing/$(DEPDIR)/utesting-testing.Tpo testing/$(DEPDIR)/utesting-testing.Po
@@ -444,6 +502,34 @@ testing/utesting-testing.obj: testing/testing.cpp
 #	$(AM_V_CXX)source='testing/testing.cpp' object='testing/utesting-testing.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(utesting_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o testing/utesting-testing.obj `if test -f 'testing/testing.cpp'; then $(CYGPATH_W) 'testing/testing.cpp'; else $(CYGPATH_W) '$(srcdir)/testing/testing.cpp'; fi`
+
+camera/utesting-Camera.o: camera/Camera.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(utesting_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT camera/utesting-Camera.o -MD -MP -MF camera/$(DEPDIR)/utesting-Camera.Tpo -c -o camera/utesting-Camera.o `test -f 'camera/Camera.cpp' || echo '$(srcdir)/'`camera/Camera.cpp
+	$(AM_V_at)$(am__mv) camera/$(DEPDIR)/utesting-Camera.Tpo camera/$(DEPDIR)/utesting-Camera.Po
+#	$(AM_V_CXX)source='camera/Camera.cpp' object='camera/utesting-Camera.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(utesting_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o camera/utesting-Camera.o `test -f 'camera/Camera.cpp' || echo '$(srcdir)/'`camera/Camera.cpp
+
+camera/utesting-Camera.obj: camera/Camera.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(utesting_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT camera/utesting-Camera.obj -MD -MP -MF camera/$(DEPDIR)/utesting-Camera.Tpo -c -o camera/utesting-Camera.obj `if test -f 'camera/Camera.cpp'; then $(CYGPATH_W) 'camera/Camera.cpp'; else $(CYGPATH_W) '$(srcdir)/camera/Camera.cpp'; fi`
+	$(AM_V_at)$(am__mv) camera/$(DEPDIR)/utesting-Camera.Tpo camera/$(DEPDIR)/utesting-Camera.Po
+#	$(AM_V_CXX)source='camera/Camera.cpp' object='camera/utesting-Camera.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(utesting_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o camera/utesting-Camera.obj `if test -f 'camera/Camera.cpp'; then $(CYGPATH_W) 'camera/Camera.cpp'; else $(CYGPATH_W) '$(srcdir)/camera/Camera.cpp'; fi`
+
+gps/utesting-GPS.o: gps/GPS.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(utesting_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gps/utesting-GPS.o -MD -MP -MF gps/$(DEPDIR)/utesting-GPS.Tpo -c -o gps/utesting-GPS.o `test -f 'gps/GPS.cpp' || echo '$(srcdir)/'`gps/GPS.cpp
+	$(AM_V_at)$(am__mv) gps/$(DEPDIR)/utesting-GPS.Tpo gps/$(DEPDIR)/utesting-GPS.Po
+#	$(AM_V_CXX)source='gps/GPS.cpp' object='gps/utesting-GPS.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(utesting_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gps/utesting-GPS.o `test -f 'gps/GPS.cpp' || echo '$(srcdir)/'`gps/GPS.cpp
+
+gps/utesting-GPS.obj: gps/GPS.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(utesting_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gps/utesting-GPS.obj -MD -MP -MF gps/$(DEPDIR)/utesting-GPS.Tpo -c -o gps/utesting-GPS.obj `if test -f 'gps/GPS.cpp'; then $(CYGPATH_W) 'gps/GPS.cpp'; else $(CYGPATH_W) '$(srcdir)/gps/GPS.cpp'; fi`
+	$(AM_V_at)$(am__mv) gps/$(DEPDIR)/utesting-GPS.Tpo gps/$(DEPDIR)/utesting-GPS.Po
+#	$(AM_V_CXX)source='gps/GPS.cpp' object='gps/utesting-GPS.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(utesting_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gps/utesting-GPS.obj `if test -f 'gps/GPS.cpp'; then $(CYGPATH_W) 'gps/GPS.cpp'; else $(CYGPATH_W) '$(srcdir)/gps/GPS.cpp'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -700,6 +786,10 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f camera/$(DEPDIR)/$(am__dirstamp)
+	-rm -f camera/$(am__dirstamp)
+	-rm -f gps/$(DEPDIR)/$(am__dirstamp)
+	-rm -f gps/$(am__dirstamp)
 	-rm -f testing/$(DEPDIR)/$(am__dirstamp)
 	-rm -f testing/$(am__dirstamp)
 
@@ -712,7 +802,7 @@ clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -rf ./$(DEPDIR) testing/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) camera/$(DEPDIR) gps/$(DEPDIR) testing/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-tags
@@ -760,7 +850,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-	-rm -rf ./$(DEPDIR) testing/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) camera/$(DEPDIR) gps/$(DEPDIR) testing/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

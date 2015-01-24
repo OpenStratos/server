@@ -5,6 +5,8 @@
 #include <thread>
 #include <chrono>
 
+#include <iostream>
+
 using namespace os;
 using namespace std;
 
@@ -30,10 +32,17 @@ void Camera::record(int time)
 	if ( ! this->recording)
 	{
 		string command = "raspivid -o os_video.h264 -t " + to_string(time) + " &";
+		#ifndef RASPIVID
+			command = "";
+		#endif
 		system(command.c_str());
 		this->recording = true;
 
-		if (time > 0) thread t(&Camera::recordThread, *this, time);
+		if (time > 0)
+		{
+			thread t(&Camera::recordThread, this, time);
+			t.detach();
+		}
 	}
 }
 

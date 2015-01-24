@@ -43,6 +43,6 @@ utesting
 /install-sh
 /missing
 /stamp-h1
-/.deps
-/testing/.deps
-testing/.dirstamp
+.deps/
+.dirstamp
+*~
