@@ -27,13 +27,14 @@
 *.x86_64
 *.hex
 openstratos
+utesting
 
 # http://www.gnu.org/software/automake
 
 *.in
 
 # http://www.gnu.org/software/autoconf
-
+*.scan
 /autom4te.cache
 /aclocal.m4
 /compile
@@ -43,3 +44,5 @@ openstratos
 /missing
 /stamp-h1
 /.deps
+/testing/.deps
+testing/.dirstamp

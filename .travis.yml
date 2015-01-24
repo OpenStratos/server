@@ -1,0 +1,25 @@
+language: erlang # We are creating ARM emulation on travis, so no need for language features
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq -y debootstrap qemu-user-static binfmt-support sbuild
+
+script:
+  - "bash -ex ./testing/.travis-ci.sh"
+
+branches:
+  only:
+    - master
+    - develop
+    - /^feature\/.+$/
+    - /^release\/.+$/
+    - /^hotfix\/.+$/
+
+notifications:
+  email:
+    recipients:
+      - iban.eguia@opendeusto.es
+      - jordan.aranda@me.com
+      - aritzbilbao@deusto.es
+    on_success: change
+    on_failure: always
