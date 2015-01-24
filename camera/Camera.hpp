@@ -17,6 +17,7 @@
 			void record(int time);
 			void record();
 			void stop();
+			bool isRecording() const {return this->recording;}
 		};
 	}
 #endif

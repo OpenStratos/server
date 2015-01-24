@@ -12,6 +12,7 @@ AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
+AC_CHECK_PROG(RASPIVID,raspivid,1)
 
 # Checks for libraries.
 AC_CHECK_LIB([pthread], [pthread_create])

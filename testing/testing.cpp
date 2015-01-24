@@ -1,7 +1,20 @@
 #include <bandit/bandit.h>
-#include "core_test.cpp"
+#include <thread>
+#include <chrono>
+#include <camera/Camera.hpp>
+#include <gps/GPS.hpp>
+using namespace bandit;
+using namespace os;
+using namespace std;
 
 int main(int argc, char* argv[])
 {
-	return bandit::run(argc, argv);
+	return run(argc, argv);
 }
+
+go_bandit([](){
+
+	#include "core_test.cpp"
+	#include "camera_test.cpp"
+	#include "gps_test.cpp"
+});
