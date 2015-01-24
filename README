@@ -1,3 +1,5 @@
 # OpenStratos Server #
 
-Server implemented in C++. It will be in charge of the management of the balloon.
+[![Build Status](https://travis-ci.org/OpenStratos/server.svg)](https://travis-ci.org/OpenStratos/server)
+
+Server implemented in C++11. It will be in charge of the management of the balloon.
