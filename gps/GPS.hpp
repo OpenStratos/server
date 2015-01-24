@@ -3,48 +3,54 @@
 
 	#include <string>
 	#include <thread>
+	#include <cstdint>
+	#include "../serial/Serial.hpp"
 
 	using namespace std;
 
 	namespace os {
-		struct coordinate {
-			double latitude;
-			double longitude;
-		};
-
 		class GPS
 		{
 		private:
-			int fd;
-			thread gpsThread;
+			Serial serial;
 
+			time_t time;
 			bool active;
-			coordinate coord;
-			float velocity;
-			float angle;
+			uint_fast8_t satellites;
+			double latitude;
+			double longitude;
 			float altitude;
+			float hdop;
+			float vdop;
 
-			// TODO checksum
-			// TODO? satellites, accuracy?
+			GPS() = default;
+			~GPS();
+
+			void setTime(time_t time) {this->time = time;}
+			void setActive(bool active) {this->active = active;}
+			void setSatellites(uint_fast8_t satellites) {this->satellites = satellites;}
+			void setLatitude(double latitude) {this->latitude = latitude;}
+			void setLongitude(double longitude) {this->longitude = longitude;}
+			void setAltitude(float altitude) {this->altitude = altitude;}
+			void setHDOP(float hdop) {this->hdop = hdop;}
+			void setVDOP(float vdop) {this->vdop = vdop;}
 
 			void serialPoll();
 			void parse(string frame);
 
-			void setActive(bool active);
-			void setCoordinate(coordinate c);
-			void setVelocity(float v);
-			void setAngle(float a);
-			void setAltitude(float a);
-
 		public:
-			GPS(string serialURL);
-			~GPS(); // Close serial etc
+			static GPS& getInstance();
 
-			bool isActive() const;
-			coordinate getCoordinate() const;
-			float getVelocity() const;
-			float getAngle() const;
-			float getAltitude() const;
+			time_t getTime() {return this->time;}
+			bool getActive() {return this->active;}
+			uint_fast8_t getSatellites() {return this->satellites;}
+			double getLatitude() {return this->latitude;}
+			double getLongitude() {return this->longitude;}
+			float getAltitude() {return this->altitude;}
+			float getHDOP() {return this->hdop;}
+			float getVDOP() {return this->vdop;}
+
+			void initialize(Serial serial);
 		};
 	}
 #endif
