@@ -28,6 +28,7 @@
 *.hex
 openstratos
 utesting
+Makefile
 
 # http://www.gnu.org/software/automake
 
