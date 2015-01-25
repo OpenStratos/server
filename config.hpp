@@ -1,6 +1,9 @@
 /* config.hpp.  Generated from config.hpp.in by configure.  */
 /* config.hpp.in.  Generated from configure.ac by autoheader.  */
 
+/* Define to 1 if you have the `alarm' function. */
+#define HAVE_ALARM 1
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
@@ -34,11 +37,17 @@
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
 
+/* Define to 1 if you have the <sys/time.h> header file. */
+#define HAVE_SYS_TIME_H 1
+
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
+
+/* Define to 1 if the system has the type `_Bool'. */
+/* #undef HAVE__BOOL */
 
 /* Name of package */
 #define PACKAGE "openstratos"
@@ -63,6 +72,9 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#define TIME_WITH_SYS_TIME 1
 
 /* Version number of package */
 #define VERSION "0.0.1-SNAPSHOT"

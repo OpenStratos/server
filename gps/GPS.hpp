@@ -35,6 +35,10 @@
 			void set_HDOP(float hdop) {this->hdop = hdop;}
 			void set_VDOP(float vdop) {this->vdop = vdop;}
 
+			void parse_GGA(const string& frame);
+			void parse_GSA(const string& frame);
+			void parse_RMC(const string& frame);
+
 		public:
 			static GPS& getInstance();
 
