@@ -26,31 +26,29 @@
 			GPS() = default;
 			~GPS();
 
-			void setTime(time_t time) {this->time = time;}
-			void setActive(bool active) {this->active = active;}
-			void setSatellites(uint_fast8_t satellites) {this->satellites = satellites;}
-			void setLatitude(double latitude) {this->latitude = latitude;}
-			void setLongitude(double longitude) {this->longitude = longitude;}
-			void setAltitude(float altitude) {this->altitude = altitude;}
-			void setHDOP(float hdop) {this->hdop = hdop;}
-			void setVDOP(float vdop) {this->vdop = vdop;}
-
-			void serialPoll();
-			void parse(string frame);
+			void set_time(time_t time) {this->time = time;}
+			void set_active(bool active) {this->active = active;}
+			void set_satellites(uint_fast8_t satellites) {this->satellites = satellites;}
+			void set_latitude(double latitude) {this->latitude = latitude;}
+			void set_longitude(double longitude) {this->longitude = longitude;}
+			void set_altitude(float altitude) {this->altitude = altitude;}
+			void set_HDOP(float hdop) {this->hdop = hdop;}
+			void set_VDOP(float vdop) {this->vdop = vdop;}
 
 		public:
 			static GPS& getInstance();
 
-			time_t getTime() {return this->time;}
-			bool getActive() {return this->active;}
-			uint_fast8_t getSatellites() {return this->satellites;}
-			double getLatitude() {return this->latitude;}
-			double getLongitude() {return this->longitude;}
-			float getAltitude() {return this->altitude;}
-			float getHDOP() {return this->hdop;}
-			float getVDOP() {return this->vdop;}
+			time_t get_time() {return this->time;}
+			bool is_active() {return this->active;}
+			uint_fast8_t get_satellites() {return this->satellites;}
+			double get_latitude() {return this->latitude;}
+			double get_longitude() {return this->longitude;}
+			float get_lltitude() {return this->altitude;}
+			float get_HDOP() {return this->hdop;}
+			float get_VDOP() {return this->vdop;}
 
-			void initialize(Serial serial);
+			void initialize(const string& serial_URL);
+			uint_fast8_t parse(const string& frame);
 		};
 	}
 #endif

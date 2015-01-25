@@ -1,3 +1,3 @@
-describe("GPS test", [](){
+describe("GPS", [](){
 
 });

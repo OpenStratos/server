@@ -1,26 +1,21 @@
 #include "GPS.hpp"
 #include <wiringSerial.h>
+#include <functional>
 
 using namespace os;
 
 GPS::~GPS()
 {
-	// TODO Stop thread, close serial etc.
+	this->serial.close();
 }
 
-void GPS::initialize(Serial serial)
+void GPS::initialize(const string& serial_URL)
 {
+	Serial serial(serial_URL, 9600, "\r\n", bind(&GPS::parse, this, placeholders::_1));
 	this->serial = serial;
-	thread t(&GPS::serialPoll, this);
-	// TODO configure GPS
 }
 
-void GPS::serialPoll()
+uint_fast8_t GPS::parse(const string& frame)
 {
-	// TODO
-}
-
-void GPS::parse(string frame)
-{
-	// TODO
+	// TODO parse frame and update GPS
 }
