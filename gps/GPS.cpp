@@ -71,7 +71,18 @@ void GPS::parse_GGA(const string& frame)
 
 void GPS::parse_GSA(const string& frame)
 {
-	// TODO
+	stringstream ss(frame);
+	string data;
+	vector<string> s_data(17); // GSA has a total of 17 data fields
+	// We put all fields in a vector
+	while (getline(ss, data, ',')) s_data.push_back(data);
+
+	// Fix status
+	if (s_data[2] == "1") this->active = false;
+
+	// DOP
+	this->hdop = stof(s_data[16]);
+	this->vdop = stof(s_data[17].substr(0, s_data[17].find_first_of('*')));
 }
 
 void GPS::parse_RMC(const string& frame)

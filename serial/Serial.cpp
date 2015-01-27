@@ -50,6 +50,7 @@ void Serial::serial_thread()
 
 					frame = "";
 					endl_pos = 0;
+					this_thread::sleep_for(chrono::milliseconds(50));
 				}
 			}
 		}
