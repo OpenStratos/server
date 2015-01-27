@@ -7,6 +7,12 @@
 
 using namespace os;
 
+GPS& GPS::get_instance()
+{
+	static GPS instance;
+	return instance;
+}
+
 GPS::~GPS()
 {
 	this->serial.close();
@@ -16,7 +22,9 @@ void GPS::initialize(const string& serial_URL)
 {
 	Serial serial(serial_URL, 9600, "\r\n", bind(&GPS::parse, this, placeholders::_1));
 	this->serial = serial;
-	// TODO setup GPS with commands
+
+	this->serial.send_frame("$PMTK220,100*2F");
+	this->serial.send_frame("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
 }
 
 uint_fast8_t GPS::parse(const string& frame)

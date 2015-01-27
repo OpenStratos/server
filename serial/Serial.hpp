@@ -18,6 +18,7 @@
 			void serial_thread();
 		public:
 			Serial(const string& serial_URL, int baud, const string endl, function<uint_fast8_t(const string&)>);
+			Serial() = default;
 			~Serial();
 
 			uint_fast8_t send_frame(string frame);

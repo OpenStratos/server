@@ -38,7 +38,7 @@
 			void parse_RMC(const string& frame);
 
 		public:
-			static GPS& getInstance();
+			static GPS& get_instance();
 
 			time_t get_time() {return this->time;}
 			bool is_active() {return this->active;}
