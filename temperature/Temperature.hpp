@@ -13,21 +13,20 @@
 		private:
 			int devId;
 			int filehandle;
-			int lastTemp;
+			float lastTemp;
 			bool reading;
-			thread readThread;
 
 			Temperature() = default;
 			~Temperature();
 
-			void startReading();
-			void stopReading();
-			void readTemperature();
+			void read_temperature();
 
 		public:
-			static Temperature& getInstance();
+			static Temperature& get_instance();
 
-			int getLastTemp() {return this->lastTemp;}
+			int get_last_temp() {return this->lastTemp;}
+			void start_reading();
+			void stop_reading();
 
 			void initialize(const int devId);
 		};

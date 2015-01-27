@@ -1,5 +1,5 @@
 bin_PROGRAMS=openstratos
-openstratos_SOURCES=openstratos.cpp camera/Camera.cpp gps/GPS.cpp
+openstratos_SOURCES=openstratos.cpp camera/Camera.cpp gps/GPS.cpp temperature/Temperature.cpp
 openstratos_LDADD = -lwiringPi -lpthread
 openstratos_CPPFLAGS = -std=c++11 -Wno-unused-result
 

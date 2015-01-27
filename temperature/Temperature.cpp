@@ -3,10 +3,16 @@
 
 using namespace os;
 
+Temperature& Temperature::get_instance()
+{
+	static Temperature instance;
+	return instance;
+}
+
 Temperature::~Temperature()
 {
 	if (this->reading)
-		this->stopReading();
+		this->stop_reading();
 }
 
 void Temperature::initialize(const int devId)
@@ -23,35 +29,36 @@ void Temperature::initialize(const int devId)
 	}
 }
 
-void Temperature::startReading()
+void Temperature::start_reading()
 {
 	if (!this->reading)
 	{
-		this->readThread = thread t(&Temperature::readTemperature, this);
+		thread t(&Temperature::read_temperature, this);
 		this->reading = true;
-		this->readThread.detach();
+		t.detach();
 	}
 }
 
-void Temperature::stopReading()
+void Temperature::stop_reading()
 {
 	this->reading = false;
 }
 
-void Temperature::readTemperature()
+void Temperature::read_temperature()
 {
-	while (this->reading) {
+	while (this->reading)
+	{
 		int value = wiringPiI2CRead(this->filehandle);
 
 		// 32768 = 2^15
-		int voltage = value * 5 / 32768;
+		float voltage = value * 5 / 32768;
 		
-		int temperature = TEMP_R * (TEMP_VIN / voltage - 1);
+		float temperature = TEMP_R * (TEMP_VIN / voltage - 1);
 
 		// TODO Refine formula
-		int temp = temperature - 1000 / 3.91;
+		float temp = temperature - 1000 / 3.91;
 
-		this->lasTemp = temp;
+		this->lastTemp = temp;
 		this_thread::sleep_for(chrono::milliseconds(50));
 	}
 }
