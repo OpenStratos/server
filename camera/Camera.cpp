@@ -5,8 +5,6 @@
 #include <thread>
 #include <chrono>
 
-#include <iostream>
-
 using namespace os;
 using namespace std;
 

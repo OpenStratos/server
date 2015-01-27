@@ -123,5 +123,6 @@ void GPS::parse_RMC(const string& frame)
 	if (s_data[6] == "W") this->latitude *= -1;
 
 	// Update velocity
-	this->velocity = knots_to_mps(stof(s_data[7]));
+	this->velocity.speed = kt_to_mps(stof(s_data[7]));
+	this->velocity.course = stof(s_data[8]);
 }

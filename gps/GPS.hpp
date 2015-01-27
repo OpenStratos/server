@@ -2,7 +2,6 @@
 	#define GPS_H
 
 	#include <string>
-	#include <thread>
 	#include <cstdint>
 	#include "../serial/Serial.hpp"
 
@@ -10,7 +9,7 @@
 
 	namespace os {
 
-		struct velocity
+		struct euc_vec
 		{
 			float speed;
 			float course;
@@ -29,7 +28,7 @@
 			float altitude;
 			float hdop;
 			float vdop;
-			velocity velocity;
+			euc_vec velocity;
 
 			GPS() = default;
 			~GPS();
@@ -49,7 +48,7 @@
 			float get_altitude() {return this->altitude;}
 			float get_HDOP() {return this->hdop;}
 			float get_VDOP() {return this->vdop;}
-			velocity get_velocity() {return this->velocity;}
+			euc_vec get_velocity() {return this->velocity;}
 
 			void initialize(const string& serial_URL);
 			uint_fast8_t parse(const string& frame);

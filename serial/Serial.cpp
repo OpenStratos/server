@@ -2,6 +2,9 @@
 #include <wiringSerial.h>
 #include <thread>
 #include <regex>
+#include <functional>
+#include <cstdint>
+#include <string>
 
 using namespace os;
 
