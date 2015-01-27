@@ -25,14 +25,17 @@ void Temperature::initialize(const int devId)
 
 void Temperature::startReading()
 {
-	this->readThread = thread t(&Temperature::readTemperature, this);
-	this->reading = true;
+	if (!this->reading)
+	{
+		this->readThread = thread t(&Temperature::readTemperature, this);
+		this->reading = true;
+		this->readThread.detach();
+	}
 }
 
 void Temperature::stopReading()
 {
 	this->reading = false;
-	this->readThread.detach();
 }
 
 void Temperature::readTemperature()
