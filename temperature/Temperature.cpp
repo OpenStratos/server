@@ -1,4 +1,5 @@
 #include "Temperature.hpp"
+#include "../constants.hpp"
 
 using namespace os;
 
@@ -38,8 +39,16 @@ void Temperature::readTemperature()
 {
 	while (this->reading) {
 		int value = wiringPiI2CRead(this->filehandle);
-		//TODO Convert value to temperature
-		this->lasTemp = value;
+
+		// 32768 = 2^15
+		int voltage = value * 5 / 32768;
+		
+		int temperature = TEMP_R * (TEMP_VIN / voltage - 1);
+
+		// TODO Refine formula
+		int temp = temperature - 1000 / 3.91;
+
+		this->lasTemp = temp;
 		this_thread::sleep_for(chrono::milliseconds(50));
 	}
 }

@@ -33,5 +33,6 @@
 		};
 	}
 	
+	inline float r_to_c(float r) { return (r - 1000 / 3.91);}
 
 #endif
