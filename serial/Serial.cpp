@@ -30,7 +30,7 @@ void Serial::serial_thread()
 
 	while(this->open)
 	{
-		this_thread::sleep_for(chrono::milliseconds(1));
+		this_thread::sleep_for(chrono::milliseconds(5));
 		int available = serialDataAvail(this->fd);
 
 		if (available > 0)
@@ -54,9 +54,13 @@ void Serial::serial_thread()
 				}
 			}
 		}
+		else if (available == 0)
+		{
+			this_thread::sleep_for(chrono::milliseconds(25));
+		}
 		else if (available < 0)
 		{
-			// TODO check error and throw exception
+			// TODO log error
 		}
 	}
 }
@@ -68,7 +72,10 @@ uint_fast8_t Serial::send_frame(string frame)
 		frame += endl;
 		serialPuts(this->fd, frame.c_str());
 	}
-	// TODO what if it's not valid? exception?
+	else
+	{
+		// TODO log error
+	}
 }
 
 void Serial::close()

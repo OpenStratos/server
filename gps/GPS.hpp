@@ -9,6 +9,13 @@
 	using namespace std;
 
 	namespace os {
+
+		struct velocity
+		{
+			float speed;
+			float course;
+		};
+
 		class GPS
 		{
 		private:
@@ -22,18 +29,10 @@
 			float altitude;
 			float hdop;
 			float vdop;
+			velocity velocity;
 
 			GPS() = default;
 			~GPS();
-
-			void set_time(time_t time) {this->time = time;}
-			void set_active(bool active) {this->active = active;}
-			void set_satellites(uint_fast8_t satellites) {this->satellites = satellites;}
-			void set_latitude(double latitude) {this->latitude = latitude;}
-			void set_longitude(double longitude) {this->longitude = longitude;}
-			void set_altitude(float altitude) {this->altitude = altitude;}
-			void set_HDOP(float hdop) {this->hdop = hdop;}
-			void set_VDOP(float vdop) {this->vdop = vdop;}
 
 			void parse_GGA(const string& frame);
 			void parse_GSA(const string& frame);
@@ -47,12 +46,15 @@
 			uint_fast8_t get_satellites() {return this->satellites;}
 			double get_latitude() {return this->latitude;}
 			double get_longitude() {return this->longitude;}
-			float get_lltitude() {return this->altitude;}
+			float get_altitude() {return this->altitude;}
 			float get_HDOP() {return this->hdop;}
 			float get_VDOP() {return this->vdop;}
+			velocity get_velocity() {return this->velocity;}
 
 			void initialize(const string& serial_URL);
 			uint_fast8_t parse(const string& frame);
 		};
 	}
+
+	inline float kt_to_mps(float knots) {return knots*463/900;}
 #endif
