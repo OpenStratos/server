@@ -25,7 +25,7 @@
 			uint_fast8_t satellites;
 			double latitude;
 			double longitude;
-			float altitude;
+			double altitude;
 			float hdop;
 			float vdop;
 			euc_vec velocity;
@@ -45,7 +45,7 @@
 			uint_fast8_t get_satellites() {return this->satellites;}
 			double get_latitude() {return this->latitude;}
 			double get_longitude() {return this->longitude;}
-			float get_altitude() {return this->altitude;}
+			double get_altitude() {return this->altitude;}
 			float get_HDOP() {return this->hdop;}
 			float get_VDOP() {return this->vdop;}
 			euc_vec get_velocity() {return this->velocity;}
