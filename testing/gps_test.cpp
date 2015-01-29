@@ -32,7 +32,7 @@ describe("GPS", [](){
 		double altitude = GPS::get_instance().get_altitude();
 		float hdop = GPS::get_instance().get_HDOP();
 
-		GPS::get_instance().parse("$GPGGA,151025,2011.3454,N,12020.2464,W,0,05,1.53,20134.13,M,20103.45,M,,*56");
+		GPS::get_instance().parse("$GPGGA,170810,2316.3654,S,12225.2464,E,0,07,1.89,18647.15,M,18640.35,M,,*53");
 
 		AssertThat(GPS::get_instance().is_active(), Equals(false));
 		AssertThat(GPS::get_instance().get_time(), Equals(time));
@@ -44,11 +44,22 @@ describe("GPS", [](){
 	});
 
 	it("GSA frame parser test", [&](){
+		GPS::get_instance().parse("$GPGSA,A,3,,,,,,16,18,,22,24,,,3.6,2.1,2.2*3C");
 
+		AssertThat(GPS::get_instance().is_active(), Equals(true));
+		AssertThat(GPS::get_instance().get_HDOP(), Is().EqualToWithDelta(2.1, 0.0005));
+		AssertThat(GPS::get_instance().get_VDOP(), Is().EqualToWithDelta(2.2, 0.0005));
 	});
 
 	it("GSA frame parser pass test", [&](){
+		float hdop = GPS::get_instance().get_HDOP();
+		float vdop = GPS::get_instance().get_VDOP();
 
+		GPS::get_instance().parse("$GPGSA,A,1,19,28,14,18,27,22,31,39,,,,,1.7,1.0,1.3*36");
+
+		AssertThat(GPS::get_instance().is_active(), Equals(false));
+		AssertThat(GPS::get_instance().get_HDOP(), Equals(hdop));
+		AssertThat(GPS::get_instance().get_VDOP(), Equals(vdop));
 	});
 
 	it("RMC frame parser test", [&](){
