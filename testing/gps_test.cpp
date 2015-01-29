@@ -63,10 +63,41 @@ describe("GPS", [](){
 	});
 
 	it("RMC frame parser test", [&](){
+		GPS::get_instance().parse("$GPRMC,225446,A,4916.45,N,12311.12,W,000.5,054.7,191194,020.3,E*68");
 
+		AssertThat(GPS::get_instance().is_active(), Equals(true));
+
+		time_t gps_time = GPS::get_instance().get_time();
+		tm* time = gmtime(&gps_time);
+		AssertThat(time->tm_mday, Equals(19));
+		AssertThat(time->tm_mon, Equals(11));
+		AssertThat(time->tm_year, Equals(194));
+		AssertThat(time->tm_hour, Equals(22));
+		AssertThat(time->tm_min, Equals(54));
+		AssertThat(time->tm_sec, Equals(46));
+
+		AssertThat(GPS::get_instance().get_latitude(), Is().EqualToWithDelta(49.27417, 0.00001));
+		AssertThat(GPS::get_instance().get_longitude(), Is().EqualToWithDelta(-123.18533, 0.00001));
+
+		AssertThat(GPS::get_instance().get_velocity().speed, Is().EqualToWithDelta(0.25722, 0.00001));
+		AssertThat(GPS::get_instance().get_velocity().course, Is().EqualToWithDelta(54.7, 0.001));
 	});
 
 	it("RMC frame parser pass test", [&](){
 
+		time_t time = GPS::get_instance().get_time();
+		double latitude = GPS::get_instance().get_latitude();
+		double longitude = GPS::get_instance().get_longitude();
+		float speed = GPS::get_instance().get_velocity().speed;
+		float course = GPS::get_instance().get_velocity().course;
+
+		GPS::get_instance().parse("$GPRMC,081836,V,3751.65,S,14507.36,E,000.0,360.0,130998,011.3,E*75");
+
+		AssertThat(GPS::get_instance().is_active(), Equals(false));
+		AssertThat(GPS::get_instance().get_time(), Equals(time));
+		AssertThat(GPS::get_instance().get_latitude(), Equals(latitude));
+		AssertThat(GPS::get_instance().get_longitude(), Equals(longitude));
+		AssertThat(GPS::get_instance().get_velocity().speed, Equals(speed));
+		AssertThat(GPS::get_instance().get_velocity().course, Equals(course));
 	});
 });

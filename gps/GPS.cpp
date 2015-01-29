@@ -142,7 +142,7 @@ void GPS::parse_RMC(const string& frame)
 		// Update longitude
 		this->longitude = stoi(s_data[5].substr(0, 3));
 		this->longitude += stof(s_data[5].substr(3, s_data[5].length()-3))/60;
-		if (s_data[6] == "W") this->latitude *= -1;
+		if (s_data[6] == "W") this->longitude *= -1;
 
 		// Update velocity
 		this->velocity.speed = kt_to_mps(stof(s_data[7]));
