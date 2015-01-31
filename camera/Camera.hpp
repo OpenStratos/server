@@ -8,16 +8,16 @@
 		private:
 			Camera() = default;
 			~Camera();
-			void recordThread(int time);
+			void record_thread(int time);
 
 			bool recording = false;
 		public:
-			static Camera& getCamera();
+			static Camera& get_instance();
 
 			void record(int time);
 			void record();
 			void stop();
-			bool isRecording() const {return this->recording;}
+			bool is_recording() const {return this->recording;}
 		};
 	}
 #endif

@@ -5,15 +5,13 @@
 #include <thread>
 #include <chrono>
 
-#include <iostream>
-
 using namespace os;
 using namespace std;
 
-Camera& Camera::getCamera()
+Camera& Camera::get_instance()
 {
-	static Camera camera;
-	return camera;
+	static Camera instance;
+	return instance;
 }
 
 Camera::~Camera()
@@ -21,7 +19,7 @@ Camera::~Camera()
 	if (this->recording) this->stop();
 }
 
-void Camera::recordThread(int time)
+void Camera::record_thread(int time)
 {
 	this_thread::sleep_for(chrono::milliseconds(time));
 	this->recording = false;
@@ -40,7 +38,7 @@ void Camera::record(int time)
 
 		if (time > 0)
 		{
-			thread t(&Camera::recordThread, this, time);
+			thread t(&Camera::record_thread, this, time);
 			t.detach();
 		}
 	}
