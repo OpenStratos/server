@@ -1,8 +1,12 @@
 language: erlang # We are creating ARM emulation on travis, so no need for language features
 
+env: CHROOT_DIR=/tmp/arm-chroot MIRROR=http://archive.raspbian.org/raspbian VERSION=jessie CHROOT_ARCH=armhf GUEST_DEPENDENCIES="git g++ make sudo autoconf automake m4"
+
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -qq -y debootstrap qemu-user-static binfmt-support sbuild
+  - sudo apt-get install -qq -y qemu-user-static binfmt-support sbuild
+  - wget https://launchpad.net/ubuntu/+archive/primary/+files/debootstrap_1.0.59ubuntu0.2_all.deb
+  - sudo dpkg -i debootstrap_1.0.59ubuntu0.2_all.deb
 
 script:
   - "bash -ex ./testing/.travis-ci.sh"
@@ -21,5 +25,6 @@ notifications:
       - iban.eguia@opendeusto.es
       - jordan.aranda@me.com
       - aritzbilbao@deusto.es
+      - eneko.cruz@opendeusto.es
     on_success: change
     on_failure: always

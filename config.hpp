@@ -53,13 +53,13 @@
 #define PACKAGE "openstratos"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "https://github.com/OpenStratos/server/issues"
+#define PACKAGE_BUGREPORT "https://openstratos.org/bugtracker"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "OpenStratos"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "OpenStratos 0.0.1-SNAPSHOT"
+#define PACKAGE_STRING "OpenStratos Alpha-1-dev"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "openstratos"
@@ -68,7 +68,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.0.1-SNAPSHOT"
+#define PACKAGE_VERSION "Alpha-1-dev"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
@@ -77,7 +77,7 @@
 #define TIME_WITH_SYS_TIME 1
 
 /* Version number of package */
-#define VERSION "0.0.1-SNAPSHOT"
+#define VERSION "Alpha-1-dev"
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
