@@ -14,15 +14,13 @@ function setup_arm_chroot {
     sudo mount --bind /dev/pts ${CHROOT_DIR}/dev/pts
 
     # Installing guest dependencies
+    sudo chroot ${CHROOT_DIR} apt-get update
     sudo chroot ${CHROOT_DIR} apt-get --allow-unauthenticated install \
         -qq -y ${GUEST_DEPENDENCIES} > /dev/null
 
-    # Create build dir and copy travis build files to our chroot environment
+    # Create build dir and copy travis build files to the chroot environment
     sudo mkdir -p ${CHROOT_DIR}/${TRAVIS_BUILD_DIR}
     sudo rsync -av ${TRAVIS_BUILD_DIR}/ ${CHROOT_DIR}/${TRAVIS_BUILD_DIR}/ > /dev/null
-
-    # Give executable permissions to testing script
-    sudo chroot ${CHROOT_DIR} bash -c "sudo chmod a+x ${TRAVIS_BUILD_DIR}/testing/.travis-ci.sh"
 
     # Indicate chroot environment has been set up
     sudo touch ${CHROOT_DIR}/.chroot_is_done
@@ -36,19 +34,19 @@ export LANGUAGE="en_US.UTF-8"
 if [ -e "/.chroot_is_done" ]; then
   # We are inside ARM chroot
   printf "\n\n"
-  printf "|------------------------------------------------------------|"
-  printf "Running tests"
+  printf "|------------------------------------------------------------|\n\n"
   printf "Environment: $(uname -a)"
+  printf "|------------------------------------------------------------|\n\n"
 
   # Installing WiringPi
-  printf "Installing WiringPi"
+  printf "Installing WiringPi\n"
   git clone https://github.com/OpenStratos/WiringPi.git > /dev/null
   cd WiringPi
   ./build > /dev/null
   cd ..
 
   # Updating nested submodules
-  printf "Updating nested submodules"
+  printf "Updating nested submodules\n"
   cd testing/bandit
   git submodule init > /dev/null
   git submodule update > /dev/null
@@ -57,7 +55,6 @@ if [ -e "/.chroot_is_done" ]; then
   # Start build
   ./build.sh
 else
-  # ARM test run, need to set up chrooted environment first
-  printf "Setting up chrooted ARM environment"
+  # Setting ARM chroot environment
   setup_arm_chroot
 fi
