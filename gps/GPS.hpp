@@ -20,7 +20,7 @@
 		private:
 			Serial serial;
 
-			time_t time;
+			tm time;
 			bool active;
 			uint_fast8_t satellites;
 			double latitude;
@@ -40,7 +40,7 @@
 		public:
 			static GPS& get_instance();
 
-			time_t get_time() {return this->time;}
+			tm* get_time() {return &this->time;}
 			bool is_active() {return this->active;}
 			uint_fast8_t get_satellites() {return this->satellites;}
 			double get_latitude() {return this->latitude;}
@@ -48,7 +48,7 @@
 			double get_altitude() {return this->altitude;}
 			float get_HDOP() {return this->hdop;}
 			float get_VDOP() {return this->vdop;}
-			euc_vec get_velocity() {return this->velocity;}
+			euc_vec* get_velocity() {return &this->velocity;}
 
 			void initialize(const string& serial_URL);
 			uint_fast8_t parse(const string& frame);
