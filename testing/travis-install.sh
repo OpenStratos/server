@@ -12,6 +12,8 @@ sudo sbuild-createchroot --arch=armhf --foreign --setup-only jessie /tmp/arm-chr
 
 sudo mount --bind /dev/pts /tmp/arm-chroot/dev/pts
 
+sudo chroot /tmp/arm-chroot export LANGUAGE="en_US.UTF-8"
+
 # Installing guest dependencies
 sudo chroot /tmp/arm-chroot apt-get update
 sudo chroot /tmp/arm-chroot apt-get --allow-unauthenticated install \
@@ -21,4 +23,5 @@ sudo chroot /tmp/arm-chroot apt-get --allow-unauthenticated install \
 sudo mkdir -p /tmp/arm-chroot/${TRAVIS_BUILD_DIR}
 sudo rsync -av ${TRAVIS_BUILD_DIR}/ /tmp/arm-chroot/${TRAVIS_BUILD_DIR}/ > /dev/null
 
-chmod a+x /tmp/arm-chroot/${TRAVIS_BUILD_DIR}/testing/test.sh
+chmod a+x /tmp/arm-chroot/${TRAVIS_BUILD_DIR}/testing/travis-test.sh
+chmod a+x /tmp/arm-chroot/${TRAVIS_BUILD_DIR}/build.sh

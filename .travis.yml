@@ -10,10 +10,10 @@ before_install:
   - sudo dpkg -i debootstrap_1.0.59ubuntu0.2_all.deb
 
 install:
-  - "bash -ex ./testing/install.sh"
+  - "bash -ex ./testing/travis-install.sh"
 
 script:
-  - "bash -ex ./testing/test.sh"
+  - "bash -ex ./testing/travis-test.sh"
 
 branches:
   only:

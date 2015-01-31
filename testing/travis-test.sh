@@ -1,7 +1,6 @@
 #!/bin/bash
 
 if [ -e "/.chroot_is_done" ]; then
-	export LANGUAGE="en_US.UTF-8"
 
 	printf "\n\n"
 	printf "|------------------------------------------------------------|\n\n"
@@ -18,6 +17,6 @@ if [ -e "/.chroot_is_done" ]; then
 	# Start build
 	./build.sh
 else
-	touch /tmp/arm-chroot/${TRAVIS_BUILD_DIR}/.chroot_is_done
+	touch /tmp/arm-chroot${TRAVIS_BUILD_DIR}/.chroot_is_done
 	sudo chroot /tmp/arm-chroot bash -c "cd ${TRAVIS_BUILD_DIR} && ./testing/test.sh"
 fi
