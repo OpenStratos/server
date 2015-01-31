@@ -21,6 +21,7 @@
 			int get_last_temp() {return this->lastTemp;}
 			void start_reading();
 			void stop_reading();
+			bool get_reading() {return this->reading;}
 
 		};
 	}

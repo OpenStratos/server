@@ -15,6 +15,7 @@ Temperature::~Temperature()
 
 Temperature::Temperature(const int devId)
 {
+	this->reading = false;
 	int fh = wiringPiI2CSetup(devId);
 	if (fh != -1)
 	{
