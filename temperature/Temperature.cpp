@@ -1,13 +1,11 @@
 #include "Temperature.hpp"
 #include "../constants.hpp"
+#include <wiringPiI2C.h>
+#include <string>
+#include <thread>
+#include <chrono>
 
 using namespace os;
-
-Temperature& Temperature::get_instance()
-{
-	static Temperature instance;
-	return instance;
-}
 
 Temperature::~Temperature()
 {
@@ -15,7 +13,7 @@ Temperature::~Temperature()
 		this->stop_reading();
 }
 
-void Temperature::initialize(const int devId)
+Temperature::Temperature(const int devId)
 {
 	int fh = wiringPiI2CSetup(devId);
 	if (fh != -1)
@@ -55,8 +53,8 @@ void Temperature::read_temperature()
 		
 		float temperature = TEMP_R * (TEMP_VIN / voltage - 1);
 
-		// TODO Refine formula
-		float temp = temperature - 1000 / 3.91;
+
+		float temp = r_to_c(temperature);
 
 		this->lastTemp = temp;
 		this_thread::sleep_for(chrono::milliseconds(50));
