@@ -10,7 +10,7 @@ describe("GPS", [](){
 		AssertThat(GPS::get_instance().is_active(), Equals(true));
 
 		time_t gps_time = GPS::get_instance().get_time();
-		tm* time = gmtime(&gps_time);
+		tm* time = localtime(&gps_time);
 		AssertThat(time->tm_hour, Equals(15));
 		AssertThat(time->tm_min, Equals(10));
 		AssertThat(time->tm_sec, Equals(25));
@@ -68,7 +68,7 @@ describe("GPS", [](){
 		AssertThat(GPS::get_instance().is_active(), Equals(true));
 
 		time_t gps_time = GPS::get_instance().get_time();
-		tm* time = gmtime(&gps_time);
+		tm* time = localtime(&gps_time);
 		AssertThat(time->tm_mday, Equals(19));
 		AssertThat(time->tm_mon, Equals(11));
 		AssertThat(time->tm_year, Equals(194));

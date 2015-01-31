@@ -5,6 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <cstdio>
 
 using namespace os;
 
@@ -66,11 +67,11 @@ void GPS::parse_GGA(const string& frame)
 	if (this->active)
 	{
 		// Update time
-		tm* current_t = gmtime(&this->time);
+		tm* current_t = localtime(&this->time);
 		current_t->tm_hour = stoi(s_data[1].substr(0, 2));
 		current_t->tm_min = stoi(s_data[1].substr(2, 2));
 		current_t->tm_sec = stoi(s_data[1].substr(4, 2));
-		this->time = timegm(current_t); // TODO check if timegm exists
+		this->time = mktime(current_t);
 
 		// Update latitude
 		this->latitude = stoi(s_data[2].substr(0, 2));
@@ -124,7 +125,7 @@ void GPS::parse_RMC(const string& frame)
 	if (this->active)
 	{
 		// Update date and time
-		tm* current_t = gmtime(&this->time);
+		tm* current_t = localtime(&this->time);
 		current_t->tm_hour = stoi(s_data[1].substr(0, 2));
 		current_t->tm_min = stoi(s_data[1].substr(2, 2));
 		current_t->tm_sec = stoi(s_data[1].substr(4, 2));
@@ -132,7 +133,7 @@ void GPS::parse_RMC(const string& frame)
 		current_t->tm_mday = stoi(s_data[9].substr(0, 2));
 		current_t->tm_mon = stoi(s_data[9].substr(2, 2));
 		current_t->tm_year = stoi(s_data[9].substr(4, 2))+100;
-		this->time = timegm(current_t); // TODO check if timegm exists
+		this->time = mktime(current_t);
 
 		// Update latitude
 		this->latitude = stoi(s_data[3].substr(0, 2));

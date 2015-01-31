@@ -32,7 +32,7 @@ AC_TYPE_SIZE_T
 # Checks for library functions.
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_MKTIME
-AC_CHECK_FUNCS([stpcpy strstr timegm])
+AC_CHECK_FUNCS([stpcpy strstr])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
