@@ -12,7 +12,7 @@ sudo sbuild-createchroot --arch=armhf --foreign --setup-only jessie /tmp/arm-chr
 
 sudo mount --bind /dev/pts /tmp/arm-chroot/dev/pts
 
-sudo chroot /tmp/arm-chroot export LANGUAGE="en_US.UTF-8"
+sudo chroot /tmp/arm-chroot  bash -c "export LANGUAGE=\"en_US.UTF-8\""
 
 # Installing guest dependencies
 sudo chroot /tmp/arm-chroot apt-get update
