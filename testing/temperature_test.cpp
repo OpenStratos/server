@@ -1,7 +1,7 @@
 describe("Temperature", [&](){
 
 	it("Read test", [&]() {
-		std::unique_ptr<Temperature> temp(new Temperature(20));
+		Temperature temp(20);
 		temp.start_reading();
 		AssertThat(temp.get_reading(), Equals(true));
 
@@ -10,10 +10,10 @@ describe("Temperature", [&](){
 	});
 
 	it("Conversion test", [&]() {
-		AssertThat(r_to_c(1000), Equals(0));
+		AssertThat(r_to_c(1000), EqualToWithDelta(0, 0.05));
 
-		AssertThat(r_to_c(1573), Equals(150));
+		AssertThat(r_to_c(1573), EqualToWithDelta(150, 0.05));
 
-		AssertThat(r_to_c(803,1), Equals(-50));
+		AssertThat(r_to_c(803,1), EqualToWithDelta(-50, 0.05));
 	});
 });

@@ -26,6 +26,11 @@
 		};
 	}
 	
-	inline float r_to_c(float r) { return ((r - 1000) / 3.91 + (r - 1000) * 2 / 100000); }
+	inline float r_to_c(float r) 
+	{ 
+		float value = r - 1000;
+		return (value / 3.91 + value * value / 100000); 
+	}
 
 #endif
+	

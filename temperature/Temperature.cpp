@@ -24,7 +24,8 @@ Temperature::Temperature(const int devId)
 	}
 	else
 	{	
-		printf("An error ocurred initializing I2C Temperature module\n");
+		//TODO Log error
+		//printf("An error ocurred initializing I2C Temperature module\n");
 	}
 }
 
@@ -32,8 +33,8 @@ void Temperature::start_reading()
 {
 	if (!this->reading)
 	{
-		thread t(&Temperature::read_temperature, this);
 		this->reading = true;
+		thread t(&Temperature::read_temperature, this);
 		t.detach();
 	}
 }
