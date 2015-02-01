@@ -47,3 +47,7 @@ Makefile
 .deps/
 .dirstamp
 *~
+
+# Eclipse files
+.project
+.cproject
