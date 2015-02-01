@@ -1,15 +1,17 @@
 describe("Temperature", [&](){
 
-	it("Read test", [&]() {
+	it("read & stop test", [&]() {
 		Temperature temp(20);
 		temp.start_reading();
-		AssertThat(temp.get_reading(), Equals(true));
+		AssertThat(temp.is_reading(), Equals(true));
+
+	//	this_thread::sleep_for(chrono::milliseconds(100)); if uncommented less segmentation faults
 
 		temp.stop_reading();
-		AssertThat(temp.get_reading(), Equals(false));
+		AssertThat(temp.is_reading(), Equals(false));
 	});
 
-	it("Conversion test", [&]() {
+	it("resistor to temperature conversion test", [&]() {
 
 		AssertThat(r_to_c(1155.4), Is().EqualToWithDelta(40, 0.05));
 		AssertThat(r_to_c(1116.9), Is().EqualToWithDelta(30, 0.05));

@@ -7,20 +7,20 @@
 		class Temperature
 		{
 		private:
-			int devId;
+			int address;
 			int filehandle;
-			float lastTemp;
+			float temperature;
 			bool reading;
 
 			void read_temperature();
 		public:
-			Temperature(const int devId);
+			Temperature(const int address);
 			~Temperature();
 
-			int get_last_temp() {return this->lastTemp;}
+			int get_temperature() {return this->temperature;}
 			void start_reading();
 			void stop_reading();
-			bool get_reading() {return this->reading;}
+			bool is_reading() {return this->reading;}
 		};
 	}
 

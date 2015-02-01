@@ -15,14 +15,14 @@ Temperature::~Temperature()
 		this->stop_reading();
 }
 
-Temperature::Temperature(const int devId)
+Temperature::Temperature(const int address)
 {
 	this->reading = false;
 	#ifndef OS_TESTING
-		int fh = wiringPiI2CSetup(devId);
+		int fh = wiringPiI2CSetup(address);
 		if (fh != -1)
 		{
-			this->devId = devId;
+			this->address = address;
 			this->filehandle = fh;
 		}
 		else
@@ -58,15 +58,11 @@ void Temperature::read_temperature()
 			int value = 16000;
 		#endif
 
-		// 32768 = 2^15
-		float voltage = value * 5 / 32768;
+		float voltage = value * 5 / 32768; // 2^15
+		float temp = r_to_c(TEMP_R * (TEMP_VIN / voltage - 1));
 
-		float temperature = TEMP_R * (TEMP_VIN / voltage - 1);
+		this->temperature = temp; // Gives segmentation fault
 
-
-		float temp = r_to_c(temperature);
-
-		this->lastTemp = temp;
 		this_thread::sleep_for(chrono::milliseconds(50));
 	}
 }
