@@ -12,25 +12,21 @@
 			float lastTemp;
 			bool reading;
 
+			void read_temperature();
+		public:
 			Temperature(const int devId);
 			~Temperature();
 
-			void read_temperature();
-
-		public:
 			int get_last_temp() {return this->lastTemp;}
 			void start_reading();
 			void stop_reading();
 			bool get_reading() {return this->reading;}
-
 		};
 	}
-	
-	inline float r_to_c(float r) 
-	{ 
-		float value = r - 1000;
-		return (value / 3.91 + value * value / 100000); 
-	}
 
+	inline float r_to_c(float r)
+	{
+		float value = r - 1000;
+		return (value / 3.91 + value * value / 100000);
+	}
 #endif
-	

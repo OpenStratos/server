@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <cstdio>
+#include <iostream>
 
 using namespace os;
 
@@ -25,10 +26,8 @@ void GPS::initialize(const string& serial_URL)
 	Serial serial(serial_URL, 9600, "\r\n", bind(&GPS::parse, this, placeholders::_1));
 	this->serial = serial;
 
-	#ifndef OS_TESTING
-		this->serial.send_frame("$PMTK220,100*2F");
-		this->serial.send_frame("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
-	#endif
+	this->serial.send_frame("$PMTK220,100*2F");
+	this->serial.send_frame("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
 }
 
 uint_fast8_t GPS::parse(const string& frame)

@@ -4,7 +4,9 @@
 #include <string>
 #include <thread>
 #include <chrono>
+#include <iostream>
 
+using namespace std;
 using namespace os;
 
 Temperature::~Temperature()
@@ -16,22 +18,24 @@ Temperature::~Temperature()
 Temperature::Temperature(const int devId)
 {
 	this->reading = false;
-	int fh = wiringPiI2CSetup(devId);
-	if (fh != -1)
-	{
-		this->devId = devId;
-		this->filehandle = fh;
-	}
-	else
-	{	
-		//TODO Log error
-		//printf("An error ocurred initializing I2C Temperature module\n");
-	}
+	#ifndef OS_TESTING
+		int fh = wiringPiI2CSetup(devId);
+		if (fh != -1)
+		{
+			this->devId = devId;
+			this->filehandle = fh;
+		}
+		else
+		{
+			//TODO Log error
+			//printf("An error ocurred initializing I2C Temperature module\n");
+		}
+	#endif
 }
 
 void Temperature::start_reading()
 {
-	if (!this->reading)
+	if ( ! this->reading)
 	{
 		this->reading = true;
 		thread t(&Temperature::read_temperature, this);
@@ -48,11 +52,15 @@ void Temperature::read_temperature()
 {
 	while (this->reading)
 	{
-		int value = wiringPiI2CRead(this->filehandle);
+		#ifndef OS_TESTING
+			int value = wiringPiI2CRead(this->filehandle);
+		#else
+			int value = 16000;
+		#endif
 
 		// 32768 = 2^15
 		float voltage = value * 5 / 32768;
-		
+
 		float temperature = TEMP_R * (TEMP_VIN / voltage - 1);
 
 
