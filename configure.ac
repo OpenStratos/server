@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT(OpenStratos, 0.0.1-SNAPSHOT, https://github.com/OpenStratos/server/issues)
+AC_INIT(OpenStratos, Alpha-1-dev, https://openstratos.org/bugtracker)
 AC_CONFIG_SRCDIR([openstratos.hpp])
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_HEADERS([config.hpp])
@@ -25,11 +25,13 @@ AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_11()
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_CHECK_HEADER_STDBOOL
 AC_C_INLINE
 AC_TYPE_SIZE_T
 
 # Checks for library functions.
 AC_FUNC_ERROR_AT_LINE
+AC_FUNC_MKTIME
 AC_CHECK_FUNCS([stpcpy strstr])
 
 AC_CONFIG_FILES([Makefile])

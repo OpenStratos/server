@@ -1,6 +1,9 @@
 /* config.hpp.  Generated from config.hpp.in by configure.  */
 /* config.hpp.in.  Generated from configure.ac by autoheader.  */
 
+/* Define to 1 if you have the `alarm' function. */
+#define HAVE_ALARM 1
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
@@ -34,23 +37,29 @@
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
 
+/* Define to 1 if you have the <sys/time.h> header file. */
+#define HAVE_SYS_TIME_H 1
+
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
 
+/* Define to 1 if the system has the type `_Bool'. */
+/* #undef HAVE__BOOL */
+
 /* Name of package */
 #define PACKAGE "openstratos"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "https://github.com/OpenStratos/server/issues"
+#define PACKAGE_BUGREPORT "https://openstratos.org/bugtracker"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "OpenStratos"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "OpenStratos 0.0.1-SNAPSHOT"
+#define PACKAGE_STRING "OpenStratos Alpha-1-dev"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "openstratos"
@@ -59,13 +68,16 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.0.1-SNAPSHOT"
+#define PACKAGE_VERSION "Alpha-1-dev"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#define TIME_WITH_SYS_TIME 1
+
 /* Version number of package */
-#define VERSION "0.0.1-SNAPSHOT"
+#define VERSION "Alpha-1-dev"
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */

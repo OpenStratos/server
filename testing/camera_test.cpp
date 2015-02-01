@@ -1,21 +1,19 @@
-describe("Camera test", [](){
+describe("Camera", [](){
 
-	it("recording", [&](){
-		Camera::getCamera().record(1000);
-		this_thread::sleep_for(chrono::milliseconds(200));
-		AssertThat(Camera::getCamera().isRecording(), Equals(true));
+	it("recording test", [&](){
+		Camera::get_instance().record(200);
+		AssertThat(Camera::get_instance().is_recording(), Equals(true));
 
-		this_thread::sleep_for(chrono::milliseconds(1500));
-		AssertThat(Camera::getCamera().isRecording(), Equals(false));
+		this_thread::sleep_for(chrono::milliseconds(250));
+		AssertThat(Camera::get_instance().is_recording(), Equals(false));
 	});
 
-	it("recording infinite video and stopping", [&](){
-		Camera::getCamera().record();
-		this_thread::sleep_for(chrono::milliseconds(200));
-		AssertThat(Camera::getCamera().isRecording(), Equals(true));
+	it("recording and stopping test", [&](){
+		Camera::get_instance().record();
+		AssertThat(Camera::get_instance().is_recording(), Equals(true));
 
-		this_thread::sleep_for(chrono::seconds(1));
-		Camera::getCamera().stop();
-		AssertThat(Camera::getCamera().isRecording(), Equals(false));
+		this_thread::sleep_for(chrono::milliseconds(200));
+		Camera::get_instance().stop();
+		AssertThat(Camera::get_instance().is_recording(), Equals(false));
 	});
 });
