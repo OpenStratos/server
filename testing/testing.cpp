@@ -21,4 +21,5 @@ go_bandit([](){
 	#include "camera_test.cpp"
 	#include "gps_test.cpp"
 	#include "serial_test.cpp"
+	#include "temperature_test.cpp"
 });
