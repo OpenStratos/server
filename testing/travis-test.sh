@@ -18,5 +18,5 @@ if [ -e "/.chroot_is_done" ]; then
 	./build.sh
 else
 	touch /tmp/arm-chroot${TRAVIS_BUILD_DIR}/.chroot_is_done
-	sudo chroot /tmp/arm-chroot bash -c "cd ${TRAVIS_BUILD_DIR} && ./testing/test.sh"
+	sudo chroot /tmp/arm-chroot bash -c "cd ${TRAVIS_BUILD_DIR} && ./testing/travis-test.sh"
 fi
