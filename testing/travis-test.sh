@@ -4,7 +4,7 @@ if [ -e "/.chroot_is_done" ]; then
 
 	printf "\n\n"
 	printf "|------------------------------------------------------------|\n\n"
-	printf "Environment: $(uname -a)"
+	printf "Environment: $(uname -a)\n\n"
 	printf "|------------------------------------------------------------|\n\n"
 
 	# Installing WiringPi
