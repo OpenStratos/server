@@ -10,12 +10,14 @@
 			int address;
 			int filehandle;
 			float temperature;
-			bool reading;
+			volatile bool reading;
+			volatile bool stopped;
 
 			void read_temperature();
 		public:
 			Temperature(const int address);
 			~Temperature();
+			Temperature(Temperature& copy) = delete;
 
 			int get_temperature() {return this->temperature;}
 			void start_reading();

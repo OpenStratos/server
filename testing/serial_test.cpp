@@ -10,5 +10,7 @@ describe("Serial", [](){
 		AssertThat(serial.is_valid(valid), Equals(true));
 		AssertThat(serial.is_valid(valid2), Equals(true));
 		AssertThat(serial.is_valid(not_valid), Equals(false));
+
+	//	serial.close();
 	});
 });

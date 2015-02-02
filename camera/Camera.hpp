@@ -12,6 +12,7 @@
 
 			bool recording = false;
 		public:
+			Camera(Camera& copy) = delete;
 			static Camera& get_instance();
 
 			void record(int time);

@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <string>
 
+using namespace std;
 using namespace os;
 
 Serial::Serial(const string& url, int baud, const string endl, function<uint_fast8_t(const string&)>)
@@ -14,11 +15,12 @@ Serial::Serial(const string& url, int baud, const string endl, function<uint_fas
 	this->endl = endl;
 	#ifndef OS_TESTING
 		this->fd = serialOpen(url.c_str(), baud);
-		this->open = true;
-
-		thread t(&Serial::serial_thread, this);
-		t.detach();
 	#endif
+
+	this->open = true;
+	this->stopped = false;
+	thread t(&Serial::serial_thread, this);
+	t.detach();
 }
 
 Serial::~Serial()
@@ -33,39 +35,41 @@ void Serial::serial_thread()
 
 	while(this->open)
 	{
-		this_thread::sleep_for(chrono::milliseconds(5));
-		int available = serialDataAvail(this->fd);
+		#ifndef OS_TESTING
+			int available = serialDataAvail(this->fd);
 
-		if (available > 0)
-		{
-			for (int i = 0; i < available; i++)
+			if (available > 0)
 			{
-				char c = serialGetchar(this->fd);
-				frame += c;
-
-				if (c == this->endl[endl_pos]) ++endl_pos;
-				if (endl_pos == this->endl.length())
+				for (int i = 0; i < available; i++)
 				{
-					frame = frame.substr(0, frame.length()-endl.length());
+					char c = serialGetchar(this->fd);
+					frame += c;
 
-					if (this->is_valid(frame)) this->listener(frame);
-					// TODO decide what to do in case of non valid frame
+					if (c == this->endl[endl_pos]) ++endl_pos;
+					if (endl_pos == this->endl.length())
+					{
+						frame = frame.substr(0, frame.length()-endl.length());
 
-					frame = "";
-					endl_pos = 0;
-					this_thread::sleep_for(chrono::milliseconds(50));
+						if (this->is_valid(frame)) this->listener(frame);
+						// TODO decide what to do in case of non valid frame
+
+						frame = "";
+						endl_pos = 0;
+						this_thread::sleep_for(chrono::milliseconds(50));
+					}
 				}
 			}
-		}
-		else if (available == 0)
-		{
-			this_thread::sleep_for(chrono::milliseconds(25));
-		}
-		else if (available < 0)
-		{
-			// TODO log error
-		}
+			else if (available == 0)
+			{
+				this_thread::sleep_for(chrono::milliseconds(25));
+			}
+			else if (available < 0)
+			{
+				// TODO log error
+			}
+		#endif
 	}
+	this->stopped = true;
 }
 
 uint_fast8_t Serial::send_frame(string frame)
@@ -84,7 +88,11 @@ uint_fast8_t Serial::send_frame(string frame)
 void Serial::close()
 {
 	this->open = false;
-	serialClose(this->fd);
+//	while( ! this->stopped); // It will not stop
+
+	#ifndef OS_TESTING
+		serialClose(this->fd);
+	#endif
 }
 
 bool Serial::is_valid(string frame)
