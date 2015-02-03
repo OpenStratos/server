@@ -1,6 +1,7 @@
 #ifndef TEMPERATURE_H
 	#define TEMPERATURE_H
 
+	#include <atomic>
 	using namespace std;
 
 	namespace os {
@@ -10,8 +11,8 @@
 			int address;
 			int filehandle;
 			float temperature;
-			volatile bool reading;
-			volatile bool stopped;
+			atomic_bool reading;
+			atomic_bool stopped;
 
 			void read_temperature();
 		public:

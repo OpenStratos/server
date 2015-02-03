@@ -6,8 +6,8 @@
 #include <sstream>
 #include <string>
 #include <cstdio>
-#include <iostream>
 
+using namespace std;
 using namespace os;
 
 GPS& GPS::get_instance()
@@ -23,11 +23,12 @@ GPS::~GPS()
 
 void GPS::initialize(const string& serial_URL)
 {
-	Serial serial(serial_URL, 9600, "\r\n", bind(&GPS::parse, this, placeholders::_1));
-	this->serial = serial;
+	this->serial.initialize(serial_URL, 9600, "\r\n", bind(&GPS::parse, this, placeholders::_1));
 
-	this->serial.send_frame("$PMTK220,100*2F");
-	this->serial.send_frame("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+	#ifndef OS_TESTING
+		this->serial.send_frame("$PMTK220,100*2F");
+		this->serial.send_frame("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+	#endif
 }
 
 uint_fast8_t GPS::parse(const string& frame)

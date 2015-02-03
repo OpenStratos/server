@@ -9,7 +9,7 @@
 using namespace std;
 using namespace os;
 
-Serial::Serial(const string& url, int baud, const string endl, function<uint_fast8_t(const string&)>)
+void Serial::initialize(const string& url, int baud, const string endl, function<uint_fast8_t(const string&)>)
 {
 	this->listener = listener;
 	this->endl = endl;
@@ -88,7 +88,7 @@ uint_fast8_t Serial::send_frame(string frame)
 void Serial::close()
 {
 	this->open = false;
-//	while( ! this->stopped); // It will not stop
+	while( ! this->stopped);
 
 	#ifndef OS_TESTING
 		serialClose(this->fd);
