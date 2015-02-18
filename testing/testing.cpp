@@ -4,9 +4,11 @@
 #include <serial/Serial.hpp>
 #include <camera/Camera.hpp>
 #include <gps/GPS.hpp>
+#include <battery/Battery.hpp>
 using namespace bandit;
 using namespace os;
 using namespace std;
+
 
 int main(int argc, char* argv[])
 {
@@ -19,4 +21,5 @@ go_bandit([](){
 	#include "camera_test.cpp"
 	#include "gps_test.cpp"
 	#include "serial_test.cpp"
+	#include "battery_test.cpp"
 });
