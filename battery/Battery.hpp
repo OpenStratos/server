@@ -21,7 +21,7 @@
 			~Battery();
 			Battery(Battery& copy) = delete;
 
-			int get_battery() {return this->battery;}
+			float get_battery() {return this->battery;}
 			void start_reading();
 			void stop_reading();
 			bool is_reading() {return this->reading;}

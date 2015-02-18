@@ -1,5 +1,3 @@
-#define OS_TESTING
-
 #include <bandit/bandit.h>
 #include <thread>
 #include <chrono>
@@ -10,6 +8,7 @@
 using namespace bandit;
 using namespace os;
 using namespace std;
+
 
 int main(int argc, char* argv[])
 {

@@ -27,7 +27,7 @@
 *.x86_64
 *.hex
 openstratos
-openstratos-root
+openstratosRoot
 utesting
 Makefile
 

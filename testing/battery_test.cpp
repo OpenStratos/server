@@ -13,7 +13,7 @@ describe("Battery", [](){
 		bat.start_reading();
 		this_thread::sleep_for(chrono::milliseconds(75));
 
-		AssertThat(bat.get_battery(), Is().EqualToWithDelta(0.5, 0.01));
+		AssertThat(bat.get_battery(), Is().EqualToWithDelta(50, 0.05));
 		bat.stop_reading();
 	});
 });
