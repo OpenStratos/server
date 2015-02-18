@@ -1,5 +1,3 @@
-#define OS_TESTING
-
 #include <bandit/bandit.h>
 #include <thread>
 #include <chrono>
