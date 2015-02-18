@@ -58,7 +58,7 @@ void Battery::read_battery()
 		#ifndef OS_TESTING
 			int value = wiringPiI2CRead(this->filehandle);
 		#else
-			int value = 16000;
+			int value = (0.5*(BAT_MAX-BAT_MIN)+BAT_MIN)*BAT_R2/(BAT_R1+BAT_R2);
 		#endif
 
 		float voltage5 = value * 5 / 32768; // 2^15
