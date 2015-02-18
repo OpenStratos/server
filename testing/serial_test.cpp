@@ -8,10 +8,16 @@ describe("Serial", [](){
 		Serial serial;
 		serial.initialize("", 9600, "\n", NULL);
 
+		cout << "Serial initialized" << endl;
+
 		AssertThat(serial.is_valid(valid), Equals(true));
 		AssertThat(serial.is_valid(valid2), Equals(true));
 		AssertThat(serial.is_valid(not_valid), Equals(false));
 
+		cout << "Starting checked, closing" << endl;
+
 		serial.close();
+
+		cout << "Serial closed" << endl;
 	});
 });
