@@ -26,11 +26,11 @@ go_bandit([](){
 	cout << "Starting camera test" << endl;
 	#include "camera_test.cpp"
 
-	cout << "Starting GPS test" << endl;
-	#include "gps_test.cpp"
-
 	cout << "Starting Serial test" << endl;
 	#include "serial_test.cpp"
+
+	cout << "Starting GPS test" << endl;
+	#include "gps_test.cpp"
 
 	cout << "Starting Temperature test" << endl;
 	#include "temperature_test.cpp"

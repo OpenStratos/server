@@ -5,12 +5,14 @@ describe("GPS", [](){
 	});
 
 	it("Knots to m/s conversion test", [&](){
+		cout << "GPS Test 1" << endl;
 		AssertThat(kt_to_mps(150), Is().EqualToWithDelta(77.1666667, 0.005));
 		AssertThat(kt_to_mps(75), Is().EqualToWithDelta(38.58333, 0.005));
 		AssertThat(kt_to_mps(0), Equals(0));
 	});
 
 	it("GGA frame parser test", [&](){
+		cout << "GPS Test 2" << endl;
 		GPS::get_instance().parse("$GPGGA,151025,2011.3454,N,12020.2464,W,1,05,1.53,20134.13,M,20103.45,M,,*56");
 
 		AssertThat(GPS::get_instance().is_active(), Equals(true));
@@ -29,6 +31,8 @@ describe("GPS", [](){
 	});
 
 	it("GGA frame parser pass test", [&](){
+
+		cout << "GPS Test 3" << endl;
 
 		int hour = GPS::get_instance().get_time()->tm_hour;
 		int min = GPS::get_instance().get_time()->tm_min;
@@ -56,6 +60,8 @@ describe("GPS", [](){
 	});
 
 	it("GSA frame parser test", [&](){
+		cout << "GPS Test 4" << endl;
+
 		GPS::get_instance().parse("$GPGSA,A,3,,,,,,16,18,,22,24,,,3.6,2.1,2.2*3C");
 
 		AssertThat(GPS::get_instance().is_active(), Equals(true));
@@ -64,6 +70,8 @@ describe("GPS", [](){
 	});
 
 	it("GSA frame parser pass test", [&](){
+		cout << "GPS Test 5" << endl;
+
 		float hdop = GPS::get_instance().get_HDOP();
 		float vdop = GPS::get_instance().get_VDOP();
 
@@ -75,6 +83,8 @@ describe("GPS", [](){
 	});
 
 	it("RMC frame parser test", [&](){
+		cout << "GPS Test 6" << endl;
+
 		GPS::get_instance().parse("$GPRMC,225446,A,4916.45,N,12311.12,W,000.5,054.7,191194,020.3,E*68");
 
 		AssertThat(GPS::get_instance().is_active(), Equals(true));
@@ -96,6 +106,8 @@ describe("GPS", [](){
 	});
 
 	it("RMC frame parser pass test", [&](){
+
+		cout << "GPS Test 7" << endl;
 
 		int hour = GPS::get_instance().get_time()->tm_hour;
 		int min = GPS::get_instance().get_time()->tm_min;
