@@ -11,8 +11,13 @@ describe("Serial", [](){
 		cout << "Serial initialized" << endl;
 
 		AssertThat(serial.is_valid(valid), Equals(true));
+		cout << "First serial test finished" << endl;
+
 		AssertThat(serial.is_valid(valid2), Equals(true));
+		cout << "Second serial test finished" << endl;
+
 		AssertThat(serial.is_valid(not_valid), Equals(false));
+		cout << "Third serial test finished" << endl;
 
 		cout << "Starting checked, closing" << endl;
 
