@@ -1,19 +1,18 @@
-language: erlang # We are creating ARM emulation on travis, so no need for language features
-
-env: GUEST_DEPENDENCIES="git g++ make sudo autoconf automake m4"
+language: cpp
+compiler: gcc
 
 before_install:
-  - git submodule update --init --recursive
+  - git submodule update --init --recursive > /dev/null
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt-get update -qq
-  - sudo apt-get install -qq -y qemu-user-static binfmt-support sbuild
-  - wget https://launchpad.net/ubuntu/+archive/primary/+files/debootstrap_1.0.59ubuntu0.2_all.deb
-  - sudo dpkg -i debootstrap_1.0.59ubuntu0.2_all.deb
 
 install:
-  - "bash -ex ./testing/travis-install.sh"
+  - sudo apt-get install -qq autoconf automake m4 gcc-4.9 g++-4.9
+  - git clone https://github.com/OpenStratos/WiringPi.git > /dev/null
+  - ./WiringPi/build
 
 script:
-  - "bash -ex ./testing/travis-test.sh"
+  - "bash -ex ./build.sh"
 
 branches:
   only:
