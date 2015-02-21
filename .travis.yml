@@ -5,10 +5,10 @@ before_install:
   - git submodule update --init --recursive > /dev/null
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt-get update -qq
-  - autoconf --version
 
 install:
-  - sudo apt-get install -qq autoconf automake m4 gcc-4.9 g++-4.9
+  - sudo apt-get install -qq autoconf automake m4 gcc-4.9 g++-4.9 > /dev/null
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 90
   - "bash -ex ./install-wiringpi.sh"
 
 script:
