@@ -8,8 +8,7 @@ before_install:
 
 install:
   - sudo apt-get install -qq autoconf automake m4 gcc-4.9 g++-4.9
-  - git clone https://github.com/OpenStratos/WiringPi.git > /dev/null
-  - ./WiringPi/build
+  - "bash -ex ./install-wiringpi.sh"
 
 script:
   - "bash -ex ./build.sh"
