@@ -33,6 +33,7 @@ void Camera::record(int time)
 		#ifndef RASPIVID
 			command = "";
 		#endif
+
 		system(command.c_str());
 		this->recording = true;
 

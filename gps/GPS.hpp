@@ -38,6 +38,7 @@
 			void parse_RMC(const string& frame);
 
 		public:
+			GPS(GPS& copy) = delete;
 			static GPS& get_instance();
 
 			tm* get_time() {return &this->time;}

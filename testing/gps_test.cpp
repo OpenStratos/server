@@ -1,5 +1,9 @@
 describe("GPS", [](){
 
+	before_each([&](){
+		GPS::get_instance().initialize("");
+	});
+
 	it("Knots to m/s conversion test", [&](){
 		AssertThat(kt_to_mps(150), Is().EqualToWithDelta(77.1666667, 0.005));
 		AssertThat(kt_to_mps(75), Is().EqualToWithDelta(38.58333, 0.005));
