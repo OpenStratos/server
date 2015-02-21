@@ -22,8 +22,6 @@ void Serial::initialize(const string& url, int baud, const string endl, function
 	this->stopped = false;
 	thread t(&Serial::serial_thread, this);
 	t.detach();
-
-	cout << "Thread detached" << endl;
 }
 
 Serial::~Serial()
@@ -35,7 +33,6 @@ void Serial::serial_thread()
 {
 	string frame;
 	int endl_pos = 0;
-	cout << "This is the serial thread" << endl;
 
 	while(this->open)
 	{
