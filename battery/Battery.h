@@ -2,7 +2,7 @@
 	#define BATTERY_H
 
 	#include <atomic>
-	#include "../constants.hpp"
+	#include "../constants.h"
 	using namespace std;
 
 	namespace os {

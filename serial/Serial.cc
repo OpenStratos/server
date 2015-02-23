@@ -1,4 +1,4 @@
-#include "Serial.hpp"
+#include "Serial.h"
 #include <wiringSerial.h>
 #include <thread>
 #include <regex>

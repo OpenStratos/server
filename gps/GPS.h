@@ -3,7 +3,7 @@
 
 	#include <string>
 	#include <cstdint>
-	#include "../serial/Serial.hpp"
+	#include "../serial/Serial.h"
 
 	using namespace std;
 

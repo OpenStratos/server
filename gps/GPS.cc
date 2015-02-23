@@ -1,6 +1,6 @@
-#include "../constants.hpp"
-#include "GPS.hpp"
-#include "../serial/Serial.hpp"
+#include "../constants.h"
+#include "GPS.h"
+#include "../serial/Serial.h"
 #include <functional>
 #include <vector>
 #include <sstream>

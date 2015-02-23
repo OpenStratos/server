@@ -1,5 +1,5 @@
-/* config.hpp.  Generated from config.hpp.in by configure.  */
-/* config.hpp.in.  Generated from configure.ac by autoheader.  */
+/* config.h.  Generated from config.h.in by configure.  */
+/* config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define to 1 if you have the `alarm' function. */
 #define HAVE_ALARM 1

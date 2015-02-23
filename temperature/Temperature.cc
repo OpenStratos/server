@@ -1,5 +1,5 @@
-#include "Temperature.hpp"
-#include "../constants.hpp"
+#include "Temperature.h"
+#include "../constants.h"
 #include <wiringPiI2C.h>
 #include <string>
 #include <thread>
