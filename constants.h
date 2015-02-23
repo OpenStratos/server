@@ -1,5 +1,5 @@
-#ifndef CONSTANTS_H
-	#define CONSTANTS_H
+#ifndef CONSTANTS_H_
+	#define CONSTANTS_H_
 
 	#define ERR_OK 0
 	#define ERR_CHK 1
@@ -13,4 +13,5 @@
 	#define BAT_MIN 7.4
 	#define BAT_R1 3300
 	#define BAT_R2 4700
-#endif
+
+#endif // CONSTANTS_H_

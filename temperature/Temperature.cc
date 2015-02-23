@@ -1,9 +1,12 @@
-#include "Temperature.hpp"
-#include "../constants.hpp"
-#include <wiringPiI2C.h>
+#include "temperature/Temperature.h"
+
 #include <string>
 #include <thread>
 #include <chrono>
+
+#include <wiringPiI2C.h>
+
+#include "constants.h"
 
 using namespace std;
 using namespace os;

@@ -1,4 +1,4 @@
-#include "openstratos.hpp"
+#include "openstratos.h"
 
 int main(void)
 {

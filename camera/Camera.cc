@@ -1,6 +1,7 @@
-#include "Camera.hpp"
+#include "camera/Camera.h"
 
 #include <cstdlib>
+
 #include <string>
 #include <thread>
 #include <chrono>
