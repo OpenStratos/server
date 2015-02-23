@@ -1,8 +1,9 @@
 #ifndef SERIAL_SERIAL_H_
 #define SERIAL_SERIAL_H_
 
-#include <functional>
 #include <cstdint>
+
+#include <functional>
 #include <string>
 #include <atomic>
 using namespace std;

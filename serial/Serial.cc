@@ -1,11 +1,14 @@
-#include "Serial.h"
-#include <wiringSerial.h>
+#include "serial/Serial.h"
+
+#include <cstdint>
+
 #include <thread>
 #include <regex>
 #include <functional>
-#include <cstdint>
 #include <string>
 #include <iostream>
+
+#include <wiringSerial.h>
 
 using namespace std;
 using namespace os;

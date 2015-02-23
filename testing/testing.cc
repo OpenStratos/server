@@ -1,11 +1,13 @@
-#include <bandit/bandit.h>
 #include <thread>
 #include <chrono>
-#include <serial/Serial.h>
-#include <camera/Camera.h>
-#include <temperature/Temperature.h>
-#include <gps/GPS.h>
-#include <battery/Battery.h>
+
+#include <bandit/bandit.h>
+
+#include "serial/Serial.h"
+#include "camera/Camera.h"
+#include "temperature/Temperature.h"
+#include "gps/GPS.h"
+#include "battery/Battery.h"
 
 using namespace bandit;
 using namespace os;

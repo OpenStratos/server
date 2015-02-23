@@ -1,9 +1,11 @@
 #ifndef GPS_GPS_H_
 #define GPS_GPS_H_
 
-#include <string>
 #include <cstdint>
-#include "../serial/Serial.h"
+
+#include <string>
+
+#include "serial/Serial.h"
 
 using namespace std;
 

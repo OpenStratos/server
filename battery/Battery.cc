@@ -1,10 +1,12 @@
-#include "Battery.h"
-#include "../constants.h"
-#include <wiringPiI2C.h>
+#include "battery/Battery.h"
+
 #include <string>
 #include <thread>
 #include <chrono>
-#include "../constants.h"
+
+#include <wiringPiI2C.h>
+
+#include "constants.h"
 
 using namespace std;
 using namespace os;
