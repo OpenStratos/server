@@ -1,11 +1,11 @@
 bin_PROGRAMS = openstratos
-openstratos_SOURCES = openstratos.cpp camera/Camera.cpp gps/GPS.cpp serial/Serial.cpp battery/Battery.cpp temperature/Temperature.cpp
+openstratos_SOURCES = openstratos.cc camera/Camera.cc gps/GPS.cc serial/Serial.cc battery/Battery.cc temperature/Temperature.cc
 openstratos_LDADD = -lwiringPi
 openstratos_CPPFLAGS = -std=c++11 -Wno-unused-result
 
 EXTRA_PROGRAMS = openstratosRoot utesting
-openstratosRoot_SOURCES = openstratos-root.cpp camera/Camera.cpp gps/GPS.cpp serial/Serial.cpp battery/Battery.cpp temperature/Temperature.cpp
+openstratosRoot_SOURCES = openstratos-root.cc camera/Camera.cc gps/GPS.cc serial/Serial.cc battery/Battery.cc temperature/Temperature.cc
 openstratosRoot_CPPFLAGS = -std=c++11 -Wno-unused-result
 
-utesting_SOURCES = testing/testing.cpp camera/Camera.cpp gps/GPS.cpp serial/Serial.cpp battery/Battery.cpp temperature/Temperature.cpp
+utesting_SOURCES = testing/testing.cc camera/Camera.cc gps/GPS.cc serial/Serial.cc battery/Battery.cc temperature/Temperature.cc
 utesting_CPPFLAGS = -std=c++11 -Itesting/bandit -Wno-unused-result -DOS_TESTING

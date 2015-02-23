@@ -1,11 +1,13 @@
-#include "../constants.hpp"
-#include "GPS.hpp"
-#include "../serial/Serial.hpp"
+#include "gps/GPS.h"
+
 #include <functional>
 #include <vector>
 #include <sstream>
 #include <string>
-#include <cstdio>
+
+#include "constants.h"
+#include "serial/Serial.h"
+
 
 using namespace std;
 using namespace os;

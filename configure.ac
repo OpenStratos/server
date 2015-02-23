@@ -3,9 +3,9 @@
 
 AC_PREREQ([2.68])
 AC_INIT(OpenStratos, Alpha-1-dev, https://openstratos.org/bugtracker)
-AC_CONFIG_SRCDIR([openstratos.hpp])
+AC_CONFIG_SRCDIR([openstratos.h])
 AM_INIT_AUTOMAKE([subdir-objects])
-AC_CONFIG_HEADERS([config.hpp])
+AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
 AC_PROG_CXX
