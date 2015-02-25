@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.68])
 AC_INIT(OpenStratos, Alpha-1-dev, https://openstratos.org/bugtracker)
-AC_CONFIG_SRCDIR([openstratos.h])
+AC_CONFIG_SRCDIR([openstratos.cc])
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_HEADERS([config.h])
 
@@ -15,7 +15,6 @@ AC_PROG_MAKE_SET
 AC_CHECK_PROG(RASPIVID, raspivid, yes)
 
 # Checks for libraries.
-AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([wiringPi], [wiringPiSetupSys])
 
 # Checks for header files.
@@ -25,12 +24,12 @@ AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_11()
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_CHECK_HEADER_STDBOOL
 AC_C_INLINE
 AC_TYPE_SIZE_T
 
 # Checks for library functions.
 AC_FUNC_ERROR_AT_LINE
-AC_FUNC_MKTIME
 AC_CHECK_FUNCS([stpcpy strstr])
 
 AC_CONFIG_FILES([Makefile])
