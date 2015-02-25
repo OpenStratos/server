@@ -48,6 +48,7 @@ Makefile
 .deps/
 .dirstamp
 *~
+config.h
 
 # Eclipse files
 .project
