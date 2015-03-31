@@ -83,7 +83,7 @@ bool GSMDevice::SendSMS(string message, string n){				//Sends a short message to
 	}
 
   	serialPrintf(fdesc,messagechar);					//Send message
-  	serialPrintf(fdesc,"\r\n");						//Return
+  	serialPrintf(fdesc,"\x1a\r\n");						//SUB control character (ascii 0x1a)+Return
 	FlushSerialInput();							//Module will reply with "+CMGS<length>". Not interested in that, so flush.
   	return true;								//Message sent.
 }
