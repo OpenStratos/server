@@ -29,7 +29,7 @@ using namespace std;
 class GSMDevice{
 	public:
 		GSMDevice();						//Instantiates a GSM device controlled using GPIO 4 (default, software pwr control) and /dev/ttyAMA0 for UART
-		GSMDevice(int gpio, string serial);			//Instantiates a GSM device controlled using a GPIO pin (given by GPIO parameter) and a UART port (given by serial);
+		GSMDevice(int pwrgpio, int statusgpio, string serial);	//Instantiates a GSM device controlled using a GPIO pin (given by GPIO parameter) and a UART port (given by serial);
 		void TogglePWR();					//Toggles the power status of the GSM module. Turns it on if it is off and turns it off if it is on.
 		bool Call(string number);				//Calls a given phone number. Returns true if suceeded, false if failed.
 		bool AbortCall();					//Aborts a phone call. Returns true if suceeded, false if failed or not in a call.
@@ -37,6 +37,9 @@ class GSMDevice{
 		void BroadcastGeolocation(string n);			//Tries to perform geolocation and sends coordinates to a phone number via SMS.
 		bool CheckGSMModule();					//Returns true if module is up and running, false if it is not
 	private:
+		uint16_t CheckModuleStatus();
+		void TurnOn();
+		void TurnOff();
 		uint16_t SerialReadLine();
 		uint16_t SerialSendRead(char *);
 		void FlushSerialInput();				//Discards all data received from the serial port.
@@ -45,7 +48,8 @@ class GSMDevice{
 		bool InitSerial();					//Initializes the serial interface. Returns true if successful. False if failed.
 		void InitGPRS();
 		void TearDownGPRS();
-		int gpionum;						//GPIO pin used for software power control
+		int pwrgpio;
+		int statusgpio;						//GPIO pin used for software power control
 		string serialPort;					//Serial port identifier. Tipically /dev/ttyAMA0 in Raspbian. 
 		int fdesc;						//Standard unix file descriptor associated with the serial port (see serialPort)
 		char serialin[255];					//Buffer on which data received via the serial port is placed
