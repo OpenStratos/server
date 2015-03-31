@@ -3,25 +3,47 @@
 using namespace std;
 
 GSMDevice::GSMDevice(){								//Instantiates a GSM device controlled using GPIO 4 (default, software pwr control) and /dev/ttyAMA0 for UART
-	GSMDevice(DEFAULT_GPIO,DEFAULT_UART);
+	GSMDevice(DEFAULT_GPIO,5,DEFAULT_UART);
 }
 
 //WARNING: May take up to six seconds
-GSMDevice::GSMDevice(int gpio, string serial){					//Instantiates a GSM device controlled using a GPIO pin (given by GPIO parameter) and a UART port (given by serial){
-	gpionum = gpio;
-	serialPort = serial;
+GSMDevice::GSMDevice(int pwrgpio, int statusgpio, string serial){		//Instantiates a GSM device controlled using a GPIO pin (given by GPIO parameter) and a UART port (given by serial){
+	this->statusgpio = statusgpio;
+	this->pwrgpio = pwrgpio;
+	this->serialPort = serial;
 	InitSerial();
 	InitGSMModule();
 	delay(3000);								//Allow some time for the GSM module to connect to the network.
 }
 
+//Returns 0 for LOW, 1 for HIGH.
+uint16_t GSMDevice::CheckModuleStatus(){
+	return digitalRead(this->statusgpio);
+}
+
+
+//Turns the module on.
+void GSMDevice::TurnOn(){
+	if(!CheckModuleStatus()){
+		TogglePWR();
+	}
+}
+
+//Turns the module off.
+void GSMDevice::TurnOff(){
+        if(CheckModuleStatus()){
+                TogglePWR();
+        }
+}
+
+
 void GSMDevice::TogglePWR(){							
 	//Toggles the power status of the GSM module. Turns it on if it is off and turns it off if it is on. 
 	//WARNING: Takes 2500 miliseconds to complete
 
-	digitalWrite(gpionum, LOW);						//Spec says that the adafruit FONA expects a 2000ms low pulse
+	digitalWrite(this->pwrgpio, LOW);					//Spec says that the adafruit FONA expects a 2000ms low pulse
 	delay(2000);
-	digitalWrite(gpionum, HIGH);
+	digitalWrite(this->pwrgpio, HIGH);
 	delay(500);								//Give the module some time to turn on, ensure that when 
 										//function returns the module is operational.
 }
@@ -120,8 +142,8 @@ bool GSMDevice::CheckGSMModule(){						//Returns true if module is up and runnin
 }
 
 bool GSMDevice::InitSerial(){
-	char *cstr = new char[serialPort.length() + 1];
-	strcpy(cstr, serialPort.c_str());
+	char *cstr = new char[this->serialPort.length() + 1];
+	strcpy(cstr, this->serialPort.c_str());
 	fdesc = serialOpen(cstr, UART_BAUDRATE);
 	if(fdesc==-1){								//serialOpen returns a standard linux file descriptor. -1 means failed
 		;/*EXCEPTION: NO SERIAL PORT AVAILABLE*/
@@ -138,8 +160,9 @@ bool GSMDevice::InitGSMModule(){
 		/*EXCEPTION: UNABLE TO ACCESS GPIOS*/;
 		return false;
 	}
-	pinMode(gpionum, OUTPUT);						//Set GPIO as digital output
-	digitalWrite(gpionum, HIGH);						//Set to high so that GSM module stays in standby until TogglePWR is called
+	pinMode(this->pwrgpio, OUTPUT);						//Set GPIO as digital output
+	digitalWrite(this->pwrgpio, HIGH);						//Set to high so that GSM module stays in standby until TogglePWR is called
+	pinMode(this->pwrgpio, INPUT);
 	return true;
 }
 
