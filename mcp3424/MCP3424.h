@@ -1,4 +1,0 @@
-#ifndef MCP3424_MCP3424_H_
-#define MCP3424_MCP3424_H_
-
-#endif // MCP3424_MCP3424_H_
