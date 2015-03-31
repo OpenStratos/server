@@ -89,7 +89,27 @@ bool GSMDevice::SendSMS(string message, string n){				//Sends a short message to
 }
 
 void GSMDevice::BroadcastGeolocation(string n){					//Tries to perform geolocation and sends coordinates to a phone number via SMS.
-	//TODO
+	initGPRS();
+	uint16_t responseLength = SerialSendRead("AT+CIPGSMLOC=1,1");
+	serialin[responseLength+1] = (char)0x0;
+	SendSMS(serialin, "699686404");
+	tearDownGPRS();
+}
+
+void GSMDevice::InitGPRS(){
+	SerialSendCompareResponse("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"", "OK");	//About to turn on GPRS
+	string preamble = "AT+SAPBR=3,1,\"APN\",\"";
+	string end = ";";
+	string command = preamble + APNNAME + end;
+	char *send = new char[command.length() + 1];
+        strcpy(send, command.c_str());
+	SerialSendCompareResponse(send, "OK");					//Set APN provided.
+	SerialSendCompareResponse("AT+SAPBR=1,1","OK");				//Activate GPRS context
+	/*SerialSendCompareResponse("AT+SAPBR=2,1","OK");*/			//Not realy necessary
+}
+
+void GSMDevice::TearDownGPRS(){
+	SerialSendCompareResponse("AT+SAPBR=0,1","OK");
 }
 
 bool GSMDevice::CheckGSMModule(){						//Returns true if module is up and running, false if it is not.

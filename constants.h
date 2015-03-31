@@ -14,4 +14,5 @@
 	#define BAT_R1 3300
 	#define BAT_R2 4700
 
+	#define APNNAME "gprs-service.com"
 #endif // CONSTANTS_H_
