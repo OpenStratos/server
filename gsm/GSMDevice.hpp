@@ -43,6 +43,8 @@ class GSMDevice{
 		bool SerialSendCompareResponse(char*, char*);		//Sends a string of data via serial port. Checks that the reply matches with another string.
 		bool InitGSMModule();					//Initializes the gsm module. Returns true if successful. False if failed.
 		bool InitSerial();					//Initializes the serial interface. Returns true if successful. False if failed.
+		void InitGPRS();
+		void TearDownGPRS();
 		int gpionum;						//GPIO pin used for software power control
 		string serialPort;					//Serial port identifier. Tipically /dev/ttyAMA0 in Raspbian. 
 		int fdesc;						//Standard unix file descriptor associated with the serial port (see serialPort)
