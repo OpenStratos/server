@@ -2,7 +2,6 @@
 
 #include <string>
 #include <thread>
-#include <chrono>
 
 #include <wiringPiI2C.h>
 
@@ -67,7 +66,7 @@ void Battery::read_battery()
 
 		this->battery = volt_to_percent(voltage5*(BAT_R1+BAT_R2)/BAT_R2);
 
-		this_thread::sleep_for(chrono::milliseconds(50));
+		this_thread::sleep_for(50ms);
 	}
 	this->stopped = true;
 }

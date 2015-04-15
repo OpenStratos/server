@@ -11,7 +11,7 @@ describe("Battery", [](){
 		Battery bat(80);
 
 		bat.start_reading();
-		this_thread::sleep_for(chrono::milliseconds(75));
+		this_thread::sleep_for(75ms);
 
 		AssertThat(bat.get_battery(), Is().EqualToWithDelta(50, 0.05));
 		bat.stop_reading();
