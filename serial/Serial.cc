@@ -59,13 +59,13 @@ void Serial::serial_thread()
 
 						frame = "";
 						endl_pos = 0;
-						this_thread::sleep_for(chrono::milliseconds(50));
+						this_thread::sleep_for(50ms);
 					}
 				}
 			}
 			else if (available == 0)
 			{
-				this_thread::sleep_for(chrono::milliseconds(25));
+				this_thread::sleep_for(25ms);
 			}
 			else if (available < 0)
 			{

@@ -5,7 +5,7 @@ describe("Temperature", [&](){
 		temp.start_reading();
 		AssertThat(temp.is_reading(), Equals(true));
 
-		this_thread::sleep_for(chrono::milliseconds(100));
+		this_thread::sleep_for(100ms);
 
 		temp.stop_reading();
 		AssertThat(temp.is_reading(), Equals(false));

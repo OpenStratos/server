@@ -1,5 +1,4 @@
 #include <thread>
-#include <chrono>
 
 #include <bandit/bandit.h>
 
