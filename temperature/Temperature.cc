@@ -2,7 +2,6 @@
 
 #include <string>
 #include <thread>
-#include <chrono>
 
 #include <wiringPiI2C.h>
 
@@ -66,7 +65,7 @@ void Temperature::read_temperature()
 		float voltage = value * 5 / 32768; // 2^15
 		this->temperature = r_to_c(TEMP_R * (TEMP_VIN / voltage - 1));
 
-		this_thread::sleep_for(chrono::milliseconds(50));
+		this_thread::sleep_for(50ms);
 	}
 	this->stopped = true;
 }
