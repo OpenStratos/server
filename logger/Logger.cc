@@ -2,6 +2,7 @@
 
 #include <string>
 #include <iostream>
+#include <iomanip>
 
 #include <sys/time.h>
 
@@ -12,7 +13,7 @@ Logger::Logger(const string& path, const string& prefix)
 {
 	this->log_stream.open(path);
 	this->log_prefix = prefix;
-	this->log("Logging started");
+	this->log("Logging started.");
 }
 
 Logger::~Logger()
@@ -26,7 +27,8 @@ void Logger::log(const string& message)
 	gettimeofday(&timer, NULL);
 	struct tm * now = gmtime(&timer.tv_sec);
 
-	this->log_stream << "[" << log_prefix << "] - "  << now->tm_mon << "/" << now->tm_mday << "/" << (now->tm_year+1900)
-		<< " " << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec << "." << timer.tv_usec << " "
-		<< message << endl;
+	this->log_stream << "[" << log_prefix << "] - "  << setfill('0') << setw(2) << now->tm_mon << "/" <<
+		setfill('0') << setw(2) << now->tm_mday << "/" << (now->tm_year+1900) << " " <<
+		setfill('0') << setw(2) << now->tm_hour << ":" << setfill('0') << setw(2) << now->tm_min << ":" <<
+		setfill('0') << setw(2) << now->tm_sec << "." << timer.tv_usec << " - " << message << endl;
 }
