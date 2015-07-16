@@ -9,6 +9,8 @@ describe("Camera", [](){
 
 		this_thread::sleep_for(250ms);
 		AssertThat(Camera::get_instance().is_recording(), Equals(false));
+
+		cout << "checked first test." << endl;
 	});
 
 	it("recording and stopping test", [&](){
