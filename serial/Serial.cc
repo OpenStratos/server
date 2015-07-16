@@ -6,7 +6,6 @@
 #include <regex>
 #include <functional>
 #include <string>
-#include <iostream>
 
 #include <wiringSerial.h>
 
@@ -15,7 +14,6 @@ using namespace os;
 
 bool Serial::initialize(const string& url, int baud, const string endl, function<uint_fast8_t(const string&)>)
 {
-	cout << "Initializing serial..." << endl;
 	this->listener = listener;
 	this->endl = endl;
 	#ifndef OS_TESTING
@@ -28,14 +26,11 @@ bool Serial::initialize(const string& url, int baud, const string endl, function
 		}
 	#endif
 
-	cout << "Finishing initialization" << endl;
-
 	this->open = true;
 	this->stopped = false;
 	thread t(&Serial::serial_thread, this);
 	t.detach();
 
-	cout << "Serial initialized" << endl;
 	return true;
 }
 
