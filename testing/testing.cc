@@ -1,4 +1,5 @@
 #include <thread>
+#include <iostream>
 
 #include <bandit/bandit.h>
 
@@ -19,11 +20,21 @@ int main(int argc, char* argv[])
 }
 
 go_bandit([](){
-
+	cout << "Starting core tests" << endl;
 	#include "core_test.cc"
+
+	cout << "Starting camera tests" << endl;
 	#include "camera_test.cc"
+
+	cout << "Starting serial tests" << endl;
 	#include "serial_test.cc"
+
+	cout << "Starting GPS tests" << endl;
 	#include "gps_test.cc"
+
+	cout << "Starting temperature tests" << endl;
 	#include "temperature_test.cc"
+
+	cout << "Starting battery tests" << endl;
 	#include "battery_test.cc"
 });
