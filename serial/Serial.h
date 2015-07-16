@@ -24,12 +24,11 @@ namespace os {
 		Serial(Serial& copy) = delete;
 		~Serial();
 
-		void send(const string& str) const;
+		uint_fast8_t send_frame(string frame);
 		void close();
-		void initialize(const string& serial_URL, int baud, const string endl, function<uint_fast8_t(const string&)>);
-		bool initialize(const string& serial_URL, int baud);
-		const string read_line() const;
-		void flush() const;
+		bool is_valid(string frame);
+		bool is_open();
+		bool initialize(const string& serial_URL, int baud, const string endl, function<uint_fast8_t(const string&)>);
 	};
 }
 
