@@ -1,16 +1,11 @@
 describe("Camera", [](){
 
 	it("recording test", [&](){
-		cout << "Start recording" << endl;
 		Camera::get_instance().record(200);
 		AssertThat(Camera::get_instance().is_recording(), Equals(true));
 
-		cout << "Finish recording..." << endl;
-
 		this_thread::sleep_for(250ms);
 		AssertThat(Camera::get_instance().is_recording(), Equals(false));
-
-		cout << "checked first test." << endl;
 	});
 
 	it("recording and stopping test", [&](){
@@ -20,6 +15,8 @@ describe("Camera", [](){
 		this_thread::sleep_for(200ms);
 		Camera::get_instance().stop();
 		AssertThat(Camera::get_instance().is_recording(), Equals(false));
+
+		cout << "checked second test" << endl;
 	});
 
 	#ifdef RASPIVID
