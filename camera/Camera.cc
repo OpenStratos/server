@@ -50,6 +50,8 @@ void Camera::record(int time)
 			cout << "Command without time." << endl;
 			command = "raspivid -o data/video/video-"+ to_string(get_file_count("data/video/"))
 				+".h264 -t " + to_string(time) + " &";
+			cout << "Command created." << endl;
+			cout << "Command: '" << command << "'" << endl;
 		}
 		#ifndef RASPIVID
 			command = "";
