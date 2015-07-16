@@ -1,10 +1,14 @@
 #include "camera/Camera.h"
 
 #include <cstdlib>
+#include <cstdio>
 
 #include <string>
 #include <thread>
 #include <chrono>
+
+#include <sys/types.h>
+#include <dirent.h>
 
 using namespace os;
 using namespace std;
@@ -30,7 +34,16 @@ void Camera::record(int time)
 {
 	if ( ! this->recording)
 	{
-		string command = "raspivid -o os_video.h264 -t " + to_string(time) + " &";
+		string command;
+		if (time > 0)
+		{
+			command = "raspivid -o data/video/test.h264 -t " + to_string(time) + " &";
+		}
+		else
+		{
+			command = "raspivid -o data/video/video-"+ to_string(get_file_count("data/video/"))
+				+".h264 -t " + to_string(time) + " &";
+		}
 		#ifndef RASPIVID
 			command = "";
 		#endif
@@ -55,4 +68,20 @@ void Camera::stop()
 {
 	system("pkill raspivid");
 	this->recording = false;
+}
+
+int os::get_file_count(const string& path)
+{
+	DIR *dp;
+	int i = 0;
+	struct dirent *ep;
+	dp = opendir(path.c_str());
+
+	while (ep = readdir(dp))
+	{
+		i++;
+	}
+	(void) closedir(dp);
+
+	return i-2;
 }
