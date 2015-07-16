@@ -32,7 +32,7 @@ int main(void)
 	{
 		cout << "[OpenStratos] No log directory, creating..." << endl;
 		if (mkdir("data/logs", 0755) == 0 && mkdir("data/logs/main", 0755) == 0 &&
-			mkdir("data/logs/camera", 0755) == 0 && mkdir("data/logs/gps", 0755) == 0)
+			mkdir("data/logs/camera", 0755) == 0 && mkdir("data/logs/GPS", 0755) == 0)
 		{
 			cout << "[OpenStratos] Log directory created." << endl;
 		}

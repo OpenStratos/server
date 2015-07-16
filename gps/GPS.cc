@@ -45,7 +45,7 @@ bool GPS::initialize(const string& serial_URL)
 	gettimeofday(&timer, NULL);
 	struct tm * now = gmtime(&timer.tv_sec);
 
-	this->logger = new Logger("data/logs/gps/GPS."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+	this->logger = new Logger("data/logs/GPS/GPS."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
 		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
 		to_string(now->tm_sec) +".log", "GPS");
 
@@ -55,7 +55,7 @@ bool GPS::initialize(const string& serial_URL)
 		return false;
 	} else {
 		this->logger->log("Serial connection started.");
-		this->frame_logger = new Logger("data/logs/GPSFrames."+ to_string(now->tm_year+1900) +"-"+
+		this->frame_logger = new Logger("data/logs/GPS/GPSFrames."+ to_string(now->tm_year+1900) +"-"+
 			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
 			to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "GPS Frame");
 		return true;
