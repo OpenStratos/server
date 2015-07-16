@@ -1,10 +1,6 @@
 #ifndef OPENSTRATOS_H_
 #define OPENSTRATOS_H_
 
-#ifndef RASPIVID
-#define RASPIVID 0
-#endif
-
 #include <iostream>
 #include <string>
 #include <thread>
