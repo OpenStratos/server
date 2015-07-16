@@ -4,11 +4,10 @@ int main(void)
 {
 	cout << "[OpenStratos] Starting..." << endl; // Only if verbose
 
+	State state = INITIALIZING;
+
 	struct timeval timer;
-	struct timezone tz;
-
-	gettimeofday(&timer, &tz);
-
+	gettimeofday(&timer, NULL);
 	struct tm * now = gmtime(&timer.tv_sec);
 
 	cout << "[OpenStratos] Current time: " << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec <<
@@ -89,9 +88,7 @@ int main(void)
 	// }
 	// logger.log("GPS On.");
 
-	// logger.log("Starting GPS Thread...");
-	// thread gps_thread(gps_thread_fn);
-	// logger.log("GPS thread started.");
+	// TODO start GSM and send message
 
 	logger.log("Starting camera recording...");
 	#ifndef RASPIVID
@@ -125,6 +122,56 @@ int main(void)
 	logger.log("Starting video recording...");
 	Camera::get_instance().record();
 
+	state = ACQUIRING_FIX;
+	while ( ! GPS::get_instance().is_active())
+	{
+		this_thread::sleep_for(1s);
+	}
+	logger.log("GPS fix acquired, waiting for date change.");
+	this_thread::sleep_for(2s);
+
+	struct timezone tz = {0, 0};
+	struct timeval tv = {timegm(GPS::get_instance().get_time()), 0};
+	settimeofday(&tv, &tz);
+
+	logger.log("System date change.");
+
+	logger.log("Starting GPS Thread...");
+	thread gps_thread(&gps_thread_fn, ref(state));
+	logger.log("GPS thread started.");
+
+	// TODO send SMS
+
+	state = WAITING_LAUNCH;
+	logger.log("Waiting for launch...");
+
+	// Main logic
+	while (state != SHUT_DOWN)
+	{
+		switch (state)
+		{
+			case WAITING_LAUNCH:
+				// TODO detect launch and send SMS
+			break;
+			case GOING_UP:
+				// TODO detect records and check recording
+			break;
+			case GOING_DOWN:
+				// TODO detect 3 km mark and send SMS
+				// TODO detect 1,5 km mark and send SMS
+				// TODO detect 500m mark and send SMS if not landed
+				// TODO detect landing
+			break;
+			case LANDED:
+				// TODO send SMS with position after 1 minute
+				// TODO send SMS with position after 15 minutes and shut down
+			break;
+			default:
+				logger.log("State error.");
+				// TODO try to recover from error.
+		}
+	}
+
 	logger.log("Stopping video...");
 	Camera::get_instance().stop();
 
@@ -134,13 +181,13 @@ int main(void)
 	return 0;
 }
 
-inline bool file_exists(const string& name)
+inline bool os::file_exists(const string& name)
 {
 	struct stat buffer;
 	return (stat (name.c_str(), &buffer) == 0);
 }
 
-inline float get_available_disk_space()
+inline float os::get_available_disk_space()
 {
 	struct statvfs fs;
 	statvfs("data", &fs);
@@ -148,18 +195,26 @@ inline float get_available_disk_space()
 	return fs.f_bsize*fs.f_bavail;
 }
 
-void gps_thread_fn()
+void os::gps_thread_fn(State& state)
 {
-	while ( ! GPS::get_instance().is_active())
-	{
-		this_thread::sleep_for(1s);
+	struct timeval timer;
+	gettimeofday(&timer, NULL);
+	struct tm * now = gmtime(&timer.tv_sec);
+
+	Logger logger("data/logs/GPS/Position."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
+		to_string(now->tm_sec) +".log", "GPSPosition");
+
+	while (state != LANDED) {
+		logger.log("Lat: "+ to_string(GPS::get_instance().get_latitude()) +", Lon: "+
+			to_string(GPS::get_instance().get_longitude()) +", Alt: "+
+			to_string(GPS::get_instance().get_altitude()) +", Speed: "+
+			to_string(GPS::get_instance().get_velocity()->speed) +", Course: "+
+			to_string(GPS::get_instance().get_velocity()->course) +", Sat: "+
+			to_string(GPS::get_instance().get_satellites()) +", HDOP: "+
+			to_string(GPS::get_instance().get_HDOP()) +", VDOP: "+
+			to_string(GPS::get_instance().get_VDOP()));
+
+		this_thread::sleep_for(50ms);
 	}
-	this_thread::sleep_for(2s);
-
-	struct timezone tz = {0, 0};
-	struct timeval tv = {timegm(GPS::get_instance().get_time()), 0};
-
-	settimeofday(&tv, &tz);
-
-	// TODO
 }
