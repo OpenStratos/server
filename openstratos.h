@@ -1,6 +1,10 @@
 #ifndef OPENSTRATOS_H_
 #define OPENSTRATOS_H_
 
+#ifndef RASPIVID
+#define RASPIVID 0
+#endif
+
 #include <iostream>
 #include <string>
 #include <thread>
@@ -12,6 +16,7 @@
 #include "config.h"
 #include "logger/Logger.h"
 #include "gps/GPS.h"
+#include "camera/Camera.h"
 
 using namespace std;
 using namespace os;
