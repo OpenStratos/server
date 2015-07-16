@@ -52,6 +52,8 @@ void Camera::record(int time)
 			command = "";
 		#endif
 
+		cout << "Command: '" << command << "'" << endl;
+
 		system(command.c_str());
 		this->recording = true;
 
