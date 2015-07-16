@@ -9,16 +9,11 @@ describe("Camera", [](){
 	});
 
 	it("recording and stopping test", [&](){
-		cout << "starting second test" << endl;
 		Camera::get_instance().record();
-		cout << "should be recording..." << endl;
 		AssertThat(Camera::get_instance().is_recording(), Equals(true));
-		cout << "First check" << endl;
 
 		this_thread::sleep_for(200ms);
 		Camera::get_instance().stop();
 		AssertThat(Camera::get_instance().is_recording(), Equals(false));
-
-		cout << "checked second test" << endl;
 	});
 });
