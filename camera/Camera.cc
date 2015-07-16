@@ -7,6 +7,8 @@
 #include <thread>
 #include <chrono>
 
+#include <iostream>
+
 #include <sys/types.h>
 #include <dirent.h>
 
@@ -32,6 +34,8 @@ void Camera::record_thread(int time)
 
 void Camera::record(int time)
 {
+	cout << "record called" << endl;
+	cout << "is recording?: " << this->recording << endl;
 	if ( ! this->recording)
 	{
 		string command;
