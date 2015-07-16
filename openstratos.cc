@@ -94,11 +94,10 @@ int main(void)
 	// logger.log("GPS thread started.");
 
 	logger.log("Starting camera recording...");
-	if ( ! RASPIVID)
-	{
+	#ifndef RASPIVID
 		logger.log("Error: No raspivid found. Is this a Raspberry?");
 		exit(1);
-	}
+	#endif
 	logger.log("Recording 10 seconds as test...");
 	Camera::get_instance().record(10000);
 	this_thread::sleep_for(11s);
