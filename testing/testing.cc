@@ -20,9 +20,6 @@ int main(int argc, char* argv[])
 }
 
 go_bandit([](){
-	cout << "Starting core tests" << endl;
-	#include "core_test.cc"
-
 	cout << "Starting camera tests" << endl;
 	#include "camera_test.cc"
 
