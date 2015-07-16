@@ -81,22 +81,56 @@ int main(void)
 	logger.log("Disk space enough for about " + to_string(get_available_disk_space()/7235174400) +
 		" hours of fullHD video.");
 
-	logger.log("Turning on GPS...");
-	if ( ! GPS::get_instance().initialize(""))
+	// logger.log("Turning on GPS...");
+	// if ( ! GPS::get_instance().initialize(""))
+	// {
+	// 	logger.log("GPS initialization error.");
+	// 	exit(1);
+	// }
+	// logger.log("GPS On.");
+
+	// logger.log("Starting GPS Thread...");
+	// thread gps_thread(gps_thread_fn);
+	// logger.log("GPS thread started.");
+
+	logger.log("Starting camera recording...");
+	if ( ! RASPIVID)
 	{
-		logger.log("GPS initialization error.");
+		logger.log("Error: No raspivid found. Is this a Raspberry?");
 		exit(1);
 	}
-	logger.log("GPS On.");
+	logger.log("Recording 10 seconds as test...");
+	Camera::get_instance().record(10000);
+	this_thread::sleep_for(11s);
+	Camera::get_instance().stop();
 
-	logger.log("Starting GPS Thread...");
-	thread gps_thread(gps_thread_fn);
-	logger.log("GPS thread started.");
+	if (file_exists("data/video/test.h264"))
+	{
+		logger.log("Camera test OK.");
+		logger.log("Removing test file...");
+		if (remove("data/video/test.h264"))
+		{
+			logger.log("Error removing test file.");
+		}
+		else
+		{
+			logger.log("Test file removed.");
+		}
+	}
+	else
+	{
+		logger.log("Test recording error.");
+		exit(1);
+	}
 
+	logger.log("Starting video recording...");
+	Camera::get_instance().record();
 
+	logger.log("Stopping video...");
+	Camera::get_instance().stop();
 
 	logger.log("Joining threads...");
-	gps_thread.join();
+	// gps_thread.join();
 	logger.log("Finishing execution.");
 	return 0;
 }
