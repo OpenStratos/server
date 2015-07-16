@@ -15,6 +15,7 @@ addons:
 
 before_install:
   - git submodule update --init --recursive > /dev/null
+  - export CXX="g++-4.9"
 
 install:
   - "bash -ex ./install-wiringpi.sh"
