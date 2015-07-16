@@ -27,7 +27,8 @@ namespace os {
 		uint_fast8_t send_frame(string frame);
 		void close();
 		bool is_valid(string frame);
-		void initialize(const string& serial_URL, int baud, const string endl, function<uint_fast8_t(const string&)>);
+		bool is_open();
+		bool initialize(const string& serial_URL, int baud, const string endl, function<uint_fast8_t(const string&)>);
 	};
 }
 

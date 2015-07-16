@@ -6,6 +6,7 @@
 #include <string>
 
 #include "serial/Serial.h"
+#include "logger/Logger.h"
 
 using namespace std;
 
@@ -21,6 +22,8 @@ namespace os {
 	{
 	private:
 		Serial serial;
+		Logger* logger;
+		Logger* frame_logger;
 
 		tm time;
 		bool active;
@@ -53,7 +56,7 @@ namespace os {
 		float get_VDOP() {return this->vdop;}
 		euc_vec* get_velocity() {return &this->velocity;}
 
-		void initialize(const string& serial_URL);
+		bool initialize(const string& serial_URL);
 		uint_fast8_t parse(const string& frame);
 	};
 }

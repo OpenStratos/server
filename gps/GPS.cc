@@ -5,8 +5,11 @@
 #include <sstream>
 #include <string>
 
+#include <sys/time.h>
+
 #include "constants.h"
 #include "serial/Serial.h"
+#include "logger/Logger.h"
 
 
 using namespace std;
@@ -20,12 +23,42 @@ GPS& GPS::get_instance()
 
 GPS::~GPS()
 {
-	this->serial.close();
+	if (this->serial.is_open())
+	{
+		this->logger->log("Closing serial interface...");
+		this->serial.close();
+		this->logger->log("Serial interface closed.");
+
+		this->logger->log("Deallocating frame logger...");
+		delete this->frame_logger;
+	}
+	this->logger->log("Shutting down...");
+	// TODO shut down GPS
+	this->logger->log("Shut down finished.");
+	delete this->logger;
 }
 
-void GPS::initialize(const string& serial_URL)
+bool GPS::initialize(const string& serial_URL)
 {
-	this->serial.initialize(serial_URL, 9600, "\r\n", bind(&GPS::parse, this, placeholders::_1));
+	struct timeval timer;
+	gettimeofday(&timer, NULL);
+	struct tm * now = gmtime(&timer.tv_sec);
+
+	this->logger = new Logger("data/logs/gps/GPS."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
+		to_string(now->tm_sec) +".log", "GPS");
+
+	this->logger->log("Starting serial connection...");
+	if ( ! this->serial.initialize(serial_URL, 9600, "\r\n", bind(&GPS::parse, this, placeholders::_1))) {
+		this->logger->log("GPS serial error.");
+		return false;
+	} else {
+		this->logger->log("Serial connection started.");
+		this->frame_logger = new Logger("data/logs/GPSFrames."+ to_string(now->tm_year+1900) +"-"+
+			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
+			to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "GPS Frame");
+		return true;
+	}
 
 	#ifndef OS_TESTING
 		this->serial.send_frame("$PMTK220,100*2F");
@@ -35,6 +68,7 @@ void GPS::initialize(const string& serial_URL)
 
 uint_fast8_t GPS::parse(const string& frame)
 {
+	this->frame_logger->log(frame);
 	string frame_type = frame.substr(1, frame.find_first_of(',')-1);
 
 	if (frame_type == "GPGGA")

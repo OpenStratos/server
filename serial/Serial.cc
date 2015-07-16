@@ -13,7 +13,7 @@
 using namespace std;
 using namespace os;
 
-void Serial::initialize(const string& url, int baud, const string endl, function<uint_fast8_t(const string&)>)
+bool Serial::initialize(const string& url, int baud, const string endl, function<uint_fast8_t(const string&)>)
 {
 	this->listener = listener;
 	this->endl = endl;
@@ -21,10 +21,17 @@ void Serial::initialize(const string& url, int baud, const string endl, function
 		this->fd = serialOpen(url.c_str(), baud);
 	#endif
 
+	if (this->fd == -1) {
+		this->open = false;
+		this->stopped = true;
+		return false;
+	}
+
 	this->open = true;
 	this->stopped = false;
 	thread t(&Serial::serial_thread, this);
 	t.detach();
+	return true;
 }
 
 Serial::~Serial()
@@ -91,12 +98,19 @@ uint_fast8_t Serial::send_frame(string frame)
 
 void Serial::close()
 {
-	this->open = false;
-	while( ! this->stopped);
+	if (this->open) {
+		this->open = false;
+		while( ! this->stopped);
 
-	#ifndef OS_TESTING
-		serialClose(this->fd);
-	#endif
+		#ifndef OS_TESTING
+			serialClose(this->fd);
+		#endif
+	}
+}
+
+bool Serial::is_open()
+{
+	return this->open;
 }
 
 bool Serial::is_valid(string frame)
