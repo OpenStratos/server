@@ -1,14 +1,22 @@
 language: cpp
 compiler: gcc
+sudo: required
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - autoconf
+    - automake
+    - m4
+    - gcc-4.9
+    - g++-4.9
 
 before_install:
   - git submodule update --init --recursive > /dev/null
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  - sudo apt-get update -qq
 
 install:
-  - sudo apt-get install -qq autoconf automake m4 gcc-4.9 g++-4.9 > /dev/null
-  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 90
   - "bash -ex ./install-wiringpi.sh"
 
 script:
@@ -26,6 +34,7 @@ notifications:
   email:
     recipients:
       - iban.eguia@opendeusto.es
+      - jordan.aranda@me.com
       - eneko.cruz@opendeusto.es
     on_success: change
     on_failure: always
