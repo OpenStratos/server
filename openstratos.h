@@ -1,7 +1,7 @@
 #ifndef OPENSTRATOS_H_
 #define OPENSTRATOS_H_
 
-#include "config.hpp"
+#include "config.h"
 
 #include <iostream>
 
