@@ -14,4 +14,10 @@
 	#define BAT_R1 3300
 	#define BAT_R2 4700
 
+	#define GSM_LOC_SERV "gprs-service.com"
+	#define GSM_UART "/dev/ttyAMA0"
+	#define GSM_PWR_GPIO 4
+	#define GSM_STATUS_GPIO 5
+	#define GSM_BAUDRATE 4800
+	#define GSM_ENDL "\r\n"
 #endif // CONSTANTS_H_

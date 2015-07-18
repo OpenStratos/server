@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include <thread>
-#include <regex>
 #include <functional>
 #include <string>
 #include <iostream>
@@ -27,6 +26,23 @@ void Serial::initialize(const string& url, int baud, const string endl, function
 	t.detach();
 }
 
+bool Serial::initialize(const string& url, int baud)
+{
+	#ifndef OS_TESTING
+		this->fd = serialOpen(url.c_str(), baud);
+	#endif
+
+	if (this->fd == -1)
+	{
+		return false;
+	}
+
+	this->open = true;
+	this->stopped = false;
+
+	return true;
+}
+
 Serial::~Serial()
 {
 	this->close();
@@ -34,7 +50,7 @@ Serial::~Serial()
 
 void Serial::serial_thread()
 {
-	string frame;
+	string response;
 	int endl_pos = 0;
 
 	while(this->open)
@@ -47,17 +63,14 @@ void Serial::serial_thread()
 				for (int i = 0; i < available; i++)
 				{
 					char c = serialGetchar(this->fd);
-					frame += c;
-
+					response += c;
 					if (c == this->endl[endl_pos]) ++endl_pos;
 					if (endl_pos == this->endl.length())
 					{
-						frame = frame.substr(0, frame.length()-endl.length());
+						response = response.substr(0, response.length()-endl.length());
 
-						if (this->is_valid(frame)) this->listener(frame);
-						// TODO decide what to do in case of non valid frame
-
-						frame = "";
+						this->listener(response);
+						response = "";
 						endl_pos = 0;
 						this_thread::sleep_for(50ms);
 					}
@@ -76,17 +89,9 @@ void Serial::serial_thread()
 	this->stopped = true;
 }
 
-uint_fast8_t Serial::send_frame(string frame)
+void Serial::send(const string& str) const
 {
-	if (this->is_valid(frame))
-	{
-		frame += endl;
-		serialPuts(this->fd, frame.c_str());
-	}
-	else
-	{
-		// TODO log error
-	}
+	serialPuts(this->fd, (str+this->endl).c_str());
 }
 
 void Serial::close()
@@ -99,20 +104,14 @@ void Serial::close()
 	#endif
 }
 
-bool Serial::is_valid(string frame)
+const string Serial::read_line() const
 {
-	regex frame_regex("\\$[A-Z][0-9A-Z\\.,-]*\\*[0-9A-F]{1,2}");
-	if ( ! regex_match(frame, frame_regex)) return false;
+	// TODO
+	string response;
+	return response;
+}
 
-	uint_fast8_t checksum = 0;
-	for (char c : frame)
-	{
-		if (c == '$') continue;
-		if (c == '*') break;
-
-		checksum ^= c;
-	}
-	uint_fast8_t frame_cs = stoi(frame.substr(frame.rfind('*')+1, frame.length()-frame.rfind('*')-1), 0, 16);
-
-	return checksum == frame_cs;
+void Serial::flush() const
+{
+	serialFlush(this->fd);
 }
