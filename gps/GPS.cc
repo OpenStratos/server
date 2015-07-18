@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <regex>
 
 #include "constants.h"
 #include "serial/Serial.h"
@@ -28,9 +29,27 @@ void GPS::initialize(const string& serial_URL)
 	this->serial.initialize(serial_URL, 9600, "\r\n", bind(&GPS::parse, this, placeholders::_1));
 
 	#ifndef OS_TESTING
-		this->serial.send_frame("$PMTK220,100*2F");
-		this->serial.send_frame("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+		this->serial.send("$PMTK220,100*2F");
+		this->serial.send("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
 	#endif
+}
+
+bool GPS::is_valid(string frame)
+{
+	regex frame_regex("\\$[A-Z][0-9A-Z\\.,-]*\\*[0-9A-F]{1,2}");
+	if ( ! regex_match(frame, frame_regex)) return false;
+
+	uint_fast8_t checksum = 0;
+	for (char c : frame)
+	{
+		if (c == '$') continue;
+		if (c == '*') break;
+
+		checksum ^= c;
+	}
+	uint_fast8_t frame_cs = stoi(frame.substr(frame.rfind('*')+1, frame.length()-frame.rfind('*')-1), 0, 16);
+
+	return checksum == frame_cs;
 }
 
 uint_fast8_t GPS::parse(const string& frame)
