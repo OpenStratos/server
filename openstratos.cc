@@ -76,7 +76,7 @@ int main(void)
 		exit(1);
 	}
 
-	// 115 MiB per minute +/-
+	// ~115 MiB per minute
 	logger.log("Disk space enough for about " + to_string(get_available_disk_space()/7235174400) +
 		" hours of fullHD video.");
 
@@ -122,7 +122,8 @@ int main(void)
 	logger.log("Starting video recording...");
 	Camera::get_instance().record();
 
-	state = ACQUIRING_FIX;
+	state = set_state(ACQUIRING_FIX);
+	logger.log("State changed to "+ state_to_string(state) +".");
 	while ( ! GPS::get_instance().is_active())
 	{
 		this_thread::sleep_for(1s);
@@ -131,7 +132,8 @@ int main(void)
 	this_thread::sleep_for(2s);
 
 	struct timezone tz = {0, 0};
-	struct timeval tv = {timegm(GPS::get_instance().get_time()), 0};
+	tm gps_time = GPS::get_instance().get_time();
+	struct timeval tv = {timegm(&gps_time), 0};
 	settimeofday(&tv, &tz);
 
 	logger.log("System date change.");
@@ -142,7 +144,8 @@ int main(void)
 
 	// TODO send SMS
 
-	state = WAITING_LAUNCH;
+	state = set_state(WAITING_LAUNCH);
+	logger.log("State changed to "+ state_to_string(state) +".");
 	logger.log("Waiting for launch...");
 
 	// Main logic
@@ -164,11 +167,8 @@ int main(void)
 			break;
 			case LANDED:
 				// TODO send SMS with position after 1 minute
-				// TODO send SMS with position after 15 minutes and shut down
-			break;
-			default:
-				logger.log("State error.");
-				// TODO try to recover from error.
+				// TODO send SMS with position after 15 minutes and shut down.
+				break;
 		}
 	}
 
@@ -209,12 +209,48 @@ void os::gps_thread_fn(State& state)
 		logger.log("Lat: "+ to_string(GPS::get_instance().get_latitude()) +", Lon: "+
 			to_string(GPS::get_instance().get_longitude()) +", Alt: "+
 			to_string(GPS::get_instance().get_altitude()) +", Speed: "+
-			to_string(GPS::get_instance().get_velocity()->speed) +", Course: "+
-			to_string(GPS::get_instance().get_velocity()->course) +", Sat: "+
+			to_string(GPS::get_instance().get_velocity().speed) +", Course: "+
+			to_string(GPS::get_instance().get_velocity().course) +", Sat: "+
 			to_string(GPS::get_instance().get_satellites()) +", HDOP: "+
 			to_string(GPS::get_instance().get_HDOP()) +", VDOP: "+
 			to_string(GPS::get_instance().get_VDOP()));
 
 		this_thread::sleep_for(50ms);
+	}
+}
+
+State os::set_state(State new_state)
+{
+	ofstream state_file(STATE_FILE);
+	state_file << new_state;
+	state_file.close();
+
+	return new_state;
+}
+
+string os::state_to_string(State state)
+{
+	switch (state)
+	{
+		case INITIALIZING:
+			return "INITIALIZING";
+		break;
+		case ACQUIRING_FIX:
+			return "ACQUIRING_FIX";
+		break;
+		case WAITING_LAUNCH:
+			return "WAITING_LAUNCH";
+		break;
+		case GOING_UP:
+			return "GOING_UP";
+		break;
+		case GOING_DOWN:
+			return "GOING_DOWN";
+		break;
+		case LANDED:
+			return "LANDED";
+		break;
+		case SHUT_DOWN:
+			return "SHUT_DOWN";
 	}
 }

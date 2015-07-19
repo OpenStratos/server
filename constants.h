@@ -20,4 +20,6 @@
 	#define GSM_STATUS_GPIO 5
 	#define GSM_BAUDRATE 4800
 	#define GSM_ENDL "\r\n"
+
+	#define STATE_FILE "data/last_state.txt"
 #endif // CONSTANTS_H_
