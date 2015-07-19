@@ -209,7 +209,7 @@ int main(void)
 				// }
 				// else
 				// {
-				// 	logger.log("Landed SMS sent. Sending backup SMS in 15 minutes...");
+					logger.log("Landed SMS sent. Sending backup SMS in 15 minutes...");
 				// }
 
 				this_thread::sleep_for(15min);
