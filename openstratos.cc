@@ -124,10 +124,10 @@ int main(void)
 
 	state = set_state(ACQUIRING_FIX);
 	logger.log("State changed to "+ state_to_string(state) +".");
-	while ( ! GPS::get_instance().is_active())
-	{
-		this_thread::sleep_for(1s);
-	}
+	// while ( ! GPS::get_instance().is_active())
+	// {
+	// 	this_thread::sleep_for(1s);
+	// }
 	logger.log("GPS fix acquired, waiting for date change.");
 	this_thread::sleep_for(2s);
 
@@ -188,10 +188,12 @@ int main(void)
 		}
 	}
 
+	cout << "Stopping video" << endl;
 	logger.log("Stopping video...");
 	Camera::get_instance().stop();
 
 	logger.log("Joining threads...");
+	cout << "Joining threads" << endl;
 	gps_thread.join();
 	logger.log("Finishing execution...");
 	return 0;
