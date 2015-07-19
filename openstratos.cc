@@ -68,8 +68,8 @@ int main(void)
 		}
 	}
 
-	logger.log("Available disk space: " + to_string(get_available_disk_space()/1073741824) + " GiB");
-	if (get_available_disk_space() < 21705523200) // Enough for about 3 hours of video
+	logger.log("Available disk space: " + to_string(get_free_disk_space()/1073741824) + " GiB");
+	if (get_free_disk_space() < 21705523200) // Enough for about 3 hours of video
 	{
 		logger.log("Error: Not enough disk space.");
 		cout << "[OpenStratos] Error: Not enough disk space." << endl;
@@ -77,7 +77,7 @@ int main(void)
 	}
 
 	// ~115 MiB per minute
-	logger.log("Disk space enough for about " + to_string(get_available_disk_space()/7235174400) +
+	logger.log("Disk space enough for about " + to_string(get_free_disk_space()/7235174400) +
 		" hours of fullHD video.");
 
 	// logger.log("Turning on GPS...");
@@ -187,12 +187,12 @@ inline bool os::file_exists(const string& name)
 	return (stat (name.c_str(), &buffer) == 0);
 }
 
-inline float os::get_available_disk_space()
+inline float os::get_free_disk_space()
 {
 	struct statvfs fs;
 	statvfs("data", &fs);
 
-	return fs.f_bsize*fs.f_bavail;
+	return fs.f_bsize*fs.f_bfree;
 }
 
 void os::gps_thread_fn(State& state)
