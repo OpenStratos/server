@@ -21,5 +21,7 @@
 	#define GSM_BAUDRATE 4800
 	#define GSM_ENDL "\r\n"
 
+	#define SMS_PHONE ""
+
 	#define STATE_FILE "data/last_state.txt"
 #endif // CONSTANTS_H_
