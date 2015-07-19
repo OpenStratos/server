@@ -16,6 +16,7 @@
 #include "logger/Logger.h"
 #include "gps/GPS.h"
 #include "camera/Camera.h"
+#include "gsm/GSM.h"
 
 namespace os
 {

@@ -80,15 +80,23 @@ int main(void)
 	logger.log("Disk space enough for about " + to_string(get_available_disk_space()/7549747200) +
 		" hours of fullHD video.");
 
-	// logger.log("Turning on GPS...");
+	logger.log("Turning on GPS...");
 	// if ( ! GPS::get_instance().initialize(""))
 	// {
 	// 	logger.log("GPS initialization error.");
 	// 	exit(1);
 	// }
-	// logger.log("GPS On.");
+	logger.log("GPS On.");
 
 	// TODO start GSM and send message
+	logger.log("Turning on GSM...");
+	// if ( ! GSM::get_instance().initialize(GSM_PWR_GPIO, GSM_STATUS_GPIO, GSM_UART))
+	// {
+	// 	logger.log("GSM initialization error.");
+	// 	exit(1);
+	// }
+	// GSM::get_instance().turn_on();
+	logger.log("GSM On.");
 
 	logger.log("Starting camera recording...");
 	#ifndef RASPIVID
@@ -142,7 +150,13 @@ int main(void)
 	thread gps_thread(&gps_thread_fn, ref(state));
 	logger.log("GPS thread started.");
 
-	// TODO send SMS
+	logger.log("Sending initialization SMS...");
+	// if ( ! GSM::get_instance().send_SMS("Initialization finished OK. Recording. Waiting for launch.", SMS_PHONE))
+	// {
+	// 	logger.log("Error sending initialization SMS.");
+	// 	exit(1);
+	// }
+	logger.log("Initialization SMS sent.");
 
 	state = set_state(WAITING_LAUNCH);
 	logger.log("State changed to "+ state_to_string(state) +".");
@@ -162,6 +176,8 @@ int main(void)
 				logger.log("State changed to "+ state_to_string(state) +".");
 			break;
 			case GOING_UP:
+				// TODO send SMS at 1.5 km mark
+				// TODO turn off GSM
 				// TODO detect burst
 				this_thread::sleep_for(2s);
 				logger.log("Balloon burst.");
@@ -169,8 +185,8 @@ int main(void)
 				logger.log("State changed to "+ state_to_string(state) +".");
 			break;
 			case GOING_DOWN:
-				// TODO detect 3 km mark and send SMS
-				// TODO detect 1,5 km mark and send SMS
+				// TODO detect 2.5 km mark, turn on GSM and send SMS
+				// TODO detect 1.5 km mark and send SMS
 				// TODO detect 500m mark and send SMS if not landed
 				// TODO detect landing
 				this_thread::sleep_for(2s);
@@ -179,24 +195,50 @@ int main(void)
 				logger.log("State changed to "+ state_to_string(state) +".");
 			break;
 			case LANDED:
-				// TODO send SMS with position after 1 minute
-				// TODO send SMS with position after 15 minutes and shut down.
-				this_thread::sleep_for(2s);
+				logger.log("Stopping video...");
+				Camera::get_instance().stop();
+
+				logger.log("Waiting 1 minute before sending landed SMS...");
+				this_thread::sleep_for(1min);
+
+				logger.log("Sending landed SMS...");
+				// if ( ! GSM::get_instance().send_SMS("Landed in Lat: "+ to_string(GPS::get_instance().get_latitude())
+				// 	+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+				// {
+				// 	logger.log("Error sending landed SMS. Trying again in 15 minutes...");
+				// }
+				// else
+				// {
+				// 	logger.log("Landed SMS sent. Sending backup SMS in 15 minutes...");
+				// }
+
+				this_thread::sleep_for(15min);
+
+				logger.log("Sending second landed SMS...");
+
+				// while ( ! GSM::get_instance().send_SMS("Landed in Lat: "+ to_string(GPS::get_instance().get_latitude())
+				// 	+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+				// {
+				// 	logger.log("Error sending second SMS, trying again in 5 minutes.");
+				// 	this_thread::sleep_for(5min);
+				// }
+
+				logger.log("Second SMS sent.");
+
 				logger.log("Shutting down...");
 				state = set_state(SHUT_DOWN);
 				logger.log("State changed to "+ state_to_string(state) +".");
 		}
 	}
 
-	cout << "Stopping video" << endl;
-	logger.log("Stopping video...");
-	Camera::get_instance().stop();
+	logger.log("Turning GSM off...");
+	// GSM::get_instance().turn_off();
+	logger.log("GSM off.");
 
 	logger.log("Joining threads...");
-	cout << "Joining threads" << endl;
 	gps_thread.join();
 	logger.log("Finishing execution...");
-	return 0;
+	return 0; // Gives segmentation fault here
 }
 
 inline bool os::file_exists(const string& name)
