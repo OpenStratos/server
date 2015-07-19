@@ -69,7 +69,7 @@ int main(void)
 	}
 
 	logger.log("Available disk space: " + to_string(get_available_disk_space()/1073741824) + " GiB");
-	if (get_available_disk_space() < 21705523200) // Enough for about 3 hours of video
+	if (get_available_disk_space() < 22649241600) // Enough for about 3 hours of video
 	{
 		logger.log("Error: Not enough disk space.");
 		cout << "[OpenStratos] Error: Not enough disk space." << endl;
@@ -77,7 +77,7 @@ int main(void)
 	}
 
 	// ~115 MiB per minute
-	logger.log("Disk space enough for about " + to_string(get_available_disk_space()/7235174400) +
+	logger.log("Disk space enough for about " + to_string(get_available_disk_space()/7549747200) +
 		" hours of fullHD video.");
 
 	// logger.log("Turning on GPS...");
@@ -154,21 +154,37 @@ int main(void)
 		switch (state)
 		{
 			case WAITING_LAUNCH:
-				// TODO detect launch and send SMS
+				// TODO detect launch
+				this_thread::sleep_for(2s);
+				logger.log("Balloon launched.");
+				// TODO send SMS
+				state = set_state(GOING_UP);
+				logger.log("State changed to "+ state_to_string(state) +".");
 			break;
 			case GOING_UP:
-				// TODO detect records and check recording
+				// TODO detect burst
+				this_thread::sleep_for(2s);
+				logger.log("Balloon burst.");
+				state = set_state(GOING_DOWN);
+				logger.log("State changed to "+ state_to_string(state) +".");
 			break;
 			case GOING_DOWN:
 				// TODO detect 3 km mark and send SMS
 				// TODO detect 1,5 km mark and send SMS
 				// TODO detect 500m mark and send SMS if not landed
 				// TODO detect landing
+				this_thread::sleep_for(2s);
+				logger.log("Landed.");
+				state = set_state(LANDED);
+				logger.log("State changed to "+ state_to_string(state) +".");
 			break;
 			case LANDED:
 				// TODO send SMS with position after 1 minute
 				// TODO send SMS with position after 15 minutes and shut down.
-				break;
+				this_thread::sleep_for(2s);
+				logger.log("Shutting down...");
+				state = set_state(SHUT_DOWN);
+				logger.log("State changed to "+ state_to_string(state) +".");
 		}
 	}
 
@@ -176,8 +192,8 @@ int main(void)
 	Camera::get_instance().stop();
 
 	logger.log("Joining threads...");
-	// gps_thread.join();
-	logger.log("Finishing execution.");
+	gps_thread.join();
+	logger.log("Finishing execution...");
 	return 0;
 }
 
