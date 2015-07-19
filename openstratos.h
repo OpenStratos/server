@@ -30,7 +30,7 @@ namespace os
 	};
 
 	inline bool file_exists(const string& name);
-	inline float get_free_disk_space();
+	inline float get_available_disk_space();
 	void gps_thread_fn(State& state);
 	State set_state(State new_state);
 	string state_to_string(State state);
