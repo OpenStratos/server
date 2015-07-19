@@ -238,6 +238,7 @@ int main(void)
 	logger.log("Joining threads...");
 	gps_thread.join();
 	logger.log("Finishing execution...");
+	// TODO turn raspberry off
 	return 0; // Gives segmentation fault here
 }
 
