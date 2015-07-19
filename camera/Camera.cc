@@ -10,6 +10,8 @@
 #include <sys/types.h>
 #include <dirent.h>
 
+#include "config.h"
+
 using namespace os;
 using namespace std;
 
