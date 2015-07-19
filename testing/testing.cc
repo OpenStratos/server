@@ -2,6 +2,9 @@
 
 #include <bandit/bandit.h>
 
+#include "config.h"
+#include "constants.h"
+
 #include "serial/Serial.h"
 #include "camera/Camera.h"
 #include "temperature/Temperature.h"
