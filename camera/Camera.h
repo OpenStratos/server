@@ -19,9 +19,9 @@ namespace os {
 		Camera(Camera& copy) = delete;
 		static Camera& get_instance();
 
-		void record(int time);
-		void record();
-		void stop();
+		bool record(int time);
+		bool record();
+		bool stop();
 		bool is_recording() const {return this->recording;}
 	};
 
