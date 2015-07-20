@@ -302,14 +302,14 @@ int main(void)
 				// if ( ! GSM::get_instance().send_SMS("Landed in Lat: "+ to_string(GPS::get_instance().get_latitude())
 				// 	+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
 				// {
-				// 	logger.log("Error sending landed SMS. Trying again in 15 minutes...");
+				// 	logger.log("Error sending landed SMS. Trying again in 10 minutes...");
 				// }
 				// else
 				// {
-					logger.log("Landed SMS sent. Sending backup SMS in 15 minutes...");
+					logger.log("Landed SMS sent. Sending backup SMS in 10 minutes...");
 				// }
 
-				this_thread::sleep_for(15min);
+				this_thread::sleep_for(10min);
 
 				logger.log("Sending second landed SMS...");
 
