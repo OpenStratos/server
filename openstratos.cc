@@ -336,7 +336,7 @@ int main(void)
 inline bool os::file_exists(const string& name)
 {
 	struct stat buffer;
-	return (stat (name.c_str(), &buffer) == 0);
+	return stat(name.c_str(), &buffer) == 0;
 }
 
 inline float os::get_available_disk_space()
