@@ -84,23 +84,23 @@ int main(void)
 	wiringPiSetup();
 	logger.log("WiringPi initialized.");
 
-	logger.log("Turning on GPS...");
+	logger.log("Initializing GPS...");
 	if ( ! GPS::get_instance().initialize(GPS_UART))
 	{
 		logger.log("GPS initialization error.");
 		exit(1);
 	}
-	logger.log("GPS On.");
+	logger.log("GPS initialized.");
 
 	// TODO start GSM and send message
-	logger.log("Turning on GSM...");
+	logger.log("Initializing GSM...");
 	// if ( ! GSM::get_instance().initialize(GSM_PWR_GPIO, GSM_STATUS_GPIO, GSM_UART))
 	// {
 	// 	logger.log("GSM initialization error.");
 	// 	exit(1);
 	// }
 	// GSM::get_instance().turn_on();
-	logger.log("GSM On.");
+	logger.log("GSM initialized.");
 
 	logger.log("Starting camera recording...");
 	#ifndef RASPIVID
