@@ -50,6 +50,7 @@ config.h
 .deps/
 .dirstamp
 *~
+config.h
 
 # Eclipse files
 .project

@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.68])
 AC_INIT(OpenStratos, Alpha-1-dev, https://openstratos.org/bugtracker)
-AC_CONFIG_SRCDIR([openstratos.h])
+AC_CONFIG_SRCDIR([openstratos.cc])
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_HEADERS([config.h])
 
@@ -32,7 +32,6 @@ AC_TYPE_SIZE_T
 
 # Checks for library functions.
 AC_FUNC_ERROR_AT_LINE
-AC_FUNC_MKTIME
 AC_CHECK_FUNCS([stpcpy strstr])
 
 AC_CONFIG_FILES([Makefile])
