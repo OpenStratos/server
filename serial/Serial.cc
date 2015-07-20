@@ -5,25 +5,34 @@
 #include <thread>
 #include <functional>
 #include <string>
-#include <iostream>
 
 #include <wiringSerial.h>
+
+#include "constants.h"
+#include "gps/GPS.h"
 
 using namespace std;
 using namespace os;
 
-void Serial::initialize(const string& url, int baud, const string endl, function<uint_fast8_t(const string&)>)
+bool Serial::initialize_GPS()
 {
-	this->listener = listener;
-	this->endl = endl;
+	this->endl = GPS_ENDL;
 	#ifndef OS_TESTING
-		this->fd = serialOpen(url.c_str(), baud);
+		this->fd = serialOpen(GPS_UART, GPS_BAUDRATE);
+
+		if (this->fd == -1) {
+			this->open = false;
+			this->stopped = true;
+			return false;
+		}
 	#endif
 
 	this->open = true;
 	this->stopped = false;
-	thread t(&Serial::serial_thread, this);
+	thread t(&Serial::gps_thread, this);
 	t.detach();
+
+	return true;
 }
 
 bool Serial::initialize(const string& url, int baud)
@@ -48,7 +57,7 @@ Serial::~Serial()
 	this->close();
 }
 
-void Serial::serial_thread()
+void Serial::gps_thread()
 {
 	string response;
 	int endl_pos = 0;
@@ -69,7 +78,10 @@ void Serial::serial_thread()
 					{
 						response = response.substr(0, response.length()-endl.length());
 
-						this->listener(response);
+						if (response.at(0) == '$')
+						{
+							GPS::get_instance().parse(response);
+						}
 						response = "";
 						endl_pos = 0;
 						this_thread::sleep_for(50ms);
@@ -96,12 +108,19 @@ void Serial::send(const string& str) const
 
 void Serial::close()
 {
-	this->open = false;
-	while( ! this->stopped);
+	if (this->open) {
+		this->open = false;
+		while( ! this->stopped);
 
-	#ifndef OS_TESTING
-		serialClose(this->fd);
-	#endif
+		#ifndef OS_TESTING
+			serialClose(this->fd);
+		#endif
+	}
+}
+
+bool Serial::is_open()
+{
+	return this->open;
 }
 
 const string Serial::read_line() const

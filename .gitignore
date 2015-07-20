@@ -30,6 +30,8 @@ openstratos
 openstratosRoot
 utesting
 Makefile
+data
+config.h
 
 # http://www.gnu.org/software/automake
 

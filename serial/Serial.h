@@ -13,12 +13,11 @@ namespace os {
 	{
 	private:
 		int fd;
-		function<uint_fast8_t(const string&)> listener;
 		atomic_bool open;
 		atomic_bool stopped;
 		string endl;
 
-		void serial_thread();
+		void gps_thread();
 	public:
 		Serial() = default;
 		Serial(Serial& copy) = delete;
@@ -26,7 +25,8 @@ namespace os {
 
 		void send(const string& str) const;
 		void close();
-		void initialize(const string& serial_URL, int baud, const string endl, function<uint_fast8_t(const string&)>);
+		bool is_open();
+		bool initialize_GPS();
 		bool initialize(const string& serial_URL, int baud);
 		const string read_line() const;
 		void flush() const;

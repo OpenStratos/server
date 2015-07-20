@@ -6,6 +6,7 @@
 #include <string>
 
 #include "serial/Serial.h"
+#include "logger/Logger.h"
 
 using namespace std;
 
@@ -21,6 +22,8 @@ namespace os {
 	{
 	private:
 		Serial serial;
+		Logger* logger;
+		Logger* frame_logger;
 
 		tm time;
 		bool active;
@@ -44,7 +47,7 @@ namespace os {
 		static GPS& get_instance();
 		static bool is_valid(string frame);
 
-		const tm get_time() const {return this->time;}
+		tm get_time() const {return this->time;}
 		bool is_active() const {return this->active;}
 		uint_fast8_t get_satellites() const {return this->satellites;}
 		double get_latitude() const {return this->latitude;}
@@ -52,10 +55,12 @@ namespace os {
 		double get_altitude() const {return this->altitude;}
 		float get_HDOP() const {return this->hdop;}
 		float get_VDOP() const {return this->vdop;}
-		const euc_vec get_velocity() const {return this->velocity;}
+		euc_vec get_velocity() const {return this->velocity;}
 
-		void initialize(const string& serial_URL);
+		bool initialize(const string& serial_URL);
 		uint_fast8_t parse(const string& frame);
+
+		// TODO Turn ON and OFF
 	};
 }
 
