@@ -50,7 +50,7 @@ bool GPS::initialize(const string& serial_URL)
 		to_string(now->tm_sec) +".log", "GPS");
 
 	this->logger->log("Starting serial connection...");
-	if ( ! this->serial.initialize(serial_URL, 9600, "\r\n", bind(&GPS::parse, this, placeholders::_1))) {
+	if ( ! this->serial.initialize_GPS()) {
 		this->logger->log("GPS serial error.");
 		return false;
 	} else {
