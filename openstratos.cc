@@ -181,28 +181,104 @@ int main(void)
 		switch (state)
 		{
 			case WAITING_LAUNCH:
-				// TODO detect launch
-				this_thread::sleep_for(2s);
+				while ( ! has_launched());
 				logger.log("Balloon launched.");
-				// TODO send SMS
+
+				logger.log("Trying to send launch confirmation SMS...");
+				// if ( ! GSM::get_instance().send_SMS("Launched in Lat: "+
+				// to_string(GPS::get_instance().get_latitude()) +" and Lon: "+
+				// to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+				// {
+				// 	logger.log("Error sending launch confirmation SMS.");
+				// }
+				// else
+				// {
+					logger.log("Launch confirmation SMS sent.");
+				// }
+
 				state = set_state(GOING_UP);
 				logger.log("State changed to "+ state_to_string(state) +".");
 			break;
 			case GOING_UP:
-				// TODO send SMS at 1.5 km mark
-				// TODO turn off GSM
-				// TODO detect burst
-				this_thread::sleep_for(2s);
+				while (GPS::get_instance().get_altitude() < 1500)
+				{
+					this_thread::sleep_for(2s);
+				}
+				logger.log("1.5 km mark.");
+				logger.log("Trying to send \"going up\" SMS...");
+				// if ( ! GSM::get_instance().send_SMS("1.5 km mark passed going up in Lat: "+
+				// to_string(GPS::get_instance().get_latitude()) +" and Lon: "+
+				// to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+				// {
+				// 	logger.log("Error sending \"going up\" SMS.");
+				// }
+				// else
+				// {
+					logger.log("\"Going up\" SMS sent.");
+				// }
+
+				logger.log("Turning off GSM...");
+				// GSM::get_instance().turn_off();
+				logger.log("GSM off.");
+
+				while ( ! has_bursted());
 				logger.log("Balloon burst.");
 				state = set_state(GOING_DOWN);
 				logger.log("State changed to "+ state_to_string(state) +".");
 			break;
 			case GOING_DOWN:
-				// TODO detect 2.5 km mark, turn on GSM and send SMS
-				// TODO detect 1.5 km mark and send SMS
-				// TODO detect 500m mark and send SMS if not landed
-				// TODO detect landing
-				this_thread::sleep_for(2s);
+				while (GPS::get_instance().get_altitude() > 2500)
+				{
+					this_thread::sleep_for(10s);
+				}
+				logger.log("2.5 km mark.");
+				logger.log("Turning on GSM...");
+				// GSM::get_instance().turn_on();
+				logger.log("GSM on.");
+				logger.log("Trying to send first SMS...");
+				// if ( ! GSM::get_instance().send_SMS("2.5 km mark passed in Lat: "+ to_string(GPS::get_instance().get_latitude())
+				// 	+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+				// {
+				// 	logger.log("Error sending first SMS.");
+				// }
+				// else
+				// {
+					logger.log("First SMS sent.");
+				// }
+
+				while (GPS::get_instance().get_altitude() > 1500)
+				{
+					this_thread::sleep_for(5s);
+				}
+				logger.log("1.5 km mark.");
+				logger.log("Trying to send second SMS...");
+				// if ( ! GSM::get_instance().send_SMS("1.5 km mark passed in Lat: "+ to_string(GPS::get_instance().get_latitude())
+				// 	+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+				// {
+				// 	logger.log("Error sending second SMS.");
+				// }
+				// else
+				// {
+					logger.log("Second SMS sent.");
+				// }
+
+				while ( ! has_landed() && GPS::get_instance().get_altitude() > 500);
+				if ( ! has_landed())
+				{
+					logger.log("500 m mark.");
+					logger.log("Trying to send third SMS...");
+					// if ( ! GSM::get_instance().send_SMS("500 m mark passed in Lat: "+ to_string(GPS::get_instance().get_latitude())
+					// 	+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+					// {
+					// 	logger.log("Error sending third SMS.");
+					// }
+					// else
+					// {
+						logger.log("Third SMS sent.");
+					// }
+				}
+
+				while ( ! has_landed());
 				logger.log("Landed.");
 				state = set_state(LANDED);
 				logger.log("State changed to "+ state_to_string(state) +".");
@@ -250,9 +326,12 @@ int main(void)
 
 	logger.log("Joining threads...");
 	gps_thread.join();
-	logger.log("Finishing execution...");
-	// TODO turn raspberry off
-	return 0; // Gives segmentation fault here
+	logger.log("Threads joined.");
+
+	logger.log("Powering off...");
+	sync();
+	//reboot(RB_POWER_OFF);
+	return 0;
 }
 
 inline bool os::file_exists(const string& name)
@@ -279,7 +358,7 @@ void os::gps_thread_fn(State& state)
 		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
 		to_string(now->tm_sec) +".log", "GPSPosition");
 
-	while (state != LANDED) {
+	while (state != SHUT_DOWN) {
 		logger.log("Lat: "+ to_string(GPS::get_instance().get_latitude()) +", Lon: "+
 			to_string(GPS::get_instance().get_longitude()) +", Alt: "+
 			to_string(GPS::get_instance().get_altitude()) +", Speed: "+
@@ -327,4 +406,34 @@ string os::state_to_string(State state)
 		case SHUT_DOWN:
 			return "SHUT_DOWN";
 	}
+}
+
+bool os::has_launched()
+{
+	double first_altitude = GPS::get_instance().get_altitude();
+	this_thread::sleep_for(3s);
+	double second_altitude = GPS::get_instance().get_altitude();
+
+	return true;
+	// return second_altitude > first_altitude + 10;
+}
+
+bool os::has_bursted()
+{
+	double first_altitude = GPS::get_instance().get_altitude();
+	this_thread::sleep_for(3s);
+	double second_altitude = GPS::get_instance().get_altitude();
+
+	return true;
+	// return second_altitude < first_altitude - 15;
+}
+
+bool os::has_landed()
+{
+	double first_altitude = GPS::get_instance().get_altitude();
+	this_thread::sleep_for(5s);
+	double second_altitude = GPS::get_instance().get_altitude();
+
+	return true;
+	// return first_altitude-second_altitude < 5;
 }
