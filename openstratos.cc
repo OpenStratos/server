@@ -376,7 +376,7 @@ void os::gps_thread_fn(State& state)
 			to_string(GPS::get_instance().get_HDOP()) +", VDOP: "+
 			to_string(GPS::get_instance().get_VDOP()));
 
-		this_thread::sleep_for(100ms);
+		this_thread::sleep_for(250ms);
 	}
 }
 
