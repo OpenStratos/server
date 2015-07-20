@@ -10,15 +10,17 @@
 
 #include <wiringSerial.h>
 
+#include "constants.h"
+#include "gps/GPS.h"
+
 using namespace std;
 using namespace os;
 
-bool Serial::initialize(const string& url, int baud, const string endl, function<uint_fast8_t(const string&)>)
+bool Serial::initialize_GPS()
 {
-	this->listener = listener;
-	this->endl = endl;
+	this->endl = GPS_ENDL;
 	#ifndef OS_TESTING
-		this->fd = serialOpen(url.c_str(), baud);
+		this->fd = serialOpen(GPS_UART, GPS_BAUDRATE);
 
 		if (this->fd == -1) {
 			this->open = false;
@@ -29,7 +31,7 @@ bool Serial::initialize(const string& url, int baud, const string endl, function
 
 	this->open = true;
 	this->stopped = false;
-	thread t(&Serial::serial_thread, this);
+	thread t(&Serial::gps_thread, this);
 	t.detach();
 
 	return true;
@@ -57,7 +59,7 @@ Serial::~Serial()
 	this->close();
 }
 
-void Serial::serial_thread()
+void Serial::gps_thread()
 {
 	string response;
 	int endl_pos = 0;
@@ -76,11 +78,9 @@ void Serial::serial_thread()
 					if (c == this->endl[endl_pos]) ++endl_pos;
 					if (endl_pos == this->endl.length())
 					{
-						response = response.substr(0, response.length()-endl.length());
+						response = response.substr(response.find("$"), response.length()-endl.length());
 
-						cout << "Received serial line:" << endl << response << endl;
-
-						this->listener(response);
+						GPS::get_instance().parse(response);
 						response = "";
 						endl_pos = 0;
 						this_thread::sleep_for(50ms);

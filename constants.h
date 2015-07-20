@@ -15,6 +15,9 @@
 	#define BAT_R2 4700
 
 	#define GPS_UART "/dev/ttyAMA0"
+	#define GPS_ENABLE_GPIO 4
+	#define GPS_BAUDRATE 4800
+	#define GPS_ENDL "\r\n"
 
 	#define GSM_LOC_SERV "gprs-service.com"
 	#define GSM_UART "/dev/ttyAMA0"

@@ -32,7 +32,7 @@ void Camera::record_thread(int time)
 	this->recording = false;
 }
 
-void Camera::record(int time)
+bool Camera::record(int time)
 {
 	if ( ! this->recording)
 	{
@@ -50,7 +50,7 @@ void Camera::record(int time)
 			command = "";
 		#endif
 
-		system(command.c_str());
+		int st = system(command.c_str());
 		this->recording = true;
 
 		if (time > 0)
@@ -58,18 +58,20 @@ void Camera::record(int time)
 			thread t(&Camera::record_thread, this, time);
 			t.detach();
 		}
+
+		return st == 0;
 	}
 }
 
-void Camera::record()
+bool Camera::record()
 {
-	this->record(0);
+	return this->record(0);
 }
 
-void Camera::stop()
+bool Camera::stop()
 {
-	system("pkill raspivid");
 	this->recording = false;
+	return system("pkill raspivid") == 0;
 }
 
 int os::get_file_count(const string& path)
