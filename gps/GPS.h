@@ -59,6 +59,8 @@ namespace os {
 
 		bool initialize(const string& serial_URL);
 		uint_fast8_t parse(const string& frame);
+
+		// TODO Turn ON and OFF
 	};
 }
 

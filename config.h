@@ -67,6 +67,9 @@
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "Alpha-1-dev"
 
+/* Define to 1 if you have raspivid available. */
+/* #undef RASPIVID */
+
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
