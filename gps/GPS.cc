@@ -62,8 +62,12 @@ bool GPS::initialize(const string& serial_URL)
 	}
 
 	#ifndef OS_TESTING
+		this->logger->log("Sending configuration frames...");
 		this->serial.send("$PMTK220,100*2F");
+		this->frame_logger->log("Sent: $PMTK220,100*2F");
 		this->serial.send("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+		this->frame_logger->log("Sent: $PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+		this->logger->log("Configuration frames sent.");
 	#endif
 }
 

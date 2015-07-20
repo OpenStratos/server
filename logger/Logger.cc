@@ -30,5 +30,6 @@ void Logger::log(const string& message)
 	this->log_stream << "[" << log_prefix << "] - "  << setfill('0') << setw(2) << now->tm_mon << "/" <<
 		setfill('0') << setw(2) << now->tm_mday << "/" << (now->tm_year+1900) << " " <<
 		setfill('0') << setw(2) << now->tm_hour << ":" << setfill('0') << setw(2) << now->tm_min << ":" <<
-		setfill('0') << setw(2) << now->tm_sec << "." << timer.tv_usec << " - " << message << endl;
+		setfill('0') << setw(2) << now->tm_sec << "." << setfill('0') << setw(6) << timer.tv_usec <<
+		" - " << message << endl;
 }
