@@ -76,7 +76,6 @@ int main(void)
 		exit(1);
 	}
 
-	// ~115 MiB per minute
 	logger.log("Disk space enough for about " + to_string(get_available_disk_space()/7549747200) +
 		" hours of fullHD video.");
 
@@ -102,7 +101,7 @@ int main(void)
 	// GSM::get_instance().turn_on();
 	logger.log("GSM initialized.");
 
-	logger.log("Starting camera recording...");
+	logger.log("Testing camera recording...");
 	#ifndef RASPIVID
 		logger.log("Error: No raspivid found. Is this a Raspberry?");
 		exit(1);
