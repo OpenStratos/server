@@ -284,7 +284,16 @@ int main(void)
 			break;
 			case LANDED:
 				logger.log("Stopping video...");
-				Camera::get_instance().stop();
+				if ( ! Camera::get_instance().stop())
+				{
+					logger.log("Error stopping video.");
+					// TODO try again?
+				}
+				else
+				{
+					logger.log("Video stopped.")
+				}
+
 
 				logger.log("Waiting 1 minute before sending landed SMS...");
 				this_thread::sleep_for(1min);
@@ -367,7 +376,7 @@ void os::gps_thread_fn(State& state)
 			to_string(GPS::get_instance().get_HDOP()) +", VDOP: "+
 			to_string(GPS::get_instance().get_VDOP()));
 
-		this_thread::sleep_for(50ms);
+		this_thread::sleep_for(100ms);
 	}
 }
 
