@@ -26,8 +26,6 @@ notifications:
   email:
     recipients:
       - iban.eguia@opendeusto.es
-      - jordan.aranda@me.com
-      - aritzbilbao@deusto.es
       - eneko.cruz@opendeusto.es
     on_success: change
     on_failure: always
