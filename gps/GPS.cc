@@ -4,9 +4,13 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <regex>
+
+#include <sys/time.h>
 
 #include "constants.h"
 #include "serial/Serial.h"
+#include "logger/Logger.h"
 
 
 using namespace std;
@@ -20,21 +24,74 @@ GPS& GPS::get_instance()
 
 GPS::~GPS()
 {
-	this->serial.close();
+	if (this->serial.is_open())
+	{
+		this->logger->log("Closing serial interface...");
+		this->serial.close();
+		this->logger->log("Serial interface closed.");
+
+		this->logger->log("Deallocating frame logger...");
+		delete this->frame_logger;
+	}
+	this->logger->log("Shutting down...");
+	// TODO shut down GPS
+	this->logger->log("Shut down finished.");
+	delete this->logger;
 }
 
-void GPS::initialize(const string& serial_URL)
+bool GPS::initialize(const string& serial_URL)
 {
-	this->serial.initialize(serial_URL, 9600, "\r\n", bind(&GPS::parse, this, placeholders::_1));
+	struct timeval timer;
+	gettimeofday(&timer, NULL);
+	struct tm * now = gmtime(&timer.tv_sec);
+
+	this->logger = new Logger("data/logs/GPS/GPS."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
+		to_string(now->tm_sec) +".log", "GPS");
+
+	this->logger->log("Starting serial connection...");
+	if ( ! this->serial.initialize_GPS()) {
+		this->logger->log("GPS serial error.");
+		return false;
+	} else {
+		this->logger->log("Serial connection started.");
+		this->frame_logger = new Logger("data/logs/GPS/GPSFrames."+ to_string(now->tm_year+1900) +"-"+
+			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
+			to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "GPS Frame");
+		return true;
+	}
 
 	#ifndef OS_TESTING
-		this->serial.send_frame("$PMTK220,100*2F");
-		this->serial.send_frame("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+		this->logger->log("Sending configuration frames...");
+		this->serial.send("$PMTK220,100*2F");
+		this->frame_logger->log("Sent: $PMTK220,100*2F");
+		this->serial.send("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+		this->frame_logger->log("Sent: $PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+		this->logger->log("Configuration frames sent.");
 	#endif
+}
+
+bool GPS::is_valid(string frame)
+{
+	regex frame_regex("\\$[A-Z][0-9A-Z\\.,-]*\\*[0-9A-F]{1,2}");
+	if ( ! regex_match(frame, frame_regex)) return false;
+
+	uint_fast8_t checksum = 0;
+	for (char c : frame)
+	{
+		if (c == '$') continue;
+		if (c == '*') break;
+
+		checksum ^= c;
+	}
+	uint_fast8_t frame_cs = stoi(frame.substr(frame.rfind('*')+1, frame.length()-frame.rfind('*')-1), 0, 16);
+
+	return checksum == frame_cs;
 }
 
 uint_fast8_t GPS::parse(const string& frame)
 {
+	this->frame_logger->log(frame);
 	string frame_type = frame.substr(1, frame.find_first_of(',')-1);
 
 	if (frame_type == "GPGGA")

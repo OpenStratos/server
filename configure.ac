@@ -12,10 +12,13 @@ AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
-AC_CHECK_PROG(RASPIVID, raspivid, yes)
+AC_CHECK_PROG([HAVE_RASPIVID], [raspivid], [yes])
+AS_IF([test "x$HAVE_RASPIVID" = xyes],
+    [AC_DEFINE([RASPIVID], [1], [Define to 1 if you have raspivid available.])])
 
 # Checks for libraries.
-AC_CHECK_LIB([wiringPi], [wiringPiSetupSys])
+AC_CHECK_LIB([pthread], [pthread_create])
+AC_CHECK_LIB([wiringPi], [wiringPiSetup])
 
 # Checks for header files.
 AC_CHECK_HEADERS([string.h])
