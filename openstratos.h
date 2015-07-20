@@ -11,6 +11,8 @@
 #include <sys/statvfs.h>
 #include <sys/time.h>
 
+#include <wiringPi.h>
+
 #include "config.h"
 #include "constants.h"
 #include "logger/Logger.h"
