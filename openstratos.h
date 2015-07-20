@@ -10,6 +10,8 @@
 #include <sys/stat.h>
 #include <sys/statvfs.h>
 #include <sys/time.h>
+#include <unistd.h>
+#include <sys/reboot.h>
 
 #include <wiringPi.h>
 
@@ -37,6 +39,9 @@ namespace os
 	void gps_thread_fn(State& state);
 	State set_state(State new_state);
 	string state_to_string(State state);
+	bool has_launched();
+	bool has_bursted();
+	bool has_landed();
 }
 
 using namespace std;
