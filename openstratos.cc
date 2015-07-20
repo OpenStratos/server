@@ -80,12 +80,16 @@ int main(void)
 	logger.log("Disk space enough for about " + to_string(get_available_disk_space()/7549747200) +
 		" hours of fullHD video.");
 
+	logger.log("Initializing WiringPi...");
+	wiringPiSetup();
+	logger.log("WiringPi initialized.");
+
 	logger.log("Turning on GPS...");
-	// if ( ! GPS::get_instance().initialize(""))
-	// {
-	// 	logger.log("GPS initialization error.");
-	// 	exit(1);
-	// }
+	if ( ! GPS::get_instance().initialize(GPS_UART))
+	{
+		logger.log("GPS initialization error.");
+		exit(1);
+	}
 	logger.log("GPS On.");
 
 	// TODO start GSM and send message
@@ -132,10 +136,10 @@ int main(void)
 
 	state = set_state(ACQUIRING_FIX);
 	logger.log("State changed to "+ state_to_string(state) +".");
-	// while ( ! GPS::get_instance().is_active())
-	// {
-	// 	this_thread::sleep_for(1s);
-	// }
+	while ( ! GPS::get_instance().is_active())
+	{
+		this_thread::sleep_for(1s);
+	}
 	logger.log("GPS fix acquired, waiting for date change.");
 	this_thread::sleep_for(2s);
 
