@@ -199,10 +199,10 @@ int main(void)
 				logger.log("State changed to "+ state_to_string(state) +".");
 			break;
 			case GOING_UP:
-				while (GPS::get_instance().get_altitude() < 1500)
-				{
+				// while (GPS::get_instance().get_altitude() < 1500)
+				// {
 					this_thread::sleep_for(2s);
-				}
+				// }
 				logger.log("1.5 km mark.");
 				logger.log("Trying to send \"going up\" SMS...");
 				// if ( ! GSM::get_instance().send_SMS("1.5 km mark passed going up in Lat: "+
@@ -226,10 +226,10 @@ int main(void)
 				logger.log("State changed to "+ state_to_string(state) +".");
 			break;
 			case GOING_DOWN:
-				while (GPS::get_instance().get_altitude() > 2500)
-				{
+				// while (GPS::get_instance().get_altitude() > 2500)
+				// {
 					this_thread::sleep_for(10s);
-				}
+				// }
 				logger.log("2.5 km mark.");
 				logger.log("Turning on GSM...");
 				// GSM::get_instance().turn_on();
@@ -245,10 +245,10 @@ int main(void)
 					logger.log("First SMS sent.");
 				// }
 
-				while (GPS::get_instance().get_altitude() > 1500)
-				{
+				// while (GPS::get_instance().get_altitude() > 1500)
+				// {
 					this_thread::sleep_for(5s);
-				}
+				// }
 				logger.log("1.5 km mark.");
 				logger.log("Trying to send second SMS...");
 				// if ( ! GSM::get_instance().send_SMS("1.5 km mark passed in Lat: "+ to_string(GPS::get_instance().get_latitude())
