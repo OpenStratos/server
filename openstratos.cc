@@ -108,7 +108,11 @@ int main(void)
 		exit(1);
 	#endif
 	logger.log("Recording 10 seconds as test...");
-	Camera::get_instance().record(10000);
+	if ( ! Camera::get_instance().record(10000))
+	{
+		logger.log("Error starting recording");
+		exit(1);
+	}
 	this_thread::sleep_for(11s);
 	Camera::get_instance().stop();
 
@@ -131,9 +135,6 @@ int main(void)
 		exit(1);
 	}
 
-	logger.log("Starting video recording...");
-	Camera::get_instance().record();
-
 	state = set_state(ACQUIRING_FIX);
 	logger.log("State changed to "+ state_to_string(state) +".");
 	while ( ! GPS::get_instance().is_active())
@@ -149,6 +150,14 @@ int main(void)
 	settimeofday(&tv, &tz);
 
 	logger.log("System date change.");
+
+	logger.log("Starting video recording...");
+	if ( ! Camera::get_instance().record())
+	{
+		logger.log("Error starting recording");
+		exit(1);
+	}
+	logger.log("Recording started.");
 
 	logger.log("Starting GPS Thread...");
 	thread gps_thread(&gps_thread_fn, ref(state));
