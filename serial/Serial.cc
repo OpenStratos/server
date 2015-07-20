@@ -6,8 +6,6 @@
 #include <functional>
 #include <string>
 
-#include <iostream>
-
 #include <wiringSerial.h>
 
 #include "constants.h"
@@ -78,12 +76,12 @@ void Serial::gps_thread()
 					if (c == this->endl[endl_pos]) ++endl_pos;
 					if (endl_pos == this->endl.length())
 					{
-						response = response.substr(response.find("$") > 0  &&
-							response.find("$") < response.length()
-							? response.find("$") : 0,
-							response.length()-endl.length());
+						response = response.substr(0, response.length()-endl.length());
 
-						GPS::get_instance().parse(response);
+						if (response.at(0) == '$')
+						{
+							GPS::get_instance().parse(response);
+						}
 						response = "";
 						endl_pos = 0;
 						this_thread::sleep_for(50ms);
