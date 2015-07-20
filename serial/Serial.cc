@@ -6,6 +6,8 @@
 #include <functional>
 #include <string>
 
+#include <iostream>
+
 #include <wiringSerial.h>
 
 using namespace std;
@@ -75,6 +77,8 @@ void Serial::serial_thread()
 					if (endl_pos == this->endl.length())
 					{
 						response = response.substr(0, response.length()-endl.length());
+
+						cout << "Received serial line:" << endl << response << endl;
 
 						this->listener(response);
 						response = "";
