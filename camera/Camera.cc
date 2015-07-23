@@ -11,6 +11,7 @@
 #include <dirent.h>
 
 #include "config.h"
+#include "constants.h"
 
 using namespace os;
 using namespace std;
@@ -44,7 +45,8 @@ bool Camera::record(int time)
 		else
 		{
 			command = "raspivid -o data/video/video-"+ to_string(get_file_count("data/video/"))
-				+".h264 -t " + to_string(time) + " &";
+				+".h264 -t " + to_string(time) + " -w "+ to_string(VIDEO_WIDTH) +" -h "+ to_string(VIDEO_HEIGHT)
+				+" -b "+ to_string(VIDEO_BITRATE*1000000) +" -fps "+ to_string(VIDEO_FPS) +" &";
 		}
 		#ifndef RASPIVID
 			command = "";
@@ -70,8 +72,12 @@ bool Camera::record()
 
 bool Camera::stop()
 {
-	this->recording = false;
-	return system("pkill raspivid") == 0;
+	if (system("pkill raspivid") == 0)
+	{
+		this->recording = false;
+		return true;
+	}
+	return false;
 }
 
 int os::get_file_count(const string& path)
