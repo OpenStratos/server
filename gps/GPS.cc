@@ -92,20 +92,23 @@ bool GPS::is_valid(string frame)
 
 uint_fast8_t GPS::parse(const string& frame)
 {
-	this->frame_logger->log(frame);
-	string frame_type = frame.substr(1, frame.find_first_of(',')-1);
+	if (frame.length() > 1)
+	{
+		this->frame_logger->log(frame);
+		string frame_type = frame.substr(1, frame.find_first_of(',')-1);
 
-	if (frame_type == "GPGGA")
-	{
-		this->parse_GGA(frame);
-	}
-	else if (frame_type == "GPGSA")
-	{
-		this->parse_GSA(frame);
-	}
-	else if (frame_type == "GPRMC")
-	{
-		this->parse_RMC(frame);
+		if (frame_type == "GPGGA")
+		{
+			this->parse_GGA(frame);
+		}
+		else if (frame_type == "GPGSA")
+		{
+			this->parse_GSA(frame);
+		}
+		else if (frame_type == "GPRMC")
+		{
+			this->parse_RMC(frame);
+		}
 	}
 
 	return ERR_OK;
