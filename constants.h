@@ -14,6 +14,16 @@
 	#define BAT_R1 3300
 	#define BAT_R2 4700
 
+	#define VIDEO_WIDTH 1920
+	#define VIDEO_HEIGHT 1080
+	#define VIDEO_BITRATE 17 //Mbps
+	#define VIDEO_FPS 30
+
+	// #define PHOTO_WIDTH 2592
+	// #define PHOTO_HEIGHT 1944
+	// #define PHOTO_QUALITY 90
+	// #define PHOTO_RAW 0
+
 	#define GPS_UART "/dev/ttyAMA0"
 	// #define GPS_ENABLE_GPIO 6
 	#define GPS_BAUDRATE 9600
