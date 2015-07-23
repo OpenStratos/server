@@ -15,7 +15,6 @@ namespace os {
 		int fd;
 		atomic_bool open;
 		atomic_bool stopped;
-		string endl;
 
 		void gps_thread();
 	public:

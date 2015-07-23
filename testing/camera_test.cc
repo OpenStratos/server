@@ -14,6 +14,7 @@ describe("Camera", [](){
 
 		this_thread::sleep_for(2s);
 		Camera::get_instance().stop();
+
 		AssertThat(Camera::get_instance().is_recording(), Equals(false));
 	});
 

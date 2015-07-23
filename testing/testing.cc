@@ -28,3 +28,4 @@ go_bandit([](){
 	#include "temperature_test.cc"
 	#include "battery_test.cc"
 });
+
