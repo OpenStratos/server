@@ -72,12 +72,17 @@ bool Camera::record()
 
 bool Camera::stop()
 {
-	if (system("pkill raspivid") == 0)
-	{
+	#ifdef RASPIVID
+		if (system("pkill raspivid") == 0)
+		{
+			this->recording = false;
+			return true;
+		}
+		return false;
+	#else
 		this->recording = false;
 		return true;
-	}
-	return false;
+	#endif
 }
 
 int os::get_file_count(const string& path)

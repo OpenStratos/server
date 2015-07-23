@@ -291,9 +291,8 @@ int main(void)
 				}
 				else
 				{
-					logger.log("Video stopped.")
+					logger.log("Video stopped.");
 				}
-
 
 				logger.log("Waiting 1 minute before sending landed SMS...");
 				this_thread::sleep_for(1min);
