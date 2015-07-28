@@ -1,5 +1,5 @@
 bin_PROGRAMS = openstratos
-openstratos_SOURCES = openstratos.cc camera/Camera.cc gps/GPS.cc serial/Serial.cc logger/Logger.cc
+openstratos_SOURCES = openstratos.cc camera/Camera.cc gps/GPS.cc serial/Serial.cc logger/Logger.cc gsm/GSM.cc
 openstratos_LDADD = -lwiringPi
 openstratos_CPPFLAGS = -std=c++14
 
