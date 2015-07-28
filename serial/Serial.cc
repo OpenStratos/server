@@ -66,8 +66,39 @@ void Serial::gps_thread()
 
 	while(this->open)
 	{
-		GPS::get_instance().parse(this->read_line());
-		this_thread::sleep_for(50ms);
+		#ifndef OS_TESTING
+			int available = serialDataAvail(this->fd);
+
+			if (available > 0)
+			{
+				for (int i = 0; i < available; i++)
+				{
+					char c = serialGetchar(this->fd);
+					response += c;
+					if (c == this->endl[endl_pos]) ++endl_pos;
+					if (endl_pos == this->endl.length())
+					{
+						response = response.substr(0, response.length()-endl.length());
+
+						if (response.at(0) == '$')
+						{
+							GPS::get_instance().parse(response);
+						}
+						response = "";
+						endl_pos = 0;
+						this_thread::sleep_for(50ms);
+					}
+				}
+			}
+			else if (available == 0)
+			{
+				this_thread::sleep_for(25ms);
+			}
+			else if (available < 0)
+			{
+				// TODO log error
+			}
+		#endif
 	}
 	this->stopped = true;
 }
@@ -109,7 +140,7 @@ const string Serial::read_line() const
 				char c = serialGetchar(this->fd);
 				response += c;
 				if (c == '\r') ++endl_pos;
-				if (endl_pos == 2)
+				if (endl_pos == 1 && c == '\n')
 				{
 					response = response.substr(0, response.length()-2);
 				}

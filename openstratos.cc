@@ -91,14 +91,13 @@ int main(void)
 	}
 	logger.log("GPS initialized.");
 
-	// TODO start GSM and send message
 	logger.log("Initializing GSM...");
-	// if ( ! GSM::get_instance().initialize(GSM_PWR_GPIO, GSM_STATUS_GPIO, GSM_UART))
-	// {
-	// 	logger.log("GSM initialization error.");
-	// 	exit(1);
-	// }
-	// GSM::get_instance().turn_on();
+	if ( ! GSM::get_instance().initialize(GSM_PWR_GPIO, GSM_STATUS_GPIO, GSM_UART))
+	{
+		logger.log("GSM initialization error.");
+		exit(1);
+	}
+	GSM::get_instance().turn_on();
 	logger.log("GSM initialized.");
 
 	logger.log("Testing camera recording...");
@@ -164,10 +163,19 @@ int main(void)
 
 	logger.log("Sending initialization SMS...");
 	// if ( ! GSM::get_instance().send_SMS("Initialization finished OK. Recording. Waiting for launch.", SMS_PHONE))
-	// {
-	// 	logger.log("Error sending initialization SMS.");
-	// 	exit(1);
-	// }
+    // {
+    //      logger.log("Error sending initialization SMS.");
+    //      logger.log("Stoping video recording.");
+    //      if (Camera::get_instance().stop())
+    //      {
+    //              logger.log("Recording stopped.");
+    //      }
+    //      else
+    //      {
+    //              logger.log("Error stopping recording.");
+    //      }
+    //      exit(1);
+    // }
 	logger.log("Initialization SMS sent.");
 
 	state = set_state(WAITING_LAUNCH);
