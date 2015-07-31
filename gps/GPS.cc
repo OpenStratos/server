@@ -53,23 +53,23 @@ bool GPS::initialize(const string& serial_URL)
 	if ( ! this->serial.initialize_GPS()) {
 		this->logger->log("GPS serial error.");
 		return false;
-	} else {
-		this->logger->log("Serial connection started.");
-		this->frame_logger = new Logger("data/logs/GPS/GPSFrames."+ to_string(now->tm_year+1900) +"-"+
-			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
-			to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "GPS Frame");
-
-		#ifndef OS_TESTING
-			this->logger->log("Sending configuration frames...");
-			this->serial.send("$PMTK220,100*2F");
-			this->frame_logger->log("Sent: $PMTK220,100*2F");
-			this->serial.send("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
-			this->frame_logger->log("Sent: $PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
-			this->logger->log("Configuration frames sent.");
-		#endif
-
-		return true;
 	}
+
+	this->logger->log("Serial connection started.");
+	this->frame_logger = new Logger("data/logs/GPS/GPSFrames."+ to_string(now->tm_year+1900) +"-"+
+		to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
+		to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "GPSFrame");
+
+	#ifndef OS_TESTING
+		this->logger->log("Sending configuration frames...");
+		this->serial.send("$PMTK220,100*2F");
+		this->frame_logger->log("Sent: $PMTK220,100*2F");
+		this->serial.send("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+		this->frame_logger->log("Sent: $PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+		this->logger->log("Configuration frames sent.");
+	#endif
+
+	return true;
 }
 
 bool GPS::is_valid(string frame)

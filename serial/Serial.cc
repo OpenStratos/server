@@ -6,6 +6,8 @@
 #include <functional>
 #include <string>
 
+#include <sys/time.h>
+
 #include <wiringSerial.h>
 
 #include "constants.h"
@@ -62,7 +64,7 @@ Serial::~Serial()
 void Serial::gps_thread()
 {
 	string response;
-	int endl_pos = 0;
+	bool endl_found = false;
 
 	while(this->open)
 	{
@@ -75,17 +77,17 @@ void Serial::gps_thread()
 				{
 					char c = serialGetchar(this->fd);
 					response += c;
-					if (c == this->endl[endl_pos]) ++endl_pos;
-					if (endl_pos == this->endl.length())
+					if (c == '\r') endl_found = true;
+					if (endl_found && c == '\n')
 					{
-						response = response.substr(0, response.length()-endl.length());
+						response = response.substr(0, response.length()-2);
 
 						if (response.at(0) == '$')
 						{
 							GPS::get_instance().parse(response);
 						}
 						response = "";
-						endl_pos = 0;
+						endl_found = false;
 						this_thread::sleep_for(50ms);
 					}
 				}
@@ -131,24 +133,75 @@ const string Serial::read_line() const
 
 	#ifndef OS_TESTING
 		int available = serialDataAvail(this->fd);
+		struct timeval t1, t2;
+		double elapsed_time = 0;
+		bool endl_found = false;
 
-		if (available > 0)
+		while (true)
 		{
-			int endl_pos = 0;
+			gettimeofday(&t1, NULL);
+			while (available == 0)
+			{
+				this_thread::sleep_for(25ms);
+				gettimeofday(&t2, NULL);
+				elapsed_time = (t2.tv_sec - t1.tv_sec);
+				elapsed_time += (t2.tv_usec - t1.tv_usec) / 1000000.0;
+
+				if (elapsed_time > 5) return "";
+				available = serialDataAvail(this->fd);
+			}
+
+			if (available < 0)
+			{
+				// TODO log error
+			}
+
 			for (int i = 0; i < available; i++)
 			{
 				char c = serialGetchar(this->fd);
+
 				response += c;
-				if (c == '\r') ++endl_pos;
-				if (endl_pos == 1 && c == '\n')
+				if (c == '\r') endl_found = true;
+				if (endl_found && c == '\n')
 				{
-					response = response.substr(0, response.length()-2);
+					return response.substr(0, response.length()-2);
 				}
 			}
 		}
 	#endif
-
 	return response;
+}
+
+bool Serial::read_only(const string& only) const
+{
+	int available = serialDataAvail(this->fd);
+	struct timeval t1, t2;
+	double elapsed_time = 0;
+	bool endl_found = false;
+
+	while (true)
+	{
+		gettimeofday(&t1, NULL);
+		while (available == 0)
+		{
+			this_thread::sleep_for(25ms);
+			gettimeofday(&t2, NULL);
+			elapsed_time = (t2.tv_sec - t1.tv_sec);
+			elapsed_time += (t2.tv_usec - t1.tv_usec) / 1000000.0;
+
+			if (elapsed_time > 5) return false;
+			available = serialDataAvail(this->fd);
+		}
+
+		if (available >= only.length())
+		{
+			for (int i = 0; i < only.length(); i++)
+			{
+				if (serialGetchar(this->fd) != only[i]) return false;
+			}
+			return true;
+		}
+	}
 }
 
 void Serial::flush() const
