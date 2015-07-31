@@ -28,6 +28,7 @@ namespace os {
 		bool initialize_GPS();
 		bool initialize(const string& serial_URL, int baud);
 		const string read_line() const;
+		bool read_only(const string& only) const;
 		void flush() const;
 	};
 }

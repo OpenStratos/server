@@ -36,7 +36,6 @@ namespace os {
 		euc_vec velocity;
 
 		GPS() = default;
-		~GPS();
 
 		void parse_GGA(const string& frame);
 		void parse_GSA(const string& frame);
@@ -44,6 +43,7 @@ namespace os {
 
 	public:
 		GPS(GPS& copy) = delete;
+		~GPS();
 		static GPS& get_instance();
 		static bool is_valid(string frame);
 
