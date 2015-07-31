@@ -11,12 +11,12 @@ namespace os {
 	{
 	private:
 		Camera() = default;
-		~Camera();
 		void record_thread(int time);
 
 		bool recording = false;
 	public:
 		Camera(Camera& copy) = delete;
+		~Camera();
 		static Camera& get_instance();
 
 		bool record(int time);
