@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "logger/Logger.h"
+
 using namespace std;
 
 namespace os {
@@ -10,10 +12,11 @@ namespace os {
 	class Camera
 	{
 	private:
-		Camera() = default;
-		void record_thread(int time);
+		Logger* logger;
 
 		bool recording = false;
+		Camera();
+		void record_thread(int time);
 	public:
 		Camera(Camera& copy) = delete;
 		~Camera();
@@ -21,6 +24,7 @@ namespace os {
 
 		bool record(int time);
 		bool record();
+		bool take_picture();
 		bool stop();
 		bool is_recording() const {return this->recording;}
 	};
