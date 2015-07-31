@@ -116,7 +116,7 @@ int main(void)
 	logger.log("GSM connected.");
 
 	logger.log("Testing camera recording...");
-	#ifndef RASPIVID
+	#ifndef RASPICAM
 		logger.log("Error: No raspivid found. Is this a Raspberry?");
 		exit(1);
 	#endif

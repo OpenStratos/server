@@ -9,6 +9,7 @@
 
 #include <sys/types.h>
 #include <dirent.h>
+#include <sys/time.h>
 
 #include "config.h"
 #include "constants.h"
@@ -22,21 +23,50 @@ Camera& Camera::get_instance()
 	return instance;
 }
 
+Camera::Camera()
+{
+	struct timeval timer;
+	gettimeofday(&timer, NULL);
+	struct tm * now = gmtime(&timer.tv_sec);
+
+	this->logger = new Logger("data/logs/Camera/Camera."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
+		to_string(now->tm_sec) +".log", "Camera");
+}
+
 Camera::~Camera()
 {
-	if (this->recording) this->stop();
+	this->logger->log("Shuting down...");
+	if (this->recording)
+	{
+		this->logger->log("Stopping video recording...");
+		if ( ! this->stop())
+		{
+			this->logger->log("Error soping video recording.");
+		}
+		else
+		{
+			this->logger->log("Video recording stopped.");
+		}
+	}
+	this->logger->log("Shut down finished");
+	delete this->logger;
 }
 
 void Camera::record_thread(int time)
 {
+	this->logger->log("Recording thread started.");
 	this_thread::sleep_for(chrono::milliseconds(time));
 	this->recording = false;
+	this->logger->log("Finished recording thread.");
 }
 
 bool Camera::record(int time)
 {
+	if (time != 0) this->logger->log("Recording for "+to_string(time/1000)+" seconds...");
 	if ( ! this->recording)
 	{
+		this->logger->log("Not already recording, creating command...");
 		string command;
 		if (time > 0)
 		{
@@ -44,42 +74,95 @@ bool Camera::record(int time)
 		}
 		else
 		{
-			command = "raspivid -o data/video/video-"+ to_string(get_file_count("data/video/"))
-				+".h264 -t " + to_string(time) + " -w "+ to_string(VIDEO_WIDTH) +" -h "+ to_string(VIDEO_HEIGHT)
-				+" -b "+ to_string(VIDEO_BITRATE*1000000) +" -fps "+ to_string(VIDEO_FPS) +" &";
+			command = "raspivid -n -o data/video/video-"+ to_string(get_file_count("data/video/"))
+				+ ".h264 -t " + to_string(time) + " -w "+ to_string(VIDEO_WIDTH) +" -h "
+				+ to_string(VIDEO_HEIGHT) +" -b "+ to_string(VIDEO_BITRATE*1000000)
+				+ " -fps "+ to_string(VIDEO_FPS) +" -co "+ to_string(VIDEO_CONTRAST)
+				+ " -ex "+ VIDEO_EXPOSURE +" -br "+ to_string(VIDEO_BRIGHTNESS) +" &";
 		}
-		#ifndef RASPIVID
+		this->logger->log("Video command: '"+command+"'");
+
+		#ifndef RASPICAM
+			this->logger->log("Test mode, video recording simulated.");
 			command = "";
 		#endif
 
 		int st = system(command.c_str());
 		this->recording = true;
 
-		if (time > 0)
+		bool result = st == 0;
+
+		if (result && time > 0)
 		{
+			this->logger->log("Starting recording thread...");
 			thread t(&Camera::record_thread, this, time);
 			t.detach();
 		}
 
-		return st == 0;
+		if (result) this->logger->log("Video recording correctly started.");
+		else this->logger->log("Error starting video recording.");
+
+		return result;
 	}
 }
 
 bool Camera::record()
 {
+	this->logger->log("Recording indefinitely...");
 	return this->record(0);
+}
+
+bool Camera::take_picture()
+{
+	bool was_recording = this->recording;
+	if (was_recording) this->logger->log("Recording video, stopping...");
+	if (was_recording && ! this->stop()) return false;
+	this->logger->log("Video recording stopped.");
+
+	string command = "raspistill -n -o data/img/img-"+ to_string(get_file_count("data/img/"))
+				+".jpg " + (PHOTO_RAW ? "-r" : "") + " -w "+ to_string(PHOTO_WIDTH)
+				+" -h "+ to_string(PHOTO_HEIGHT) +" -q "+ to_string(PHOTO_QUALITY)
+				+" -co "+ to_string(PHOTO_CONTRAST) +" -br "+ to_string(PHOTO_BRIGHTNESS)
+				+" -ex "+ PHOTO_EXPOSURE;
+
+	this->logger->log("Picture command: '"+command+"'");
+
+	#ifndef RASPICAM
+		this->logger->log("Test mode, picture taking simulated.");
+		command = "";
+	#endif
+
+	int st = system(command.c_str());
+	bool result = st == 0;
+
+	if (result) this->logger->log("Picture taken correctly.");
+	else this->logger->log("Error taking picture.");
+
+	if (was_recording) this->logger->log("Video recording was active before taking picture. Resuming...");
+	if (was_recording && ! this->record())
+	{
+		this->logger->log("Error resuming video recording.");
+		return false;
+	}
+	this->logger->log("Video recording resumed.");
+
+	return result;
 }
 
 bool Camera::stop()
 {
-	#ifdef RASPIVID
+	this->logger->log("Stopping video recording...");
+	#ifdef RASPICAM
 		if (system("pkill raspivid") == 0)
 		{
+			this->logger->log("Video recording stopped correctly.");
 			this->recording = false;
 			return true;
 		}
+		this->logger->log("Error stopping video recording.");
 		return false;
 	#else
+		this->logger->log("Test mode. Video recording stop simulated.");
 		this->recording = false;
 		return true;
 	#endif
