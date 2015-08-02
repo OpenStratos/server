@@ -32,12 +32,15 @@ namespace os
 		GOING_DOWN,
 		LANDED,
 		SHUT_DOWN,
+		SAFE_MODE,
+		RECOVERY,
 	};
 
 	inline bool file_exists(const string& name);
 	inline float get_available_disk_space();
 	void gps_thread_fn(State& state);
 	State set_state(State new_state);
+	State get_state();
 	string state_to_string(State state);
 	bool has_launched();
 	bool has_bursted();
