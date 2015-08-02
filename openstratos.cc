@@ -4,7 +4,13 @@ int main(void)
 {
 	cout << "[OpenStratos] Starting..." << endl; // Only if verbose
 
-	State state = INITIALIZING;
+	State last_state;
+	if (file_exists(STATE_FILE))
+		last_state = get_state();
+	else
+		last_state = SHUT_DOWN;
+
+	State state = set_state(INITIALIZING);
 
 	struct timeval timer;
 	gettimeofday(&timer, NULL);
@@ -424,10 +430,29 @@ void os::gps_thread_fn(State& state)
 State os::set_state(State new_state)
 {
 	ofstream state_file(STATE_FILE);
-	state_file << new_state;
+	state_file << state_to_string(new_state);
 	state_file.close();
 
 	return new_state;
+}
+
+State os::get_state()
+{
+	ifstream state_file(STATE_FILE);
+	string str_state((istreambuf_iterator<char>(state_file)),
+                 istreambuf_iterator<char>());
+	state_file.close();
+
+	if (str_state == "INITIALIZING") return INITIALIZING;
+	if (str_state == "ACQUIRING_FIX") return ACQUIRING_FIX;
+	if (str_state == "WAITING_LAUNCH") return WAITING_LAUNCH;
+	if (str_state == "GOING_UP") return GOING_UP;
+	if (str_state == "GOING_DOWN") return GOING_DOWN;
+	if (str_state == "LANDED") return LANDED;
+	if (str_state == "SHUT_DOWN") return SHUT_DOWN;
+	if (str_state == "SAFE_MODE") return SAFE_MODE;
+
+	return RECOVERY;
 }
 
 string os::state_to_string(State state)
@@ -454,6 +479,12 @@ string os::state_to_string(State state)
 		break;
 		case SHUT_DOWN:
 			return "SHUT_DOWN";
+		break;
+		case SAFE_MODE:
+			return "SAFE_MODE";
+		break;
+		case RECOVERY:
+			return "RECOVERY";
 	}
 }
 
