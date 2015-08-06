@@ -1,7 +1,10 @@
 #ifndef OPENSTRATOS_H_
 #define OPENSTRATOS_H_
 
+#include <cstdlib>
+
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <string>
 #include <thread>
@@ -39,12 +42,15 @@ namespace os
 	inline bool file_exists(const string& name);
 	inline float get_available_disk_space();
 	void gps_thread_fn(State& state);
+	void picture_thread_fn(State& state);
+	void battery_thread_fn(State& state);
 	State set_state(State new_state);
 	State get_state();
-	string state_to_string(State state);
+	const string state_to_string(State state);
 	bool has_launched();
 	bool has_bursted();
 	bool has_landed();
+	const string generate_exif_data();
 }
 
 using namespace std;

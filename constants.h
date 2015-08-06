@@ -1,18 +1,12 @@
 #ifndef CONSTANTS_H_
 	#define CONSTANTS_H_
 
-	#define ERR_OK 0
-	#define ERR_CHK 1
-	#define ERR_INT 2
-	#define ERR_PWD 3
+	#define FLIGHT_LENGTH 3.5
 
-	#define TEMP_VIN 5
-	#define TEMP_R 500
-
-	#define BAT_MAX 8.4
-	#define BAT_MIN 7.4
-	#define BAT_R1 3300
-	#define BAT_R2 4700
+	#define BAT_GSM_MAX 4.2
+	#define BAT_GSM_MIN 3.7
+	#define BAT_MAIN_MAX 8.4*2660/(2660+7420) // Measured Ohms in voltage divider
+	#define BAT_MAIN_MIN 7.4*BAT_MAIN_MAX/8.4
 
 	#define VIDEO_WIDTH 1920
 	#define VIDEO_HEIGHT 1080
@@ -31,7 +25,7 @@
 	#define PHOTO_EXPOSURE "antishake"
 
 	#define GPS_UART "/dev/ttyAMA0"
-	// #define GPS_ENABLE_GPIO 6
+	#define GPS_ENABLE_GPIO 2
 	#define GPS_BAUDRATE 9600
 	#define GPS_ENDL "\r\n"
 
