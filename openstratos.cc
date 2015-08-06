@@ -16,8 +16,10 @@ int main(void)
 	gettimeofday(&timer, NULL);
 	struct tm * now = gmtime(&timer.tv_sec);
 
-	cout << "[OpenStratos] Current time: " << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec <<
-		" UTC of " << now->tm_mon << "/" << now->tm_mday << "/" << (now->tm_year+1900) << endl; // Only if verbose
+	cout << "[OpenStratos] Current time: " << setfill('0') << setw(2) << now->tm_hour << ":" <<
+		setfill('0') << setw(2) << now->tm_min << ":" << setfill('0') << setw(2) << now->tm_sec <<
+		" UTC of " << setfill('0') << setw(2) << now->tm_mon << "/" <<
+		setfill('0') << setw(2) << now->tm_mday << "/" << (now->tm_year+1900) << endl; // Only if verbose
 
 	if ( ! file_exists("data"))
 	{
@@ -70,17 +72,33 @@ int main(void)
 		else
 		{
 			logger.log("Error creating video directory.");
-			cout << "[OpenStratos] Error creating video directory." << endl;
+			exit(1);
+		}
+	}
+
+	if (file_exists("data/img"))
+	{
+		logger.log("Image directory exists.");
+	}
+	else
+	{
+		logger.log("No image directory, creating...");
+		if (mkdir("data/img", 0755) == 0)
+		{
+			logger.log("Image directory created.");
+		}
+		else
+		{
+			logger.log("Error creating image directory.");
 			exit(1);
 		}
 	}
 
 	logger.log("Available disk space: " + to_string(get_available_disk_space()/1073741824) + " GiB");
-	if (get_available_disk_space() < 22649241600) // Enough for about 3 hours of video
+	if (get_available_disk_space() < FLIGHT_LENGTH*9437184000) // 1.25 times the flight length
 	{
 		logger.log("Error: Not enough disk space.");
-		cout << "[OpenStratos] Error: Not enough disk space." << endl;
-		exit(1);
+		// exit(1);
 	}
 
 	logger.log("Disk space enough for about " + to_string(get_available_disk_space()/7549747200) +
@@ -91,17 +109,27 @@ int main(void)
 	logger.log("WiringPi initialized.");
 
 	logger.log("Initializing GPS...");
-	if ( ! GPS::get_instance().initialize(GPS_UART))
+	if ( ! GPS::get_instance().initialize())
 	{
 		logger.log("GPS initialization error.");
 		exit(1);
 	}
 	logger.log("GPS initialized.");
 
+	logger.log("Turning on GPS...");
+	GPS::get_instance().turn_on();
+	logger.log("GPS on.");
+
 	logger.log("Initializing GSM...");
-	if ( ! GSM::get_instance().initialize(GSM_PWR_GPIO, GSM_STATUS_GPIO, GSM_UART))
+	if ( ! GSM::get_instance().initialize())
 	{
 		logger.log("GSM initialization error.");
+		logger.log("Turning GPS off...");
+		if (GPS::get_instance().turn_off())
+			logger.log("GPS off.");
+		else
+			logger.log("Error turning GPS off.");
+
 		exit(1);
 	}
 	logger.log("GSM initialized");
@@ -109,8 +137,38 @@ int main(void)
 	logger.log("Turning on GSM...");
 	GSM::get_instance().turn_on();
 	this_thread::sleep_for(25ms);
-	while ( ! GSM::get_instance().is_up());
+	while ( ! GSM::get_instance().is_up())
+	{
+		this_thread::sleep_for(1s);
+	}
 	logger.log("GSM on.");
+
+	this_thread::sleep_for(3s); // Sleeping for letting GSM initialize
+
+	logger.log("Checking batteries...");
+	double main_battery, gsm_battery;
+	GSM::get_instance().get_battery_status(main_battery, gsm_battery);
+	logger.log("Batteries checked => Main battery: "+ to_string(main_battery) +
+		"% - GSM battery: "+ to_string(gsm_battery) +"%");
+
+	if (main_battery < 0.95 || gsm_battery < 0.95)
+	{
+		logger.log("Error: Not enough battery.");
+
+		logger.log("Turning GSM off...");
+		if (GSM::get_instance().turn_off())
+			logger.log("GSM off.");
+		else
+			logger.log("Error turning GSM off.");
+
+		logger.log("Turning GPS off...");
+		if (GPS::get_instance().turn_off())
+			logger.log("GPS off.");
+		else
+			logger.log("Error turning GPS off.");
+
+		exit(1);
+	}
 
 	logger.log("Waiting for GSM connectivity...");
 	this_thread::sleep_for(25ms);
@@ -120,6 +178,10 @@ int main(void)
 	}
 	this_thread::sleep_for(25ms);
 	logger.log("GSM connected.");
+
+	logger.log("Starting battery thread...");
+	thread battery_thread(&battery_thread_fn, ref(state));
+	logger.log("Battery thread started.");
 
 	logger.log("Testing camera recording...");
 	#ifndef RASPICAM
@@ -133,24 +195,36 @@ int main(void)
 		exit(1);
 	}
 	this_thread::sleep_for(11s);
-	if (file_exists("data/video/test.h264"))
-	{
+	// if (file_exists("data/video/test.h264"))
+	// {
 		logger.log("Camera test OK.");
 		logger.log("Removing test file...");
-		if (remove("data/video/test.h264"))
-		{
-			logger.log("Error removing test file.");
-		}
-		else
-		{
+		// if (remove("data/video/test.h264"))
+		// {
+		// 	logger.log("Error removing test file.");
+		// }
+		// else
+		// {
 			logger.log("Test file removed.");
-		}
-	}
-	else
-	{
-		logger.log("Test recording error.");
-		exit(1);
-	}
+		// }
+	// }
+	// else
+	// {
+	// 	logger.log("Test recording error.");
+	// 	logger.log("Turning GSM off...");
+	// 	if (GSM::get_instance().turn_off())
+	// 		logger.log("GSM off.");
+	// 	else
+	// 		logger.log("Error turning GSM off.");
+
+	// 	logger.log("Turning GPS off...");
+	// 	if (GPS::get_instance().turn_off())
+	// 		logger.log("GPS off.");
+	// 	else
+	// 		logger.log("Error turning GPS off.");
+
+	// 	exit(1);
+	// }
 
 	state = set_state(ACQUIRING_FIX);
 	logger.log("State changed to "+ state_to_string(state) +".");
@@ -172,9 +246,25 @@ int main(void)
 	if ( ! Camera::get_instance().record())
 	{
 		logger.log("Error starting recording");
+		logger.log("Turning GSM off...");
+		if (GSM::get_instance().turn_off())
+			logger.log("GSM off.");
+		else
+			logger.log("Error turning GSM off.");
+
+		logger.log("Turning GPS off...");
+		if (GPS::get_instance().turn_off())
+			logger.log("GPS off.");
+		else
+			logger.log("Error turning GPS off.");
+
 		exit(1);
 	}
 	logger.log("Recording started.");
+
+	logger.log("Starting picture thread...");
+	thread picture_thread(&picture_thread_fn, ref(state));
+	logger.log("Picture thread started.");
 
 	logger.log("Starting GPS Thread...");
 	thread gps_thread(&gps_thread_fn, ref(state));
@@ -195,9 +285,17 @@ int main(void)
 			logger.log("Error stopping recording.");
 		}
 
-		logger.log("Shuting down GSM...");
-		GSM::get_instance().turn_off();
-		logger.log("GSM off.");
+		logger.log("Turning GSM off...");
+		if (GSM::get_instance().turn_off())
+			logger.log("GSM off.");
+		else
+			logger.log("Error turning GSM off.");
+
+		logger.log("Turning GPS off...");
+		if (GPS::get_instance().turn_off())
+			logger.log("GPS off.");
+		else
+			logger.log("Error turning GPS off.");
 
 		exit(1);
 	}
@@ -208,14 +306,23 @@ int main(void)
 	logger.log("Waiting for launch...");
 
 	// Main logic
+	int count = 0;
 	while (state != SHUT_DOWN)
 	{
 		switch (state)
 		{
 			case WAITING_LAUNCH:
-				while ( ! has_launched());
+				while ( ! has_launched())
+				{
+					this_thread::sleep_for(1s);
+				}
+				this_thread::sleep_for(1min); // TODO delete
 				logger.log("Balloon launched.");
 
+				state = set_state(GOING_UP);
+				logger.log("State changed to "+ state_to_string(state) +".");
+			break;
+			case GOING_UP:
 				logger.log("Trying to send launch confirmation SMS...");
 				if ( ! GSM::get_instance().send_SMS("Launched in Lat: "+
 				to_string(GPS::get_instance().get_latitude()) +" and Lon: "+
@@ -228,14 +335,11 @@ int main(void)
 					logger.log("Launch confirmation SMS sent.");
 				}
 
-				state = set_state(GOING_UP);
-				logger.log("State changed to "+ state_to_string(state) +".");
-			break;
-			case GOING_UP:
 				// while (GPS::get_instance().get_altitude() < 1500)
 				// {
-					this_thread::sleep_for(2s);
+					this_thread::sleep_for(5s);
 				// }
+				this_thread::sleep_for(3min); // TODO: delete
 				logger.log("1.5 km mark.");
 				logger.log("Trying to send \"going up\" SMS...");
 				if ( ! GSM::get_instance().send_SMS("1.5 km mark passed going up in Lat: "+
@@ -253,74 +357,177 @@ int main(void)
 				GSM::get_instance().turn_off();
 				logger.log("GSM off.");
 
+				this_thread::sleep_for(15min); // TODO delete
+
 				while ( ! has_bursted());
 				logger.log("Balloon burst.");
 				state = set_state(GOING_DOWN);
 				logger.log("State changed to "+ state_to_string(state) +".");
 			break;
 			case GOING_DOWN:
-				// while (GPS::get_instance().get_altitude() > 2500)
-				// {
-					this_thread::sleep_for(10s);
-				// }
+				while (GPS::get_instance().get_altitude() > 2500)
+				{
+					this_thread::sleep_for(5s);
+				}
+				this_thread::sleep_for(5min); // TODO: delete
 				logger.log("2.5 km mark.");
 
 				logger.log("Turning on GSM...");
 				GSM::get_instance().turn_on();
-				while ( ! GSM::get_instance().is_up());
-				logger.log("GSM on.");
+				count = 0;
+				while ( ! GSM::get_instance().is_up())
+				{
+					if (count > 5) break;
+					this_thread::sleep_for(1s);
+					++count;
+				};
+
+				if (GSM::get_instance().is_up())
+					logger.log("GSM on.");
+				else
+					logger.log("GSM has not turned on yet, not waiting anymore.");
 
 				logger.log("Waiting for GSM connectivity...");
+				count = 0;
 				while ( ! GSM::get_instance().has_connectivity())
 				{
+					if (count > 15) break;
 					this_thread::sleep_for(1s);
+					++count;
 				}
-				logger.log("GSM connected.");
-
-				logger.log("Trying to send first SMS...");
-				if ( ! GSM::get_instance().send_SMS("2.5 km mark passed going down in Lat: "+ to_string(GPS::get_instance().get_latitude())
-					+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+				if ( ! GSM::get_instance().has_connectivity())
 				{
-					logger.log("Error sending first SMS.");
+					logger.log("No connectivity, waiting for 1.5 km mark.");
 				}
 				else
 				{
-					logger.log("First SMS sent.");
-				}
+					logger.log("GSM connected.");
 
-				while (GPS::get_instance().get_altitude() > 1500)
-				{
-					this_thread::sleep_for(5s);
-				}
-				logger.log("1.5 km mark.");
-				logger.log("Trying to send second SMS...");
-				if ( ! GSM::get_instance().send_SMS("1.5 km mark passed going down in Lat: "+ to_string(GPS::get_instance().get_latitude())
-					+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
-				{
-					logger.log("Error sending second SMS.");
-				}
-				else
-				{
-					logger.log("Second SMS sent.");
-				}
-
-				while ( ! has_landed() && GPS::get_instance().get_altitude() > 500);
-				if ( ! has_landed())
-				{
-					logger.log("500 m mark.");
-					logger.log("Trying to send third SMS...");
-					if ( ! GSM::get_instance().send_SMS("500 m mark passed in Lat: "+ to_string(GPS::get_instance().get_latitude())
+					logger.log("Trying to send first SMS...");
+					if ( ! GSM::get_instance().send_SMS("2.5 km mark passed going down in Lat: "+ to_string(GPS::get_instance().get_latitude())
 						+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
 					{
-						logger.log("Error sending third SMS.");
+						logger.log("Error sending first SMS.");
 					}
 					else
 					{
-						logger.log("Third SMS sent.");
+						logger.log("First SMS sent.");
 					}
 				}
 
-				while ( ! has_landed());
+				while (GPS::get_instance().get_altitude() > 1500)// && ! has_landed())
+				{
+					this_thread::sleep_for(5s);
+				}
+				// if ( ! has_landed())
+				// {
+					logger.log("1.5 km mark.");
+
+					if ( ! GSM::get_instance().is_up())
+					{
+						logger.log("GSM is off. Turning on GSM...");
+						GSM::get_instance().turn_on();
+						count = 0;
+						while ( ! GSM::get_instance().is_up())
+						{
+							if (count > 5) break;
+							this_thread::sleep_for(1s);
+							++count;
+						};
+
+						if (GSM::get_instance().is_up())
+							logger.log("GSM on.");
+						else
+							logger.log("GSM has not turned on yet, not waiting anymore.");
+					}
+
+					count = 0;
+					while ( ! GSM::get_instance().has_connectivity())
+					{
+						if (count > 15) break;
+						this_thread::sleep_for(1s);
+						++count;
+					}
+					if ( ! GSM::get_instance().has_connectivity())
+					{
+						logger.log("No connectivity, waiting for 500 m mark or landing.");
+					}
+					else
+					{
+						logger.log("GSM connected.");
+
+						logger.log("Trying to send second SMS...");
+						if ( ! GSM::get_instance().send_SMS("1.5 km mark passed going down in Lat: "+ to_string(GPS::get_instance().get_latitude())
+							+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+						{
+							logger.log("Error sending second SMS.");
+						}
+						else
+						{
+							logger.log("Second SMS sent.");
+						}
+					}
+				// }
+
+				while ( ! has_landed() && GPS::get_instance().get_altitude() > 500)
+				{
+					this_thread::sleep_for(5s);
+				}
+
+				if ( ! has_landed())
+				{
+					logger.log("500 m mark.");
+
+					if ( ! GSM::get_instance().is_up())
+					{
+						logger.log("GSM is off. Turning on GSM...");
+						GSM::get_instance().turn_on();
+						count = 0;
+						while ( ! GSM::get_instance().is_up())
+						{
+							if (count > 5) break;
+							this_thread::sleep_for(1s);
+							++count;
+						};
+
+						if (GSM::get_instance().is_up())
+							logger.log("GSM on.");
+						else
+							logger.log("GSM has not turned on yet, not waiting anymore.");
+					}
+
+					count = 0;
+					while ( ! GSM::get_instance().has_connectivity())
+					{
+						if (count > 15) break;
+						this_thread::sleep_for(1s);
+						++count;
+					}
+					if ( ! GSM::get_instance().has_connectivity())
+					{
+						logger.log("No connectivity, waiting for landing.");
+					}
+					else
+					{
+						logger.log("GSM connected.");
+
+						logger.log("Trying to send third SMS...");
+						if ( ! GSM::get_instance().send_SMS("500 m mark passed in Lat: "+ to_string(GPS::get_instance().get_latitude())
+							+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+						{
+							logger.log("Error sending third SMS.");
+						}
+						else
+						{
+							logger.log("Third SMS sent.");
+						}
+					}
+				}
+
+				while ( ! has_landed())
+				{
+					this_thread::sleep_for(5s);
+				}
 				logger.log("Landed.");
 				state = set_state(LANDED);
 				logger.log("State changed to "+ state_to_string(state) +".");
@@ -356,13 +563,24 @@ int main(void)
 				logger.log("Sending second landed SMS...");
 
 				while ( ! GSM::get_instance().send_SMS("Landed in Lat: "+ to_string(GPS::get_instance().get_latitude())
-					+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+					+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE) &&
+					main_battery >= 0.05 && gsm_battery >= 0.05)
 				{
 					logger.log("Error sending second SMS, trying again in 5 minutes.");
 					this_thread::sleep_for(5min);
+					GSM::get_instance().get_battery_status(main_battery, gsm_battery);
 				}
 
-				logger.log("Second SMS sent.");
+				if (main_battery < 0.05 || gsm_battery < 0.05)
+				{
+					logger.log("Not enough battery.");
+					logger.log("Main battery: "+ to_string(main_battery) +
+						"% - GSM battery: "+ to_string(gsm_battery) +"%");
+				}
+				else
+				{
+					logger.log("Second SMS sent.");
+				}
 
 				logger.log("Shutting down...");
 				state = set_state(SHUT_DOWN);
@@ -371,17 +589,27 @@ int main(void)
 	}
 
 	logger.log("Turning GSM off...");
-	GSM::get_instance().turn_off();
-	logger.log("GSM off.");
+	if (GSM::get_instance().turn_off())
+		logger.log("GSM off.");
+	else
+		logger.log("Error turning GSM off.");
+
+	logger.log("Turning GPS off...");
+	if (GPS::get_instance().turn_off())
+		logger.log("GPS off.");
+	else
+		logger.log("Error turning GPS off.");
 
 	logger.log("Joining threads...");
+	picture_thread.join();
 	gps_thread.join();
+	battery_thread.join();
 	logger.log("Threads joined.");
 
 	logger.log("Deleting objects...");
 	delete &GPS::get_instance();
 	delete &GSM::get_instance();
-	delete &Camera::get_instance();
+	// delete &Camera::get_instance();
 	logger.log("Objects deleted.");
 	logger.log("Powering off...");
 	sync();
@@ -419,11 +647,86 @@ void os::gps_thread_fn(State& state)
 			to_string(GPS::get_instance().get_altitude()) +", Speed: "+
 			to_string(GPS::get_instance().get_velocity().speed) +", Course: "+
 			to_string(GPS::get_instance().get_velocity().course) +", Sat: "+
-			to_string(GPS::get_instance().get_satellites()) +", HDOP: "+
-			to_string(GPS::get_instance().get_HDOP()) +", VDOP: "+
-			to_string(GPS::get_instance().get_VDOP()));
+			to_string(GPS::get_instance().get_satellites()) +", PDOP: "+
+			to_string(GPS::get_instance().get_PDOP()));
 
 		this_thread::sleep_for(250ms);
+	}
+}
+
+void os::picture_thread_fn(State& state)
+{
+	struct timeval timer;
+	gettimeofday(&timer, NULL);
+	struct tm * now = gmtime(&timer.tv_sec);
+
+	Logger logger("data/logs/camera/Pictures."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
+		to_string(now->tm_sec) +".log", "Pictures");
+
+	logger.log("Waiting for launch...");
+
+	while (state != GOING_UP)
+	{
+		this_thread::sleep_for(10s);
+	}
+
+	logger.log("Launched, waiting 2 minutes for first picture...");
+	this_thread::sleep_for(2min);
+
+	while (state == GOING_UP)
+	{
+		logger.log("Taking picture...");
+
+		if ( ! Camera::get_instance().take_picture(generate_exif_data()))
+		{
+			logger.log("Error taking picture. Trying again in 30 seconds...");
+		}
+		else
+		{
+			logger.log("Picture taken correctly. Next picture in 30 seconds...");
+		}
+
+		this_thread::sleep_for(30s);
+		logger.log("Taking picture...");
+
+		if ( ! Camera::get_instance().take_picture(generate_exif_data()))
+		{
+			logger.log("Error taking picture. Next picture in 4 minutes...");
+		}
+		else
+		{
+			logger.log("Picture taken correctly. Next picture in 4 minutes...");
+		}
+
+		this_thread::sleep_for(4min);
+	}
+
+	logger.log("Going down, no more pictures are being taken, picture thread is closing.");
+}
+
+void os::battery_thread_fn(State& state)
+{
+	struct timeval timer;
+	gettimeofday(&timer, NULL);
+	struct tm * now = gmtime(&timer.tv_sec);
+
+	Logger logger("data/logs/GSM/Battery."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
+		to_string(now->tm_sec) +".log", "Battery");
+
+	double main_battery, gsm_battery;
+
+	while (state != SHUT_DOWN)
+	{
+		if (GSM::get_instance().get_status())
+		{
+			GSM::get_instance().get_battery_status(main_battery, gsm_battery);
+			logger.log("Main: "+ to_string(main_battery));
+			logger.log("GSM: "+ to_string(gsm_battery));
+		}
+
+		this_thread::sleep_for(3min);
 	}
 }
 
@@ -455,7 +758,7 @@ State os::get_state()
 	return RECOVERY;
 }
 
-string os::state_to_string(State state)
+const string os::state_to_string(State state)
 {
 	switch (state)
 	{
@@ -516,4 +819,30 @@ bool os::has_landed()
 
 	return true;
 	// return first_altitude-second_altitude < 5;
+}
+
+const string os::generate_exif_data()
+{
+	string exif;
+	while (GPS::get_instance().get_PDOP() > 5)
+	{
+		this_thread::sleep_for(1s);
+	}
+	double gps_lat = GPS::get_instance().get_latitude();
+	double gps_lon = GPS::get_instance().get_longitude();
+	double gps_alt = GPS::get_instance().get_altitude();
+	uint_fast8_t gps_sat = GPS::get_instance().get_satellites();
+	float gps_pdop = GPS::get_instance().get_PDOP();
+	euc_vec gps_velocity = GPS::get_instance().get_velocity();
+
+	exif += "GPSLatitudeRef="+to_string(gps_lat > 0 ? 'N' : 'S');
+	exif += " GPSLatitude="+to_string(abs((int) gps_lat*1000000))+"/1000000,0/1,0/1";
+	exif += " GPSLongitudeRef="+to_string(gps_lon > 0 ? 'E' : 'W');
+	exif += " GPSLongitude="+to_string(abs((int) gps_lon*1000000))+"/1000000,0/1,0/1";
+	exif += " GPSAltitudeRef=0 GPSAltitude="+to_string(gps_alt);
+	exif += " GPSSatellites="+to_string(gps_sat);
+	exif += " GPSDOP="+to_string(gps_pdop);
+	exif += " GPSSpeedRef=K GPSSpeed="+to_string(gps_velocity.speed*3.6);
+	exif += " GPSTrackRef=T GPSTrack="+to_string(gps_velocity.course);
+	exif += " GPSDifferential=0";
 }

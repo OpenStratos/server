@@ -1,7 +1,7 @@
 describe("GPS", [](){
 
 	before_each([&](){
-		GPS::get_instance().initialize("");
+		GPS::get_instance().initialize();
 	});
 
 	it("Knots to m/s conversion test", [&](){
