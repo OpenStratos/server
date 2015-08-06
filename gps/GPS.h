@@ -31,6 +31,7 @@ namespace os {
 		double latitude;
 		double longitude;
 		double altitude;
+		float pdop;
 		float hdop;
 		float vdop;
 		euc_vec velocity;
@@ -53,14 +54,15 @@ namespace os {
 		double get_latitude() const {return this->latitude;}
 		double get_longitude() const {return this->longitude;}
 		double get_altitude() const {return this->altitude;}
+		float get_PDOP() const {return this->pdop;}
 		float get_HDOP() const {return this->hdop;}
 		float get_VDOP() const {return this->vdop;}
 		euc_vec get_velocity() const {return this->velocity;}
 
-		bool initialize(const string& serial_URL);
-		uint_fast8_t parse(const string& frame);
-
-		// TODO Turn ON and OFF
+		bool initialize();
+		bool turn_on() const;
+		bool turn_off() const;
+		void parse(const string& frame);
 	};
 }
 
