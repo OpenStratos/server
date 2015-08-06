@@ -24,6 +24,7 @@ namespace os {
 
 		bool record(int time);
 		bool record();
+		bool take_picture(const string& exif);
 		bool take_picture();
 		bool stop();
 		bool is_recording() const {return this->recording;}

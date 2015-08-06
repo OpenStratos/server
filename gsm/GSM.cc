@@ -4,6 +4,7 @@
 #include <thread>
 #include <string>
 #include <sstream>
+#include <vector>
 
 #include <sys/time.h>
 
@@ -36,7 +37,7 @@ GSM::~GSM()
 	delete this->logger;
 }
 
-bool GSM::initialize(int pwr_gpio, int status_gpio, const string& serial_URL)
+bool GSM::initialize()
 {
 	struct timeval timer;
 	gettimeofday(&timer, NULL);
@@ -46,11 +47,8 @@ bool GSM::initialize(int pwr_gpio, int status_gpio, const string& serial_URL)
 		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
 		to_string(now->tm_sec) +".log", "GSM");
 
-	this->pwr_gpio = pwr_gpio;
-	this->status_gpio = status_gpio;
-
 	this->logger->log("Starting serial connection...");
-	if ( ! this->serial.initialize(serial_URL, GSM_BAUDRATE))
+	if ( ! this->serial.initialize(GSM_UART, GSM_BAUDRATE))
 	{
 		this->logger->log("GSM serial error.");
 		return false;
@@ -61,9 +59,7 @@ bool GSM::initialize(int pwr_gpio, int status_gpio, const string& serial_URL)
 		to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
 		to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "GSMCommand");
 
-	pinMode(this->pwr_gpio, OUTPUT);
-	digitalWrite(this->pwr_gpio, HIGH);
-	pinMode(this->status_gpio, INPUT);
+	pinMode(GSM_PWR_GPIO, OUTPUT);
 	return true;
 }
 
@@ -71,10 +67,10 @@ bool GSM::send_SMS(const string& message, const string& number) const
 {
 	this->logger->log("Sending SMS: \""+message+"\" to number "+number+".");
 
+	this->serial.flush();
 	if (this->send_command_read("AT+CMGF=1") != "OK")
 	{
 		this->logger->log("Error sending SMS");
-		this->logger->log("Primer condicional");
 		return false;
 	}
 
@@ -85,7 +81,6 @@ bool GSM::send_SMS(const string& message, const string& number) const
 	if ( ! this->send_command_read_only(send_command.str(), ">"))
 	{
 		this->logger->log("Error sending SMS.");
-		this->logger->log("Segundo condicional");
 		return false;
 	}
 
@@ -115,7 +110,46 @@ bool GSM::get_location(double& latitude, double& longitude) const
 
 bool GSM::get_status() const
 {
-	return digitalRead(this->status_gpio) == HIGH;
+	return digitalRead(GSM_STATUS_GPIO) == HIGH;
+}
+
+bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percentage) const
+{
+	this->logger->log("Checking Battery status...");
+	if (this->get_status())
+	{
+		string gsm_response = this->send_command_read("AT+CBC");
+		string adc_response = this->send_command_read("AT+CADC?");
+		while (adc_response.substr(0, 6) != "+CADC:")
+		{
+			this->logger->log("OK received, reading next line...");
+			adc_response = this->serial.read_line();
+		}
+
+		if (gsm_response.substr(0, 5) == "+CBC:" && adc_response.substr(0, 6) == "+CADC:")
+		{
+			stringstream gsm_ss(gsm_response);
+			string data;
+			vector<string> gsm_data;
+
+			while(getline(gsm_ss, data, ',')) gsm_data.push_back(data);
+
+			int gsm_bat_voltage = stoi(gsm_data[2]);
+			int main_bat_voltage = stoi(adc_response.substr(9, 4));
+			gsm_bat_percentage = (gsm_bat_voltage/1000.0-BAT_GSM_MIN)/(BAT_GSM_MAX-BAT_GSM_MIN);
+			main_bat_percentage = (main_bat_voltage/1000.0-BAT_MAIN_MIN)/(BAT_MAIN_MAX-BAT_MAIN_MIN);
+
+			this->logger->log("Main battery percentage: "+ to_string(main_bat_percentage) +
+				"% - GSM battery percentage: "+ to_string(gsm_bat_percentage) +"%");
+
+			return true;
+		}
+	}
+	else
+	{
+		this->logger->log("Error: module is off.");
+	}
+	return false;
 }
 
 bool GSM::is_up() const
@@ -133,9 +167,9 @@ bool GSM::turn_on() const
 {
 	if ( ! this->get_status())
 	{
-		digitalWrite(this->pwr_gpio, LOW);
+		digitalWrite(GSM_PWR_GPIO, LOW);
 		this_thread::sleep_for(2s);
-		digitalWrite(this->pwr_gpio, HIGH);
+		digitalWrite(GSM_PWR_GPIO, HIGH);
 		this_thread::sleep_for(500ms);
 		return true;
 	}
@@ -149,9 +183,9 @@ bool GSM::turn_off() const
 {
 	if (this->get_status())
 	{
-		digitalWrite(this->pwr_gpio, LOW);
+		digitalWrite(GSM_PWR_GPIO, LOW);
 		this_thread::sleep_for(2s);
-		digitalWrite(this->pwr_gpio, HIGH);
+		digitalWrite(GSM_PWR_GPIO, HIGH);
 		this_thread::sleep_for(500ms);
 		return true;
 	}

@@ -1,4 +1,5 @@
 #include "gps/GPS.h"
+#include "constants.h"
 
 #include <functional>
 #include <vector>
@@ -7,6 +8,8 @@
 #include <regex>
 
 #include <sys/time.h>
+
+#include <wiringPi.h>
 
 #include "constants.h"
 #include "serial/Serial.h"
@@ -33,13 +36,13 @@ GPS::~GPS()
 		this->logger->log("Deallocating frame logger...");
 		delete this->frame_logger;
 	}
-	this->logger->log("Shutting down...");
-	// TODO shut down GPS
-	this->logger->log("Shut down finished.");
+	this->logger->log("Turning off GPS...");
+	this->turn_off();
+	this->logger->log("GPS off.");
 	delete this->logger;
 }
 
-bool GPS::initialize(const string& serial_URL)
+bool GPS::initialize()
 {
 	struct timeval timer;
 	gettimeofday(&timer, NULL);
@@ -61,6 +64,8 @@ bool GPS::initialize(const string& serial_URL)
 		to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "GPSFrame");
 
 	#ifndef OS_TESTING
+		pinMode(GPS_ENABLE_GPIO, OUTPUT);
+
 		this->logger->log("Sending configuration frames...");
 		this->serial.send("$PMTK220,100*2F");
 		this->frame_logger->log("Sent: $PMTK220,100*2F");
@@ -70,6 +75,32 @@ bool GPS::initialize(const string& serial_URL)
 	#endif
 
 	return true;
+}
+
+bool GPS::turn_on() const
+{
+	if (digitalRead(GPS_ENABLE_GPIO) == LOW)
+	{
+		digitalWrite(GPS_ENABLE_GPIO, HIGH);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool GPS::turn_off() const
+{
+	if (digitalRead(GPS_ENABLE_GPIO) == HIGH)
+	{
+		digitalWrite(GPS_ENABLE_GPIO, LOW);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool GPS::is_valid(string frame)
@@ -90,7 +121,7 @@ bool GPS::is_valid(string frame)
 	return checksum == frame_cs;
 }
 
-uint_fast8_t GPS::parse(const string& frame)
+void GPS::parse(const string& frame)
 {
 	if (frame.length() > 1)
 	{
@@ -110,8 +141,6 @@ uint_fast8_t GPS::parse(const string& frame)
 			this->parse_RMC(frame);
 		}
 	}
-
-	return ERR_OK;
 }
 
 void GPS::parse_GGA(const string& frame)
@@ -121,8 +150,7 @@ void GPS::parse_GGA(const string& frame)
 	vector<string> s_data;
 
 	// We put all fields in a vector
-	while(getline(ss, data, ','))
-			s_data.push_back(data);
+	while(getline(ss, data, ',')) s_data.push_back(data);
 
 	// Is the data valid?
 	this->active = s_data[6] > "0";
@@ -166,6 +194,7 @@ void GPS::parse_GSA(const string& frame)
 	if (this->active)
 	{
 		// Update DOP
+		this->pdop = stof(s_data[15]);
 		this->hdop = stof(s_data[16]);
 		this->vdop = stof(s_data[17].substr(0, s_data[17].find_first_of('*')));
 	}

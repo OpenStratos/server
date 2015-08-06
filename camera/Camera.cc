@@ -29,7 +29,7 @@ Camera::Camera()
 	gettimeofday(&timer, NULL);
 	struct tm * now = gmtime(&timer.tv_sec);
 
-	this->logger = new Logger("data/logs/Camera/Camera."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+	this->logger = new Logger("data/logs/camera/Camera."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
 		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
 		to_string(now->tm_sec) +".log", "Camera");
 }
@@ -67,25 +67,21 @@ bool Camera::record(int time)
 	if ( ! this->recording)
 	{
 		this->logger->log("Not already recording, creating command...");
-		string command;
-		if (time > 0)
-		{
-			command = "raspivid -o data/video/test.h264 -t " + to_string(time) + " &";
-		}
-		else
-		{
-			command = "raspivid -n -o data/video/video-"+ to_string(get_file_count("data/video/"))
-				+ ".h264 -t " + to_string(time) + " -w "+ to_string(VIDEO_WIDTH) +" -h "
-				+ to_string(VIDEO_HEIGHT) +" -b "+ to_string(VIDEO_BITRATE*1000000)
-				+ " -fps "+ to_string(VIDEO_FPS) +" -co "+ to_string(VIDEO_CONTRAST)
-				+ " -ex "+ VIDEO_EXPOSURE +" -br "+ to_string(VIDEO_BRIGHTNESS) +" &";
-		}
+		string filename = time > 0 ? "data/video/test.h264" : "data/video/video-"+
+			to_string(get_file_count("data/video/")) +".h264";
+		#ifdef OS_TESTING
+			filename = "data/video/test.h264";
+		#endif
+		string command = "raspivid -n -o "+ filename +" -t " + to_string(time) + " -w "+ to_string(VIDEO_WIDTH) +" -h "
+			+ to_string(VIDEO_HEIGHT) +" -b "+ to_string(VIDEO_BITRATE*1000000)
+			+ " -fps "+ to_string(VIDEO_FPS) +" -co "+ to_string(VIDEO_CONTRAST)
+			+ " -ex "+ VIDEO_EXPOSURE +" -br "+ to_string(VIDEO_BRIGHTNESS) +" &";
 		this->logger->log("Video command: '"+command+"'");
 
-		#ifndef RASPICAM
+		// #ifndef RASPICAM
 			this->logger->log("Test mode, video recording simulated.");
 			command = "";
-		#endif
+		// #endif
 
 		int st = system(command.c_str());
 		this->recording = true;
@@ -112,25 +108,31 @@ bool Camera::record()
 	return this->record(0);
 }
 
-bool Camera::take_picture()
+bool Camera::take_picture(const string& exif)
 {
 	bool was_recording = this->recording;
 	if (was_recording) this->logger->log("Recording video, stopping...");
 	if (was_recording && ! this->stop()) return false;
 	this->logger->log("Video recording stopped.");
 
-	string command = "raspistill -n -o data/img/img-"+ to_string(get_file_count("data/img/"))
-				+".jpg " + (PHOTO_RAW ? "-r" : "") + " -w "+ to_string(PHOTO_WIDTH)
+	string filename = "data/img/img-"+ to_string(get_file_count("data/img/")) +".jpg";
+	#ifdef OS_TESTING
+		filename = "data/img/test.jpg";
+	#endif
+
+	string exif_command = exif != "" ? " -x "+ exif : "";
+
+	string command = "raspistill -n -o "+ filename +" " + (PHOTO_RAW ? "-r" : "") + " -w "+ to_string(PHOTO_WIDTH)
 				+" -h "+ to_string(PHOTO_HEIGHT) +" -q "+ to_string(PHOTO_QUALITY)
 				+" -co "+ to_string(PHOTO_CONTRAST) +" -br "+ to_string(PHOTO_BRIGHTNESS)
-				+" -ex "+ PHOTO_EXPOSURE;
+				+" -ex "+ PHOTO_EXPOSURE + exif_command;
 
 	this->logger->log("Picture command: '"+command+"'");
 
-	#ifndef RASPICAM
+	// #ifndef RASPICAM
 		this->logger->log("Test mode, picture taking simulated.");
 		command = "";
-	#endif
+	// #endif
 
 	int st = system(command.c_str());
 	bool result = st == 0;
@@ -149,23 +151,28 @@ bool Camera::take_picture()
 	return result;
 }
 
+bool Camera::take_picture()
+{
+	return Camera::take_picture("");
+}
+
 bool Camera::stop()
 {
 	this->logger->log("Stopping video recording...");
-	#ifdef RASPICAM
-		if (system("pkill raspivid") == 0)
-		{
-			this->logger->log("Video recording stopped correctly.");
-			this->recording = false;
-			return true;
-		}
-		this->logger->log("Error stopping video recording.");
-		return false;
-	#else
+	// #ifdef RASPICAM
+	// 	if (system("pkill raspivid") == 0)
+	// 	{
+	// 		this->logger->log("Video recording stopped correctly.");
+	// 		this->recording = false;
+	// 		return true;
+	// 	}
+	// 	this->logger->log("Error stopping video recording.");
+	// 	return false;
+	// #else
 		this->logger->log("Test mode. Video recording stop simulated.");
 		this->recording = false;
 		return true;
-	#endif
+	// #endif
 }
 
 int os::get_file_count(const string& path)

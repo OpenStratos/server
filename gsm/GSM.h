@@ -17,8 +17,6 @@ namespace os {
 		Logger* logger;
 		Logger* command_logger;
 
-		int pwr_gpio;
-		int status_gpio;
 		int fh;
 
 		GSM() = default;
@@ -33,10 +31,11 @@ namespace os {
 		~GSM();
 		static GSM& get_instance();
 
-		bool initialize(int pwr_gpio, int status_gpio, const string& serial_URL);
+		bool initialize();
 		bool send_SMS(const string& message, const string& number) const;
 		bool get_location(double& latitude, double& longitude) const;
 		bool get_status() const;
+		bool get_battery_status(double& main_bat_percentage, double& gsm_bat_percentage) const;
 		bool is_up() const;
 		bool has_connectivity() const;
 		bool turn_on() const;
