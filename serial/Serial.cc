@@ -114,7 +114,8 @@ void Serial::close()
 {
 	if (this->open) {
 		this->open = false;
-		while( ! this->stopped);
+		while( ! this->stopped)
+			this_thread::sleep_for(1ms);
 
 		#ifndef OS_TESTING
 			serialClose(this->fd);
