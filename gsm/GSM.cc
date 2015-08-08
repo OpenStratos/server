@@ -241,9 +241,10 @@ bool GSM::send_command_read_only(const string& command, const string& only) cons
 	this->serial.read_line();
 	bool response = this->serial.read_only(only);
 	if (response)
-	{
 		this->command_logger->log("Received: '"+only+"'");
-	}
+	else
+		this->command_logger->log("Error: not received '"+only+"'")
+
 	this->serial.flush();
 	return response;
 }
