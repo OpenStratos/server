@@ -64,7 +64,6 @@ Serial::~Serial()
 void Serial::gps_thread()
 {
 	string response;
-	bool endl_found = false;
 
 	while(this->open)
 	{
@@ -77,8 +76,7 @@ void Serial::gps_thread()
 				{
 					char c = serialGetchar(this->fd);
 					response += c;
-					if (c == '\r') endl_found = true;
-					if (endl_found && c == '\n')
+					if (response[response.length()-1] == '\r' && c == '\n')
 					{
 						response = response.substr(0, response.length()-2);
 
@@ -87,7 +85,6 @@ void Serial::gps_thread()
 							GPS::get_instance().parse(response);
 						}
 						response = "";
-						endl_found = false;
 						this_thread::sleep_for(50ms);
 					}
 				}
@@ -136,7 +133,6 @@ const string Serial::read_line() const
 		int available = serialDataAvail(this->fd);
 		struct timeval t1, t2;
 		double elapsed_time = 0;
-		bool endl_found = false;
 
 		while (true)
 		{
@@ -162,8 +158,7 @@ const string Serial::read_line() const
 				char c = serialGetchar(this->fd);
 
 				response += c;
-				if (c == '\r') endl_found = true;
-				if (endl_found && c == '\n')
+				if (response[response.length()-1] == '\r' && c == '\n')
 				{
 					return response.substr(0, response.length()-2);
 				}
@@ -178,7 +173,6 @@ bool Serial::read_only(const string& only) const
 	int available = serialDataAvail(this->fd);
 	struct timeval t1, t2;
 	double elapsed_time = 0;
-	bool endl_found = false;
 
 	while (true)
 	{
