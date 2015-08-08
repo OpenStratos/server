@@ -151,7 +151,7 @@ int main(void)
 	logger.log("Batteries checked => Main battery: "+ to_string(main_battery) +
 		"% - GSM battery: "+ to_string(gsm_battery) +"%");
 
-	if (main_battery < 0.95 || gsm_battery < 0.95)
+	if ((main_battery < 0.95  && main_battery > -1) || gsm_battery < 0.95)
 	{
 		logger.log("Error: Not enough battery.");
 
@@ -564,14 +564,14 @@ int main(void)
 
 				while ( ! GSM::get_instance().send_SMS("Landed in Lat: "+ to_string(GPS::get_instance().get_latitude())
 					+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE) &&
-					main_battery >= 0.05 && gsm_battery >= 0.05)
+					(main_battery >= 0.05 || main_battery < -1) && gsm_battery >= 0.05)
 				{
 					logger.log("Error sending second SMS, trying again in 5 minutes.");
 					this_thread::sleep_for(5min);
 					GSM::get_instance().get_battery_status(main_battery, gsm_battery);
 				}
 
-				if (main_battery < 0.05 || gsm_battery < 0.05)
+				if ((main_battery < 0.05 && main_battery > -1) || gsm_battery < 0.05)
 				{
 					logger.log("Not enough battery.");
 					logger.log("Main battery: "+ to_string(main_battery) +
