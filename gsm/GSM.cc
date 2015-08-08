@@ -60,6 +60,7 @@ bool GSM::initialize()
 		to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "GSMCommand");
 
 	pinMode(GSM_PWR_GPIO, OUTPUT);
+	digitalWrite(GSM_PWR_GPIO, HIGH);
 	return true;
 }
 
@@ -164,10 +165,9 @@ bool GSM::turn_on() const
 	{
 		this->logger->log("Turning GSM on...");
 
-		digitalWrite(GSM_PWR_GPIO, HIGH);
-		this_thread::sleep_for(2s);
 		digitalWrite(GSM_PWR_GPIO, LOW);
-		this_thread::sleep_for(500ms);
+		this_thread::sleep_for(2s);
+		digitalWrite(GSM_PWR_GPIO, HIGH);
 
 		this->logger->log("GSM on.");
 		return true;
@@ -185,10 +185,9 @@ bool GSM::turn_off() const
 	{
 		this->logger->log("Turning GSM off...");
 
-		digitalWrite(GSM_PWR_GPIO, HIGH);
-		this_thread::sleep_for(2s);
 		digitalWrite(GSM_PWR_GPIO, LOW);
-		this_thread::sleep_for(500ms);
+		this_thread::sleep_for(2s);
+		digitalWrite(GSM_PWR_GPIO, HIGH);
 
 		this->logger->log("GSM off.");
 		return true;
