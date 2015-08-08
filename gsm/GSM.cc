@@ -84,7 +84,8 @@ bool GSM::send_SMS(const string& message, const string& number) const
 		return false;
 	}
 
-	this->send_command(message+"\x1a\r\n");
+	this->serial.flush();
+	this->send_command_read(message+"\x1a\r\n");
 	this->serial.flush();
 
 	this->logger->log("SMS sent.");
@@ -115,7 +116,7 @@ bool GSM::get_status() const
 
 bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percentage) const
 {
-	this->logger->log("Checking Battery status...");
+	this->logger->log("Checking Battery status.");
 	if (this->get_status())
 	{
 		string gsm_response = this->send_command_read("AT+CBC");
@@ -138,9 +139,6 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 			int main_bat_voltage = stoi(adc_response.substr(9, 4));
 			gsm_bat_percentage = (gsm_bat_voltage/1000.0-BAT_GSM_MIN)/(BAT_GSM_MAX-BAT_GSM_MIN);
 			main_bat_percentage = (main_bat_voltage/1000.0-BAT_MAIN_MIN)/(BAT_MAIN_MAX-BAT_MAIN_MIN);
-
-			this->logger->log("Main battery percentage: "+ to_string(main_bat_percentage) +
-				"% - GSM battery percentage: "+ to_string(gsm_bat_percentage) +"%");
 
 			return true;
 		}
@@ -167,14 +165,19 @@ bool GSM::turn_on() const
 {
 	if ( ! this->get_status())
 	{
+		this->logger->log("Turning GSM on...");
+
 		digitalWrite(GSM_PWR_GPIO, LOW);
 		this_thread::sleep_for(2s);
 		digitalWrite(GSM_PWR_GPIO, HIGH);
 		this_thread::sleep_for(500ms);
+
+		this->logger->log("GSM on.");
 		return true;
 	}
 	else
 	{
+		this->logger->log("Error: Turning on GSM but GSM already on.");
 		return false;
 	}
 }
@@ -183,14 +186,19 @@ bool GSM::turn_off() const
 {
 	if (this->get_status())
 	{
+		this->logger->log("Turning GSM off...");
+
 		digitalWrite(GSM_PWR_GPIO, LOW);
 		this_thread::sleep_for(2s);
 		digitalWrite(GSM_PWR_GPIO, HIGH);
 		this_thread::sleep_for(500ms);
+
+		this->logger.log("GSM off.");
 		return true;
 	}
 	else
 	{
+		this->logger->log("Error: Turning off GSM but GSM already off.");
 		return false;
 	}
 }
