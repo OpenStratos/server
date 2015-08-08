@@ -85,7 +85,7 @@ bool GSM::send_SMS(const string& message, const string& number) const
 	}
 
 	this->serial.flush();
-	this->send_command_read(message+"\x1a\r\n");
+	this->send_command_read(message+'\x1A');
 	this->serial.flush();
 
 	this->logger->log("SMS sent.");
@@ -122,10 +122,7 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 		string gsm_response = this->send_command_read("AT+CBC");
 		string adc_response = this->send_command_read("AT+CADC?");
 		while (adc_response.substr(0, 6) != "+CADC:")
-		{
-			this->logger->log("OK received, reading next line...");
 			adc_response = this->serial.read_line();
-		}
 
 		if (gsm_response.substr(0, 5) == "+CBC:" && adc_response.substr(0, 6) == "+CADC:")
 		{
