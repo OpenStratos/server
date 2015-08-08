@@ -51,7 +51,7 @@ bool Serial::initialize(const string& url, int baud)
 	}
 
 	this->open = true;
-	this->stopped = false;
+	this->stopped = true;
 
 	return true;
 }
