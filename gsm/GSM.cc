@@ -193,7 +193,7 @@ bool GSM::turn_off() const
 		digitalWrite(GSM_PWR_GPIO, HIGH);
 		this_thread::sleep_for(500ms);
 
-		this->logger.log("GSM off.");
+		this->logger->log("GSM off.");
 		return true;
 	}
 	else
