@@ -383,9 +383,15 @@ int main(void)
 				};
 
 				if (GSM::get_instance().is_up())
+				{
 					logger.log("GSM on.");
+
+					this_thread::sleep_for(3s); // Sleeping for letting GSM initialize
+				}
 				else
+				{
 					logger.log("GSM has not turned on yet, not waiting anymore.");
+				}
 
 				logger.log("Waiting for GSM connectivity...");
 				count = 0;
@@ -436,9 +442,15 @@ int main(void)
 						};
 
 						if (GSM::get_instance().is_up())
+						{
 							logger.log("GSM on.");
+
+							this_thread::sleep_for(3s); // Sleeping for letting GSM initialize
+						}
 						else
+						{
 							logger.log("GSM has not turned on yet, not waiting anymore.");
+						}
 					}
 
 					count = 0;
@@ -491,9 +503,15 @@ int main(void)
 						};
 
 						if (GSM::get_instance().is_up())
+						{
 							logger.log("GSM on.");
+
+							this_thread::sleep_for(3s); // Sleeping for letting GSM initialize
+						}
 						else
+						{
 							logger.log("GSM has not turned on yet, not waiting anymore.");
+						}
 					}
 
 					count = 0;
@@ -605,12 +623,6 @@ int main(void)
 	gps_thread.join();
 	battery_thread.join();
 	logger.log("Threads joined.");
-
-	logger.log("Deleting objects...");
-	delete &GPS::get_instance();
-	delete &GSM::get_instance();
-	// delete &Camera::get_instance();
-	logger.log("Objects deleted.");
 	logger.log("Powering off...");
 	sync();
 	// reboot(RB_POWER_OFF);
