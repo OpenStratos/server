@@ -137,8 +137,8 @@ int main(void)
 	logger.log("Checking batteries...");
 	double main_battery, gsm_battery;
 	GSM::get_instance().get_battery_status(main_battery, gsm_battery);
-	logger.log("Batteries checked => Main battery: "+ to_string(main_battery) +
-		"% - GSM battery: "+ to_string(gsm_battery) +"%");
+	logger.log("Batteries checked => Main battery: "+ to_string(main_battery*100) +
+		"% - GSM battery: "+ to_string(gsm_battery*100) +"%");
 
 	if ((main_battery < 0.95  && main_battery > -1) || gsm_battery < 0.95)
 	{
