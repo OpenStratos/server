@@ -98,7 +98,7 @@ int main(void)
 	if (get_available_disk_space() < FLIGHT_LENGTH*9437184000) // 1.25 times the flight length
 	{
 		logger.log("Error: Not enough disk space.");
-		// exit(1);
+		exit(1);
 	}
 
 	logger.log("Disk space enough for about " + to_string(get_available_disk_space()/7549747200) +
@@ -195,36 +195,36 @@ int main(void)
 		exit(1);
 	}
 	this_thread::sleep_for(11s);
-	// if (file_exists("data/video/test.h264"))
-	// {
+	if (file_exists("data/video/test.h264"))
+	{
 		logger.log("Camera test OK.");
 		logger.log("Removing test file...");
-		// if (remove("data/video/test.h264"))
-		// {
-		// 	logger.log("Error removing test file.");
-		// }
-		// else
-		// {
+		if (remove("data/video/test.h264"))
+		{
+			logger.log("Error removing test file.");
+		}
+		else
+		{
 			logger.log("Test file removed.");
-		// }
-	// }
-	// else
-	// {
-	// 	logger.log("Test recording error.");
-	// 	logger.log("Turning GSM off...");
-	// 	if (GSM::get_instance().turn_off())
-	// 		logger.log("GSM off.");
-	// 	else
-	// 		logger.log("Error turning GSM off.");
+		}
+	}
+	else
+	{
+		logger.log("Test recording error.");
+		logger.log("Turning GSM off...");
+		if (GSM::get_instance().turn_off())
+			logger.log("GSM off.");
+		else
+			logger.log("Error turning GSM off.");
 
-	// 	logger.log("Turning GPS off...");
-	// 	if (GPS::get_instance().turn_off())
-	// 		logger.log("GPS off.");
-	// 	else
-	// 		logger.log("Error turning GPS off.");
+		logger.log("Turning GPS off...");
+		if (GPS::get_instance().turn_off())
+			logger.log("GPS off.");
+		else
+			logger.log("Error turning GPS off.");
 
-	// 	exit(1);
-	// }
+		exit(1);
+	}
 
 	state = set_state(ACQUIRING_FIX);
 	logger.log("State changed to "+ state_to_string(state) +".");
