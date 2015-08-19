@@ -284,6 +284,8 @@ const string GSM::send_command_read(const string& command) const
 	this->serial.println(command);
 	// Sent command
 	string response = this->serial.read_line();
+	if (response == command)
+		response = this->serial.read_line();
 	this->command_logger->log("Received: '"+response+"'");
 	return response;
 }
