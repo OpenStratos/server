@@ -22,6 +22,7 @@ GSM& GSM::get_instance()
 
 GSM::~GSM()
 {
+	this->turn_off();
 	if (this->serial.is_open())
 	{
 		this->logger->log("Closing serial interface...");
@@ -47,6 +48,33 @@ bool GSM::initialize()
 		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
 		to_string(now->tm_sec) +".log", "GSM");
 
+	this->command_logger = new Logger("data/logs/GSM/GSMCommands."+ to_string(now->tm_year+1900) +"-"+
+		to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
+		to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "GSMCommand");
+
+	pinMode(GSM_PWR_GPIO, OUTPUT);
+	digitalWrite(GSM_PWR_GPIO, HIGH);
+	pinMode(GSM_STATUS_GPIO, INPUT);
+
+	this->logger->log("Rebooting module for stability.");
+	this->turn_off();
+	this->logger->log("Module off. Sleeping 3 seconds before turning it on...");
+	this_thread::sleep_for(3s);
+
+	this->logger->log("Turning module on...");
+	this->turn_on();
+	this->logger->log("Module on. Sleeping 3 seconds to let it turn completely on...");
+	this_thread::sleep_for(3s);
+	if (this->get_status())
+	{
+		this->logger->log("Status checked. Module is on.");
+	}
+	else
+	{
+		this->logger->log("Error: Status checked. Module is off. Finishing initialization.");
+		return false;
+	}
+
 	this->logger->log("Starting serial connection...");
 	if ( ! this->serial.initialize(GSM_UART, GSM_BAUDRATE))
 	{
@@ -55,39 +83,77 @@ bool GSM::initialize()
 	}
 	this->logger->log("Serial connection started.");
 
-	this->command_logger = new Logger("data/logs/GSM/GSMCommands."+ to_string(now->tm_year+1900) +"-"+
-		to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
-		to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "GSMCommand");
+	this->logger->log("Deleting possible serial characters...");
+	this->serial.flush();
 
-	pinMode(GSM_PWR_GPIO, OUTPUT);
-	digitalWrite(GSM_PWR_GPIO, HIGH);
+	this->logger->log("Checking OK initialization (3 times)...");
+	if (this->send_command_read("AT") != "OK")
+	{
+		this->logger->log("Error on initialization.");
+		return false;
+	}
+	this_thread::sleep_for(100ms);
+
+	if (this->send_command_read("AT") != "OK")
+	{
+		this->logger->log("Error on initialization.");
+		return false;
+	}
+	this_thread::sleep_for(100ms);
+
+	if (this->send_command_read("AT") != "OK")
+	{
+		this->logger->log("Error on initialization.");
+		return false;
+	}
+	this_thread::sleep_for(100ms);
+	this->logger->log("Initialization OK.");
+
+	this->logger->log("Turning echo off...");
+	if (this->send_command_read("ATE0") != "OK")
+	{
+		this->logger->log("Error turning echo off.");
+		return false;
+	}
+	this_thread::sleep_for(100ms);
+	this->logger->log("Echo is off.");
+
 	return true;
 }
 
 bool GSM::send_SMS(const string& message, const string& number) const
 {
 	this->logger->log("Sending SMS: \""+message+"\" to number "+number+".");
-
-	this->serial.flush();
 	if (this->send_command_read("AT+CMGF=1") != "OK")
 	{
 		this->logger->log("Error sending SMS");
 		return false;
 	}
 
-	stringstream send_command;
-
-	send_command << "AT+CMGS=\"" << number << "\"";
-
-	if ( ! this->send_command_read_only(send_command.str(), ">"))
+	string send_command = "AT+CMGS=\""+number+"\"";
+	if (this->send_command_read(send_command) != "> ")
 	{
-		this->logger->log("Error sending SMS.");
+		this->logger->log("Error sending SMS");
 		return false;
 	}
 
-	this->serial.flush();
-	this->send_command_read(message+'\x1A');
-	this->serial.flush();
+	this->serial.println(message);
+	this->serial.println();
+	this->serial.write(to_string((char) 0x1A));
+
+	// Read line (timeout 10 seconds)
+	if (this->serial.read_line(10).find("+CMGS") == string::npos)
+	{
+		this->logger->log("Error sending SMS");
+		return false;
+	}
+
+	// Read line (timeout 10 seconds)
+	if (this->serial.read_line(10) != "OK")
+	{
+		this->logger->log("Error sending SMS");
+		return false;
+	}
 
 	this->logger->log("SMS sent.");
 	return true;
@@ -148,11 +214,6 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 	return false;
 }
 
-bool GSM::is_up() const
-{
-	return this->send_command_read_only("AT", "OK");
-}
-
 bool GSM::has_connectivity() const
 {
 	   string response = this->send_command_read("AT+CREG?");
@@ -201,16 +262,10 @@ bool GSM::turn_off() const
 
 bool GSM::init_GPRS() const
 {
-	if (this->send_command_read("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"") != "OK" ||
+	return !(this->send_command_read("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"") != "OK" ||
 		this->send_command_read("AT+SAPBR=3,1,\"APN\",\"" + string(GSM_LOC_SERV) + ";") != "OK" ||
 		this->send_command_read("AT+SAPBR=1,1") != "OK" ||
-		this->send_command_read("AT+SAPBR=2,1") != "OK")
-	{
-		this->serial.flush();
-		return false;
-	}
-	this->serial.flush();
-	return true;
+		this->send_command_read("AT+SAPBR=2,1") != "OK");
 }
 
 bool GSM::tear_down_GPRS() const
@@ -222,37 +277,9 @@ const string GSM::send_command_read(const string& command) const
 {
 	this->command_logger->log("Sent: '"+command+"'");
 	this->serial.flush();
-	this->serial.send(command);
+	this->serial.println(command);
 	// Sent command
-	this->serial.read_line();
 	string response = this->serial.read_line();
 	this->command_logger->log("Received: '"+response+"'");
-	this->serial.flush();
 	return response;
-}
-
-bool GSM::send_command_read_only(const string& command, const string& only) const
-{
-	this->command_logger->log("Sent: '"+command+"'");
-	this->serial.flush();
-	this->serial.send(command);
-	// Sent command
-	this->serial.read_line();
-	bool response = this->serial.read_only(only);
-	if (response)
-		this->command_logger->log("Received: '"+only+"'");
-	else
-		this->command_logger->log("Error: not received '"+only+"'");
-
-	this->serial.flush();
-	return response;
-}
-
-void GSM::send_command(const string& command) const
-{
-	this->command_logger->log("Sent: '"+command+"'");
-	this->serial.flush();
-	this->serial.send(command);
-	this_thread::sleep_for(25ms);
-	this->serial.flush();
 }

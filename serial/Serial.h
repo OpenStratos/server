@@ -22,12 +22,15 @@ namespace os {
 		Serial(Serial& copy) = delete;
 		~Serial();
 
-		void send(const string& str) const;
+		void println(const string& str) const;
+		void println() const;
+		void write(const string& str) const;
 		void close();
 		bool is_open();
 		bool initialize_GPS();
 		bool initialize(const string& serial_URL, int baud);
 		const string read_line() const;
+		const string read_line(double timeout) const;
 		bool read_only(const string& only) const;
 		void flush() const;
 	};

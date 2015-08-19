@@ -67,9 +67,9 @@ bool GPS::initialize()
 		pinMode(GPS_ENABLE_GPIO, OUTPUT);
 
 		this->logger->log("Sending configuration frames...");
-		this->serial.send("$PMTK220,100*2F");
+		this->serial.println("$PMTK220,100*2F");
 		this->frame_logger->log("Sent: $PMTK220,100*2F");
-		this->serial.send("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+		this->serial.println("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
 		this->frame_logger->log("Sent: $PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
 		this->logger->log("Configuration frames sent.");
 	#endif

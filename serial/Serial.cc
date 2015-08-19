@@ -102,9 +102,19 @@ void Serial::gps_thread()
 	this->stopped = true;
 }
 
-void Serial::send(const string& str) const
+void Serial::println(const string& str) const
 {
 	serialPuts(this->fd, (str+"\r\n").c_str());
+}
+
+void Serial::println() const
+{
+	serialPuts(this->fd, "\r\n");
+}
+
+void Serial::write(const string& str) const
+{
+	serialPuts(this->fd, str.c_str());
 }
 
 void Serial::close()
@@ -127,76 +137,47 @@ bool Serial::is_open()
 
 const string Serial::read_line() const
 {
-	string response;
+	return this->read_line(0.5);
+}
+
+const string Serial::read_line(double timeout) const
+{
+	string response = "";
 
 	#ifndef OS_TESTING
-		int available = serialDataAvail(this->fd);
 		struct timeval t1, t2;
 		double elapsed_time = 0;
+		gettimeofday(&t1, NULL);
 
 		while (true)
 		{
-			gettimeofday(&t1, NULL);
-			while (available == 0)
-			{
-				this_thread::sleep_for(25ms);
-				gettimeofday(&t2, NULL);
-				elapsed_time = (t2.tv_sec - t1.tv_sec);
-				elapsed_time += (t2.tv_usec - t1.tv_usec) / 1000000.0;
-
-				if (elapsed_time > 5) return "";
-				available = serialDataAvail(this->fd);
-			}
-
-			if (available < 0)
-			{
-				// TODO log error
-			}
-
-			for (int i = 0; i < available; i++)
-			{
-				char c = serialGetchar(this->fd);
-
-				response += c;
-				if (response[response.length()-1] == '\r' && c == '\n')
-				{
-					return response.substr(0, response.length()-2);
-				}
-			}
-		}
-	#endif
-	return response;
-}
-
-bool Serial::read_only(const string& only) const
-{
-	int available = serialDataAvail(this->fd);
-	struct timeval t1, t2;
-	double elapsed_time = 0;
-
-	while (true)
-	{
-		gettimeofday(&t1, NULL);
-		while (available == 0)
-		{
-			this_thread::sleep_for(25ms);
 			gettimeofday(&t2, NULL);
 			elapsed_time = (t2.tv_sec - t1.tv_sec);
 			elapsed_time += (t2.tv_usec - t1.tv_usec) / 1000000.0;
 
-			if (elapsed_time > 5) return false;
-			available = serialDataAvail(this->fd);
-		}
-
-		if (available >= only.length())
-		{
-			for (int i = 0; i < only.length(); i++)
+			if (elapsed_time > timeout)
 			{
-				if (serialGetchar(this->fd) != only[i]) return false;
+				// TODO log timeout error
+				break;
 			}
-			return true;
+
+			while (serialDataAvail(this->fd) > 0)
+			{
+				char c = serialGetchar(this->fd);
+				if (c == '\r') continue;
+      			if (c == '\n') {
+      				if (response.length() == 0)   // the first \n is ignored
+						continue;
+
+					timeout = 0;         // the second \n is the end of the line
+					break;
+				}
+
+				response += c;
+			}
 		}
-	}
+	#endif
+	return response;
 }
 
 void Serial::flush() const

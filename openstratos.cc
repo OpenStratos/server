@@ -134,17 +134,6 @@ int main(void)
 	}
 	logger.log("GSM initialized");
 
-	logger.log("Turning on GSM...");
-	GSM::get_instance().turn_on();
-	this_thread::sleep_for(25ms);
-	while ( ! GSM::get_instance().is_up())
-	{
-		this_thread::sleep_for(1s);
-	}
-	logger.log("GSM on.");
-
-	this_thread::sleep_for(3s); // Sleeping for letting GSM initialize
-
 	logger.log("Checking batteries...");
 	double main_battery, gsm_battery;
 	GSM::get_instance().get_battery_status(main_battery, gsm_battery);
