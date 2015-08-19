@@ -78,10 +78,10 @@ bool Camera::record(int time)
 			+ " -ex "+ VIDEO_EXPOSURE +" -br "+ to_string(VIDEO_BRIGHTNESS) +" &";
 		this->logger->log("Video command: '"+command+"'");
 
-		// #ifndef RASPICAM
+		#ifndef RASPICAM
 			this->logger->log("Test mode, video recording simulated.");
 			command = "";
-		// #endif
+		#endif
 
 		int st = system(command.c_str());
 		this->recording = true;
@@ -129,10 +129,10 @@ bool Camera::take_picture(const string& exif)
 
 	this->logger->log("Picture command: '"+command+"'");
 
-	// #ifndef RASPICAM
+	#ifndef RASPICAM
 		this->logger->log("Test mode, picture taking simulated.");
 		command = "";
-	// #endif
+	#endif
 
 	int st = system(command.c_str());
 	bool result = st == 0;
@@ -159,20 +159,20 @@ bool Camera::take_picture()
 bool Camera::stop()
 {
 	this->logger->log("Stopping video recording...");
-	// #ifdef RASPICAM
-	// 	if (system("pkill raspivid") == 0)
-	// 	{
-	// 		this->logger->log("Video recording stopped correctly.");
-	// 		this->recording = false;
-	// 		return true;
-	// 	}
-	// 	this->logger->log("Error stopping video recording.");
-	// 	return false;
-	// #else
+	#ifdef RASPICAM
+		if (system("pkill raspivid") == 0)
+		{
+			this->logger->log("Video recording stopped correctly.");
+			this->recording = false;
+			return true;
+		}
+		this->logger->log("Error stopping video recording.");
+		return false;
+	#else
 		this->logger->log("Test mode. Video recording stop simulated.");
 		this->recording = false;
 		return true;
-	// #endif
+	#endif
 }
 
 int os::get_file_count(const string& path)
