@@ -364,23 +364,6 @@ int main(void)
 				logger.log("Turning on GSM...");
 				GSM::get_instance().turn_on();
 				count = 0;
-				while ( ! GSM::get_instance().is_up())
-				{
-					if (count > 5) break;
-					this_thread::sleep_for(1s);
-					++count;
-				};
-
-				if (GSM::get_instance().is_up())
-				{
-					logger.log("GSM on.");
-
-					this_thread::sleep_for(3s); // Sleeping for letting GSM initialize
-				}
-				else
-				{
-					logger.log("GSM has not turned on yet, not waiting anymore.");
-				}
 
 				logger.log("Waiting for GSM connectivity...");
 				count = 0;
@@ -418,30 +401,6 @@ int main(void)
 				// {
 					logger.log("1.5 km mark.");
 
-					if ( ! GSM::get_instance().is_up())
-					{
-						logger.log("GSM is off. Turning on GSM...");
-						GSM::get_instance().turn_on();
-						count = 0;
-						while ( ! GSM::get_instance().is_up())
-						{
-							if (count > 5) break;
-							this_thread::sleep_for(1s);
-							++count;
-						};
-
-						if (GSM::get_instance().is_up())
-						{
-							logger.log("GSM on.");
-
-							this_thread::sleep_for(3s); // Sleeping for letting GSM initialize
-						}
-						else
-						{
-							logger.log("GSM has not turned on yet, not waiting anymore.");
-						}
-					}
-
 					count = 0;
 					while ( ! GSM::get_instance().has_connectivity())
 					{
@@ -478,30 +437,6 @@ int main(void)
 				if ( ! has_landed())
 				{
 					logger.log("500 m mark.");
-
-					if ( ! GSM::get_instance().is_up())
-					{
-						logger.log("GSM is off. Turning on GSM...");
-						GSM::get_instance().turn_on();
-						count = 0;
-						while ( ! GSM::get_instance().is_up())
-						{
-							if (count > 5) break;
-							this_thread::sleep_for(1s);
-							++count;
-						};
-
-						if (GSM::get_instance().is_up())
-						{
-							logger.log("GSM on.");
-
-							this_thread::sleep_for(3s); // Sleeping for letting GSM initialize
-						}
-						else
-						{
-							logger.log("GSM has not turned on yet, not waiting anymore.");
-						}
-					}
 
 					count = 0;
 					while ( ! GSM::get_instance().has_connectivity())
