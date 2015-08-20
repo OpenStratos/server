@@ -46,7 +46,6 @@ bool Serial::initialize_GPS()
 		this->stopped = true;
 	#endif
 
-	this->logger = NULL;
 	return true;
 }
 
@@ -116,7 +115,7 @@ void Serial::gps_thread()
 			}
 			else if (available < 0)
 			{
-				// TODO log error
+				this->logger->log("Error: Serial available < 0.");
 			}
 		#endif
 	}
