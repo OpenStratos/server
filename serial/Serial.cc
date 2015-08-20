@@ -220,7 +220,7 @@ const string Serial::read_line(double timeout) const
 			}
 		}
 	#endif
-	this->logger->log("Received: '"+logstr+"\\r\\n'");
+	this->logger->log("Received: '"+logstr+"'");
 	return response;
 }
 
