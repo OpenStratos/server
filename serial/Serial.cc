@@ -24,6 +24,7 @@ bool Serial::initialize_GPS()
 		if (this->fd == -1) {
 			this->open = false;
 			this->stopped = true;
+
 			return false;
 		}
 
@@ -36,6 +37,7 @@ bool Serial::initialize_GPS()
 		this->stopped = true;
 	#endif
 
+	this->logger = NULL;
 	return true;
 }
 
@@ -67,7 +69,7 @@ bool Serial::initialize(const string& url, int baud)
 Serial::~Serial()
 {
 	this->close();
-	delete this->logger;
+	if (this->logger) delete this->logger;
 }
 
 void Serial::gps_thread()
