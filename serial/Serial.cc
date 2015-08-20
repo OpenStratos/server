@@ -18,6 +18,14 @@ using namespace os;
 
 bool Serial::initialize_GPS()
 {
+	struct timeval timer;
+	gettimeofday(&timer, NULL);
+	struct tm * now = gmtime(&timer.tv_sec);
+
+	this->logger = new Logger("data/logs/GPS/Serial."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
+		to_string(now->tm_sec) +".log", "GPSSerial");
+
 	#ifndef OS_TESTING
 		this->fd = serialOpen(GPS_UART, GPS_BAUDRATE);
 
@@ -69,7 +77,7 @@ bool Serial::initialize(const string& url, int baud)
 Serial::~Serial()
 {
 	this->close();
-	if (this->logger) delete this->logger;
+	delete this->logger;
 }
 
 void Serial::gps_thread()
