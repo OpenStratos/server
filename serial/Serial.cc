@@ -38,6 +38,7 @@ bool Serial::initialize_GPS()
 
 		this->open = true;
 		this->stopped = false;
+		this->flush();
 		thread t(&Serial::gps_thread, this);
 		t.detach();
 	#else
@@ -98,6 +99,7 @@ void Serial::gps_thread()
 					if (response[response.length()-1] == '\r' && c == '\n')
 					{
 						response = response.substr(0, response.length()-2);
+						this->logger->log("Received: '"+response+"\\r\\n'");
 
 						if (response.at(0) == '$')
 						{
