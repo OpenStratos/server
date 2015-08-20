@@ -6,6 +6,8 @@
 #include <functional>
 #include <string>
 #include <atomic>
+
+#include "logger/Logger.h"
 using namespace std;
 
 namespace os {
@@ -15,6 +17,8 @@ namespace os {
 		int fd;
 		atomic_bool open;
 		atomic_bool stopped;
+
+		Logger* logger;
 
 		void gps_thread();
 	public:
