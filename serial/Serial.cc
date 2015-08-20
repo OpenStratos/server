@@ -41,6 +41,14 @@ bool Serial::initialize_GPS()
 
 bool Serial::initialize(const string& url, int baud)
 {
+	struct timeval timer;
+	gettimeofday(&timer, NULL);
+	struct tm * now = gmtime(&timer.tv_sec);
+
+	this->logger = new Logger("data/logs/GSM/Serial."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
+		to_string(now->tm_sec) +".log", "GSMSerial");
+
 	#ifndef OS_TESTING
 		this->fd = serialOpen(url.c_str(), baud);
 	#endif
@@ -59,6 +67,7 @@ bool Serial::initialize(const string& url, int baud)
 Serial::~Serial()
 {
 	this->close();
+	delete this->logger;
 }
 
 void Serial::gps_thread()
@@ -104,16 +113,19 @@ void Serial::gps_thread()
 
 void Serial::println(const string& str) const
 {
+	this->logger->log("Sent: '"+str+"\\r\\n'");
 	serialPuts(this->fd, (str+"\r\n").c_str());
 }
 
 void Serial::println() const
 {
+	this->logger->log("Sent: '\\r\\n'");
 	serialPuts(this->fd, "\r\n");
 }
 
 void Serial::write(const string& str) const
 {
+	this->logger->log("Sent: '"+str+"'");
 	serialPuts(this->fd, str.c_str());
 }
 
@@ -143,13 +155,16 @@ const string Serial::read_line() const
 const string Serial::read_line(double timeout) const
 {
 	string response = "";
+	string logstr = "";
+	bool rfound = false, endl_found = false;
+	int available = 0;
 
 	#ifndef OS_TESTING
 		struct timeval t1, t2;
 		double elapsed_time = 0;
 		gettimeofday(&t1, NULL);
 
-		while (true)
+		while ( ! endl_found)
 		{
 			gettimeofday(&t2, NULL);
 			elapsed_time = (t2.tv_sec - t1.tv_sec);
@@ -157,26 +172,44 @@ const string Serial::read_line(double timeout) const
 
 			if (elapsed_time > timeout)
 			{
-				// TODO log timeout error
+				this->logger->log("Error: Serial timeout. ("+to_string(timeout)+" s)");
 				break;
 			}
 
-			while (serialDataAvail(this->fd) > 0)
+			while (available = serialDataAvail(this->fd) > 0)
 			{
 				char c = serialGetchar(this->fd);
-				if (c == '\r') continue;
-      			if (c == '\n') {
-      				if (response.length() == 0)   // the first \n is ignored
-						continue;
 
-					timeout = 0;         // the second \n is the end of the line
-					break;
+				if (c == '\r') logstr += "\\r";
+				else if (c == '\n') logstr += "\\n";
+				else logstr += c;
+
+				if (c == '\r')
+				{
+					rfound = true;
+					continue;
+				}
+				else if (c == '\n')
+				{
+					if (rfound)
+					{
+						endl_found = true;
+						break;
+					}
 				}
 
+				rfound = false;
 				response += c;
+			}
+
+			if (available < 0)
+			{
+				this->logger->log("Error: Serial available < 0.");
+				break;
 			}
 		}
 	#endif
+	this->logger->log("Received: '"+logstr+"\\r\\n'");
 	return response;
 }
 
