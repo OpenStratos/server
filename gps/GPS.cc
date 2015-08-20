@@ -66,6 +66,10 @@ bool GPS::initialize()
 	#ifndef OS_TESTING
 		pinMode(GPS_ENABLE_GPIO, OUTPUT);
 
+		this->logger->log("Turning GPS on...");
+		this->turn_on();
+		this->logger->log("GPS on.");
+
 		this->logger->log("Sending configuration frames...");
 		this->serial.println("$PMTK220,100*2F");
 		this->frame_logger->log("Sent: $PMTK220,100*2F");

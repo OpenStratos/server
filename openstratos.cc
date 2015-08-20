@@ -116,10 +116,6 @@ int main(void)
 	}
 	logger.log("GPS initialized.");
 
-	logger.log("Turning on GPS...");
-	GPS::get_instance().turn_on();
-	logger.log("GPS on.");
-
 	logger.log("Initializing GSM...");
 	if ( ! GSM::get_instance().initialize())
 	{
