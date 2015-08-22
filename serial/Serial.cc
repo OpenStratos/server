@@ -16,110 +16,30 @@
 using namespace std;
 using namespace os;
 
-bool Serial::initialize_GPS()
+Serial::Serial(const string& url, int baud_rate, const string& log_path)
 {
+	this->open = false;
+
 	struct timeval timer;
 	gettimeofday(&timer, NULL);
 	struct tm * now = gmtime(&timer.tv_sec);
 
-	this->logger = new Logger("data/logs/GPS/Serial."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
-		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
-		to_string(now->tm_sec) +".log", "GPSSerial");
+	this->logger = new Logger("data/logs/"+log_path+"/Serial."+ to_string(now->tm_year+1900) +"-"+
+		to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
+		to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "Serial");
 
 	#ifndef OS_TESTING
-		this->fd = serialOpen(GPS_UART, GPS_BAUDRATE);
+		this->fd = serialOpen(url.c_str(), baud_rate);
 
-		if (this->fd == -1) {
-			this->open = false;
-			this->stopped = true;
-
-			return false;
-		}
-
-		this->open = true;
-		this->stopped = false;
-		this->flush();
-		thread t(&Serial::gps_thread, this);
-		t.detach();
-	#else
-		this->open = false;
-		this->stopped = true;
+		if (this->fd == -1) this->logger->log("Error: connection fd is -1.");
+		else this->open = true;
 	#endif
-
-	return true;
-}
-
-bool Serial::initialize(const string& url, int baud)
-{
-	struct timeval timer;
-	gettimeofday(&timer, NULL);
-	struct tm * now = gmtime(&timer.tv_sec);
-
-	this->logger = new Logger("data/logs/GSM/Serial."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
-		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
-		to_string(now->tm_sec) +".log", "GSMSerial");
-
-	#ifndef OS_TESTING
-		this->fd = serialOpen(url.c_str(), baud);
-	#endif
-
-	if (this->fd == -1)
-	{
-		return false;
-	}
-
-	this->open = true;
-	this->stopped = true;
-
-	return true;
 }
 
 Serial::~Serial()
 {
 	this->close();
 	delete this->logger;
-}
-
-void Serial::gps_thread()
-{
-	string response;
-
-	while(this->open)
-	{
-		#ifndef OS_TESTING
-			int available = serialDataAvail(this->fd);
-
-			if (available > 0)
-			{
-				for (int i = 0; i < available; i++)
-				{
-					char c = serialGetchar(this->fd);
-					response += c;
-					if (response[response.length()-1] == '\r' && c == '\n')
-					{
-						response = response.substr(0, response.length()-2);
-						this->logger->log("Received: '"+response+"\\r\\n'");
-
-						if (response.at(0) == '$')
-						{
-							GPS::get_instance().parse(response);
-						}
-						response = "";
-						this_thread::sleep_for(50ms);
-					}
-				}
-			}
-			else if (available == 0)
-			{
-				this_thread::sleep_for(25ms);
-			}
-			else if (available < 0)
-			{
-				this->logger->log("Error: Serial available < 0.");
-			}
-		#endif
-	}
-	this->stopped = true;
 }
 
 void Serial::println(const string& str) const
@@ -142,20 +62,27 @@ void Serial::write(const string& str) const
 
 void Serial::close()
 {
-	if (this->open) {
-		this->open = false;
-		while( ! this->stopped)
-			this_thread::sleep_for(1ms);
-
-		#ifndef OS_TESTING
+	#ifndef OS_TESTING
+		if (this->open) {
 			serialClose(this->fd);
-		#endif
-	}
+			this->open = false;
+		}
+	#endif
 }
 
-bool Serial::is_open()
+bool Serial::is_open() const
 {
 	return this->open;
+}
+
+int Serial::available() const
+{
+	return serialDataAvail(this->fd);
+}
+
+char Serial::read_char() const
+{
+	return serialGetchar(this->fd);
 }
 
 const string Serial::read_line() const

@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include <string>
+#include <atomic>
 
 #include "serial/Serial.h"
 #include "logger/Logger.h"
@@ -21,9 +22,12 @@ namespace os {
 	class GPS
 	{
 	private:
-		Serial serial;
+		Serial* serial;
 		Logger* logger;
 		Logger* frame_logger;
+
+		atomic_bool should_stop;
+		atomic_bool stopped;
 
 		tm time;
 		bool active;
@@ -37,6 +41,8 @@ namespace os {
 		euc_vec velocity;
 
 		GPS() = default;
+
+		void gps_thread();
 
 		void parse_GGA(const string& frame);
 		void parse_GSA(const string& frame);

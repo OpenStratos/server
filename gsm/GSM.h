@@ -13,7 +13,7 @@ namespace os {
 	class GSM
 	{
 	private:
-		Serial serial;
+		Serial* serial;
 		Logger* logger;
 		Logger* command_logger;
 
