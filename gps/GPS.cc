@@ -6,6 +6,9 @@
 #include <sstream>
 #include <string>
 #include <regex>
+#include <thread>
+
+#include <iostream>
 
 #include <sys/time.h>
 
@@ -27,14 +30,26 @@ GPS& GPS::get_instance()
 
 GPS::~GPS()
 {
-	if (this->serial.is_open())
+	if ( ! this->stopped)
+	{
+		this->logger->log("Stopping GPS thread...");
+		this->should_stop = true;
+		while ( ! this->stopped) this_thread::sleep_for(1ms);
+		this->logger->log("GPS thread stopped");
+	}
+
+	if (this->serial->is_open())
 	{
 		this->logger->log("Closing serial interface...");
-		this->serial.close();
+		this->serial->close();
 		this->logger->log("Serial interface closed.");
+		this->logger->log("Deallocating serial...");
+		delete this->serial;
+		this->logger->log("Serial deallocated");
 
 		this->logger->log("Deallocating frame logger...");
 		delete this->frame_logger;
+		this->logger->log("Frame logger deallocated");
 	}
 	this->logger->log("Turning off GPS...");
 	this->turn_off();
@@ -52,16 +67,12 @@ bool GPS::initialize()
 		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
 		to_string(now->tm_sec) +".log", "GPS");
 
-	this->logger->log("Starting serial connection...");
-	if ( ! this->serial.initialize_GPS()) {
-		this->logger->log("GPS serial error.");
-		return false;
-	}
-
-	this->logger->log("Serial connection started.");
 	this->frame_logger = new Logger("data/logs/GPS/GPSFrames."+ to_string(now->tm_year+1900) +"-"+
 		to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
 		to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "GPSFrame");
+
+	this->should_stop = false;
+	this->stopped = true;
 
 	#ifndef OS_TESTING
 		pinMode(GPS_ENABLE_GPIO, OUTPUT);
@@ -69,11 +80,26 @@ bool GPS::initialize()
 		this->logger->log("Turning GPS on...");
 		this->turn_on();
 		this->logger->log("GPS on.");
+	#endif
 
+	this->logger->log("Starting serial connection...");
+	this->serial = new Serial(GPS_UART, GPS_BAUDRATE, "GPS");
+	if ( ! this->serial->is_open()) {
+		this->logger->log("GPS serial error.");
+		return false;
+	}
+	this->logger->log("Serial connection started.");
+
+	this->logger->log("Starting GPS frame thread...");
+	thread t(&GPS::gps_thread, this);
+	t.detach();
+	this->logger->log("GPS frame thread running.");
+
+	#ifndef OS_TESTING
 		this->logger->log("Sending configuration frames...");
-		this->serial.println("$PMTK220,100*2F");
+		this->serial->println("$PMTK220,100*2F");
 		this->frame_logger->log("Sent: $PMTK220,100*2F");
-		this->serial.println("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+		this->serial->println("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
 		this->frame_logger->log("Sent: $PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
 		this->logger->log("Configuration frames sent.");
 	#endif
@@ -105,6 +131,51 @@ bool GPS::turn_off() const
 	{
 		return false;
 	}
+}
+
+void GPS::gps_thread()
+{
+	this->stopped = false;
+	string response;
+
+	while( ! this->should_stop)
+	{
+		#ifndef OS_TESTING
+			int available = this->serial->available();
+
+			if (available > 0)
+			{
+				for (int i = 0; i < available; i++)
+				{
+					char c = this->serial->read_char();
+					response += c;
+					if (response[response.length()-1] == '\r' && c == '\n')
+					{
+						response = response.substr(0, response.length()-2);
+
+						if (response.at(0) == '$')
+						{
+							this->parse(response);
+						}
+						response = "";
+						this_thread::sleep_for(50ms);
+					}
+				}
+			}
+			else if (available == 0)
+			{
+				this_thread::sleep_for(50ms);
+			}
+			else if (available < 0)
+			{
+				this->logger->log("Error: Serial available < 0.");
+			}
+		#else
+			this_thread::sleep_for(50ms);
+		#endif
+	}
+	this->logger->log("Should-stop flag noticed.");
+	this->stopped = true;
 }
 
 bool GPS::is_valid(string frame)

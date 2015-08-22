@@ -3,9 +3,7 @@
 
 #include <cstdint>
 
-#include <functional>
 #include <string>
-#include <atomic>
 
 #include "logger/Logger.h"
 using namespace std;
@@ -15,14 +13,13 @@ namespace os {
 	{
 	private:
 		int fd;
-		atomic_bool open;
-		atomic_bool stopped;
+		bool open;
 
 		Logger* logger;
 
 		void gps_thread();
 	public:
-		Serial() = default;
+		Serial(const string& url, int baud_rate, const string& log_path);
 		Serial(Serial& copy) = delete;
 		~Serial();
 
@@ -30,9 +27,9 @@ namespace os {
 		void println() const;
 		void write(const string& str) const;
 		void close();
-		bool is_open();
-		bool initialize_GPS();
-		bool initialize(const string& serial_URL, int baud);
+		bool is_open() const;
+		char read_char() const;
+		int available() const;
 		const string read_line() const;
 		const string read_line(double timeout) const;
 		bool read_only(const string& only) const;

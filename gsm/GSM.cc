@@ -23,11 +23,14 @@ GSM& GSM::get_instance()
 GSM::~GSM()
 {
 	this->turn_off();
-	if (this->serial.is_open())
+	if (this->serial->is_open())
 	{
 		this->logger->log("Closing serial interface...");
-		this->serial.close();
+		this->serial->close();
 		this->logger->log("Serial interface closed.");
+		this->logger->log("Deallocating serial...");
+		delete this->serial;
+		this->logger->log("Serial deallocated");
 
 		this->logger->log("Deallocating command logger...");
 		delete this->command_logger;
@@ -76,7 +79,8 @@ bool GSM::initialize()
 	}
 
 	this->logger->log("Starting serial connection...");
-	if ( ! this->serial.initialize(GSM_UART, GSM_BAUDRATE))
+	this->serial = new Serial(GSM_UART, GSM_BAUDRATE, "GSM");
+	if ( ! this->serial->is_open())
 	{
 		this->logger->log("GSM serial error.");
 		return false;
@@ -84,7 +88,7 @@ bool GSM::initialize()
 	this->logger->log("Serial connection started.");
 
 	this->logger->log("Deleting possible serial characters...");
-	this->serial.flush();
+	this->serial->flush();
 
 	this->logger->log("Checking OK initialization (3 times)...");
 	if (this->send_command_read("AT") != "OK")
@@ -137,19 +141,19 @@ bool GSM::send_SMS(const string& message, const string& number) const
 		return false;
 	}
 
-	this->serial.println(message);
-	this->serial.println();
-	this->serial.write(to_string((char) 0x1A));
+	this->serial->println(message);
+	this->serial->println();
+	this->serial->write(to_string((char) 0x1A));
 
 	// Read line (timeout 10 seconds)
-	if (this->serial.read_line(10).find("+CMGS") == string::npos)
+	if (this->serial->read_line(10).find("+CMGS") == string::npos)
 	{
 		this->logger->log("Error sending SMS");
 		return false;
 	}
 
 	// Read line (timeout 10 seconds)
-	if (this->serial.read_line(10) != "OK")
+	if (this->serial->read_line(10) != "OK")
 	{
 		this->logger->log("Error sending SMS");
 		return false;
@@ -189,7 +193,7 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 		string gsm_response = this->send_command_read("AT+CBC");
 		string adc_response = this->send_command_read("AT+CADC?");
 		while (adc_response.substr(0, 6) != "+CADC:")
-			adc_response = this->serial.read_line();
+			adc_response = this->serial->read_line();
 
 		if (gsm_response.substr(0, 5) == "+CBC:" && adc_response.substr(0, 6) == "+CADC:")
 		{
@@ -280,12 +284,12 @@ bool GSM::tear_down_GPRS() const
 const string GSM::send_command_read(const string& command) const
 {
 	this->command_logger->log("Sent: '"+command+"'");
-	this->serial.flush();
-	this->serial.println(command);
+	this->serial->flush();
+	this->serial->println(command);
 	// Sent command
-	string response = this->serial.read_line();
+	string response = this->serial->read_line();
 	if (response == command || response == "")
-		response = this->serial.read_line();
+		response = this->serial->read_line();
 	this->command_logger->log("Received: '"+response+"'");
 	return response;
 }
