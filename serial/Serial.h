@@ -25,7 +25,7 @@ namespace os {
 
 		void println(const string& str) const;
 		void println() const;
-		void write(const string& str) const;
+		void write(unsigned char c) const;
 		void close();
 		bool is_open() const;
 		char read_char() const;
