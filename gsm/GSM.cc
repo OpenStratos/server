@@ -92,21 +92,17 @@ bool GSM::initialize()
 
 	this->logger->log("Checking OK initialization (3 times)...");
 	if (this->send_command_read("AT") != "OK")
+		this->logger->log("Not initialized.");
+	this_thread::sleep_for(100ms);
+
+	if (this->send_command_read("AT") != "OK")
+		this->logger->log("Not initialized.");
+	this_thread::sleep_for(100ms);
+
+	if (this->send_command_read("AT") != "OK")
 	{
 		this->logger->log("Error on initialization.");
 		return false;
-	}
-	this_thread::sleep_for(100ms);
-
-	if (this->send_command_read("AT") != "OK")
-	{
-		this->logger->log("Not initialized.");
-	}
-	this_thread::sleep_for(100ms);
-
-	if (this->send_command_read("AT") != "OK")
-	{
-		this->logger->log("Not initialized.");
 	}
 	this_thread::sleep_for(100ms);
 	this->logger->log("Initialization OK.");
