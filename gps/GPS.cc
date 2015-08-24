@@ -8,8 +8,6 @@
 #include <regex>
 #include <thread>
 
-#include <iostream>
-
 #include <sys/time.h>
 
 #include <wiringPi.h>
@@ -149,7 +147,7 @@ void GPS::gps_thread()
 				{
 					char c = this->serial->read_char();
 					response += c;
-					if (response[response.length()-1] == '\r' && c == '\n')
+					if (response[response.length()-2] == '\r' && c == '\n')
 					{
 						response = response.substr(0, response.length()-2);
 
