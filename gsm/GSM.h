@@ -18,6 +18,7 @@ namespace os {
 		Logger* command_logger;
 
 		int fh;
+		atomic_bool occupied;
 
 		GSM() = default;
 
