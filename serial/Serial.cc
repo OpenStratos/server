@@ -38,26 +38,27 @@ Serial::Serial(const string& url, int baud_rate, const string& log_path)
 
 Serial::~Serial()
 {
-	this->close();
+	if (this->open)
+		this->close();
 	delete this->logger;
 }
 
 void Serial::println(const string& str) const
 {
-	this->logger->log("Sent: '"+str+"\\r\\n'");
 	serialPuts(this->fd, (str+"\r\n").c_str());
+	this->logger->log("Sent: '"+str+"\\r\\n'");
 }
 
 void Serial::println() const
 {
-	this->logger->log("Sent: '\\r\\n'");
 	serialPuts(this->fd, "\r\n");
+	this->logger->log("Sent: '\\r\\n'");
 }
 
-void Serial::write(const string& str) const
+void Serial::write(unsigned char c) const
 {
-	this->logger->log("Sent: '"+str+"'");
-	serialPuts(this->fd, str.c_str());
+	serialPutchar(this->fd, c);
+	this->logger->log("Sent char: '"+string(1, c)+"'");
 }
 
 void Serial::close()
