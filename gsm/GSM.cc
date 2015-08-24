@@ -114,7 +114,7 @@ bool GSM::initialize()
 	return true;
 }
 
-bool GSM::send_SMS(const string& message, const string& number) const
+bool GSM::send_SMS(const string& message, const string& number)
 {
 	while (this->occupied) this_thread::sleep_for(10ms);
 	this->occupied = true;
@@ -155,8 +155,11 @@ bool GSM::send_SMS(const string& message, const string& number) const
 	return true;
 }
 
-bool GSM::get_location(double& latitude, double& longitude) const
+bool GSM::get_location(double& latitude, double& longitude)
 {
+	while (this->occupied) this_thread::sleep_for(10ms);
+	this->occupied = true;
+
 	if ( ! this->init_GPRS())
 	{
 		return false;
@@ -169,6 +172,7 @@ bool GSM::get_location(double& latitude, double& longitude) const
 	{
 		return false;
 	}
+	this->occupied = false;
 	return false;
 }
 
@@ -177,7 +181,7 @@ bool GSM::get_status() const
 	return digitalRead(GSM_STATUS_GPIO) == HIGH;
 }
 
-bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percentage) const
+bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percentage)
 {
 	while (this->occupied) this_thread::sleep_for(10ms);
 	this->occupied = true;
@@ -214,7 +218,7 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 	return false;
 }
 
-bool GSM::has_connectivity() const
+bool GSM::has_connectivity()
 {
 	while (this->occupied) this_thread::sleep_for(10ms);
 	this->occupied = true;
@@ -270,26 +274,15 @@ bool GSM::turn_off() const
 
 bool GSM::init_GPRS() const
 {
-	while (this->occupied) this_thread::sleep_for(10ms);
-	this->occupied = true;
-
-	bool result = !(this->send_command_read("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"") != "OK" ||
-		this->send_command_read("AT+SAPBR=3,1,\"APN\",\"" + string(GSM_LOC_SERV) + ";") != "OK" ||
-		this->send_command_read("AT+SAPBR=1,1") != "OK" ||
-		this->send_command_read("AT+SAPBR=2,1") != "OK");
-	this->occupied = false;
-
-	return result;
+	return (this->send_command_read("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"") == "OK" &&
+		this->send_command_read("AT+SAPBR=3,1,\"APN\",\"" + string(GSM_LOC_SERV) + ";") == "OK" &&
+		this->send_command_read("AT+SAPBR=1,1") == "OK" &
+		this->send_command_read("AT+SAPBR=2,1") == "OK");
 }
 
 bool GSM::tear_down_GPRS() const
 {
-	while (this->occupied) this_thread::sleep_for(10ms);
-	this->occupied = true;
-	bool result = this->send_command_read("AT+SAPBR=0,1") == "OK";
-	this->occupied = false;
-
-	return result;
+	return this->send_command_read("AT+SAPBR=0,1") == "OK";
 }
 
 const string GSM::send_command_read(const string& command) const
@@ -297,9 +290,8 @@ const string GSM::send_command_read(const string& command) const
 	this->command_logger->log("Sent: '"+command+"'");
 	this->serial->flush();
 	this->serial->println(command);
-	// Sent command
 	string response = this->serial->read_line();
-	if (response == command)
+	if (response == command) // Sent command
 		response = this->serial->read_line();
 
 	this->command_logger->log("Received: '"+response+"'");
