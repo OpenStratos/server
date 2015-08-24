@@ -87,7 +87,7 @@ char Serial::read_char() const
 
 const string Serial::read_line() const
 {
-	return this->read_line(0.5);
+	return this->read_line(1);
 }
 
 const string Serial::read_line(double timeout) const
