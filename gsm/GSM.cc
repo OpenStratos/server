@@ -140,7 +140,7 @@ bool GSM::send_SMS(const string& message, const string& number)
 	this->serial->read_line(); // Eat message echo
 	this->serial->println();
 	this->serial->read_line(); // Eat prompt
-	this->serial->write(to_string('\x1A'));
+	this->serial->write('\x1A');
 	this->serial->read_line(); // Eat prompt
 
 	// Read line (timeout 10 seconds)
