@@ -43,6 +43,8 @@ GSM::~GSM()
 
 bool GSM::initialize()
 {
+	this->occupied = false;
+
 	struct timeval timer;
 	gettimeofday(&timer, NULL);
 	struct tm * now = gmtime(&timer.tv_sec);
@@ -78,6 +80,7 @@ bool GSM::initialize()
 		return false;
 	}
 
+	this->occupied = true;
 	this->logger->log("Starting serial connection...");
 	this->serial = new Serial(GSM_UART, GSM_BAUDRATE, "GSM");
 	if ( ! this->serial->is_open())
@@ -106,23 +109,26 @@ bool GSM::initialize()
 	}
 	this_thread::sleep_for(100ms);
 	this->logger->log("Initialization OK.");
+	this->occupied = false;
 
 	return true;
 }
 
 bool GSM::send_SMS(const string& message, const string& number) const
 {
+	while (this->occupied) this_thread::sleep_for(10ms);
+	this->occupied = true;
+
 	this->logger->log("Sending SMS: \""+message+"\" to number "+number+".");
 	if (this->send_command_read("AT+CMGF=1") != "OK")
 	{
-		this->logger->log("Error sending SMS");
+		this->logger->log("Error sending SMS on 'AT+CMGD=1' response.");
 		return false;
 	}
 
-	string send_command = "AT+CMGS=\""+number+"\"";
-	if (this->send_command_read(send_command) != "> ")
+	if (this->send_command_read("AT+CMGS=\""+number+"\"") != "> ")
 	{
-		this->logger->log("Error sending SMS");
+		this->logger->log("Error sending SMS on 'AT+CMGS' response.");
 		return false;
 	}
 
@@ -133,16 +139,17 @@ bool GSM::send_SMS(const string& message, const string& number) const
 	// Read line (timeout 10 seconds)
 	if (this->serial->read_line(10).find("+CMGS") == string::npos)
 	{
-		this->logger->log("Error sending SMS");
+		this->logger->log("Error sending SMS. Could not read '+CMGS'.");
 		return false;
 	}
 
 	// Read line (timeout 10 seconds)
 	if (this->serial->read_line(10) != "OK")
 	{
-		this->logger->log("Error sending SMS");
+		this->logger->log("Error sending SMS. Could not read 'OK'.");
 		return false;
 	}
+	this->occupied = false;
 
 	this->logger->log("SMS sent.");
 	return true;
@@ -172,6 +179,9 @@ bool GSM::get_status() const
 
 bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percentage) const
 {
+	while (this->occupied) this_thread::sleep_for(10ms);
+	this->occupied = true;
+
 	this->logger->log("Checking Battery status.");
 	if (this->get_status())
 	{
@@ -200,13 +210,18 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 	{
 		this->logger->log("Error: module is off.");
 	}
+	this->occupied = false;
 	return false;
 }
 
 bool GSM::has_connectivity() const
 {
-	   string response = this->send_command_read("AT+CREG?");
-	   return response == "+CREG: 0,1" || response == "+CREG: 0,5";
+	while (this->occupied) this_thread::sleep_for(10ms);
+	this->occupied = true;
+	string response = this->send_command_read("AT+CREG?");
+	this->occupied = false;
+
+	return response == "+CREG: 0,1" || response == "+CREG: 0,5";
 }
 
 bool GSM::turn_on() const
@@ -255,15 +270,26 @@ bool GSM::turn_off() const
 
 bool GSM::init_GPRS() const
 {
-	return !(this->send_command_read("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"") != "OK" ||
+	while (this->occupied) this_thread::sleep_for(10ms);
+	this->occupied = true;
+
+	bool result = !(this->send_command_read("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"") != "OK" ||
 		this->send_command_read("AT+SAPBR=3,1,\"APN\",\"" + string(GSM_LOC_SERV) + ";") != "OK" ||
 		this->send_command_read("AT+SAPBR=1,1") != "OK" ||
 		this->send_command_read("AT+SAPBR=2,1") != "OK");
+	this->occupied = false;
+
+	return result;
 }
 
 bool GSM::tear_down_GPRS() const
 {
-	return this->send_command_read("AT+SAPBR=0,1") == "OK";
+	while (this->occupied) this_thread::sleep_for(10ms);
+	this->occupied = true;
+	bool result = this->send_command_read("AT+SAPBR=0,1") == "OK";
+	this->occupied = false;
+
+	return result;
 }
 
 const string GSM::send_command_read(const string& command) const
