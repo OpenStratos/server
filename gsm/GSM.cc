@@ -86,6 +86,7 @@ bool GSM::initialize()
 	if ( ! this->serial->is_open())
 	{
 		this->logger->log("GSM serial error.");
+		this->occupied = false;
 		return false;
 	}
 	this->logger->log("Serial connection started.");
@@ -105,6 +106,7 @@ bool GSM::initialize()
 	if (this->send_command_read("AT") != "OK")
 	{
 		this->logger->log("Error on initialization.");
+		this->occupied = false;
 		return false;
 	}
 	this_thread::sleep_for(100ms);
@@ -123,12 +125,14 @@ bool GSM::send_SMS(const string& message, const string& number)
 	if (this->send_command_read("AT+CMGF=1") != "OK")
 	{
 		this->logger->log("Error sending SMS on 'AT+CMGD=1' response.");
+		this->occupied = false;
 		return false;
 	}
 
 	if (this->send_command_read("AT+CMGS=\""+number+"\"") != "> ")
 	{
 		this->logger->log("Error sending SMS on 'AT+CMGS' response.");
+		this->occupied = false;
 		return false;
 	}
 
@@ -140,6 +144,7 @@ bool GSM::send_SMS(const string& message, const string& number)
 	if (this->serial->read_line(10).find("+CMGS") == string::npos)
 	{
 		this->logger->log("Error sending SMS. Could not read '+CMGS'.");
+		this->occupied = false;
 		return false;
 	}
 
@@ -147,6 +152,7 @@ bool GSM::send_SMS(const string& message, const string& number)
 	if (this->serial->read_line(10) != "OK")
 	{
 		this->logger->log("Error sending SMS. Could not read 'OK'.");
+		this->occupied = false;
 		return false;
 	}
 	this->occupied = false;
@@ -162,6 +168,7 @@ bool GSM::get_location(double& latitude, double& longitude)
 
 	if ( ! this->init_GPRS())
 	{
+		this->occupied = false;
 		return false;
 	}
 	// TODO
@@ -170,6 +177,7 @@ bool GSM::get_location(double& latitude, double& longitude)
 	// serialin[responseLength+1] = (char)0x0;
 	if (this->tear_down_GPRS())
 	{
+		this->occupied = false;
 		return false;
 	}
 	this->occupied = false;
@@ -207,6 +215,7 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 			gsm_bat_percentage = (gsm_bat_voltage/1000.0-BAT_GSM_MIN)/(BAT_GSM_MAX-BAT_GSM_MIN);
 			main_bat_percentage = (main_bat_voltage/1000.0-BAT_MAIN_MIN)/(BAT_MAIN_MAX-BAT_MAIN_MIN);
 
+			this->occupied = false;
 			return true;
 		}
 	}
