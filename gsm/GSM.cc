@@ -137,11 +137,12 @@ bool GSM::send_SMS(const string& message, const string& number)
 	}
 
 	this->serial->println(message);
+	this->serial->read_line(); // Eat message echo
 	this->serial->println();
+	this->serial->read_line(); // Eat prompt
 	this->serial->write(to_string((char) 0x1A));
 
 	// Read line (timeout 10 seconds)
-	this->serial->read_line(); // Eat message echo
 	if (this->serial->read_line(10).find("+CMGS") == string::npos)
 	{
 		this->logger->log("Error sending SMS. Could not read '+CMGS'.");
