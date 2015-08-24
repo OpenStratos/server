@@ -100,15 +100,13 @@ bool GSM::initialize()
 
 	if (this->send_command_read("AT") != "OK")
 	{
-		this->logger->log("Error on initialization.");
-		return false;
+		this->logger->log("Not initialized.");
 	}
 	this_thread::sleep_for(100ms);
 
 	if (this->send_command_read("AT") != "OK")
 	{
-		this->logger->log("Error on initialization.");
-		return false;
+		this->logger->log("Not initialized.");
 	}
 	this_thread::sleep_for(100ms);
 	this->logger->log("Initialization OK.");
@@ -288,8 +286,9 @@ const string GSM::send_command_read(const string& command) const
 	this->serial->println(command);
 	// Sent command
 	string response = this->serial->read_line();
-	if (response == command || response == "")
+	if (response == command)
 		response = this->serial->read_line();
+
 	this->command_logger->log("Received: '"+response+"'");
 	return response;
 }
