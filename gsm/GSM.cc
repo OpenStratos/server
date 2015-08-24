@@ -111,15 +111,6 @@ bool GSM::initialize()
 	this_thread::sleep_for(100ms);
 	this->logger->log("Initialization OK.");
 
-	this->logger->log("Turning echo off...");
-	if (this->send_command_read("ATE0") != "OK")
-	{
-		this->logger->log("Error turning echo off.");
-		return false;
-	}
-	this_thread::sleep_for(100ms);
-	this->logger->log("Echo is off.");
-
 	return true;
 }
 
