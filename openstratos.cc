@@ -363,15 +363,11 @@ int main(void)
 				count = 0;
 				while ( ! GSM::get_instance().has_connectivity())
 				{
-					if (count > 20)
-					{
-						logger.log("Timeout.");
-						break;
-					}
+					if (count == 20) break;
 					this_thread::sleep_for(1s);
 					++count;
 				}
-				if ( ! GSM::get_instance().has_connectivity())
+				if (count == 20)
 				{
 					logger.log("No connectivity, waiting for 1.5 km mark or landing.");
 				}
@@ -403,15 +399,11 @@ int main(void)
 					count = 0;
 					while ( ! GSM::get_instance().has_connectivity())
 					{
-						if (count > 20)
-						{
-							logger.log("Timeout.");
-							break;
-						}
+						if (count == 20) break;
 						this_thread::sleep_for(1s);
 						++count;
 					}
-					if ( ! GSM::get_instance().has_connectivity())
+					if (count == 20)
 					{
 						logger.log("No connectivity, waiting for 500 m mark or landing.");
 					}
