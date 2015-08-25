@@ -141,17 +141,18 @@ bool GSM::send_SMS(const string& message, const string& number)
 	this->serial->println();
 	this->serial->read_line(); // Eat prompt
 	this->serial->write('\x1A');
-	this->serial->read_line(); // Eat prompt
+	this->serial->read_line(10); // Eat prompt (timeout 10 seconds)
 
-	// Read line (timeout 10 seconds)
-	if (this->serial->read_line(10).find("+CMGS") == string::npos)
+	// Read line
+	if (this->serial->read_line().find("+CMGS") == string::npos)
 	{
 		this->logger->log("Error sending SMS. Could not read '+CMGS'.");
 		this->occupied = false;
 		return false;
 	}
+	this->serial->read_line(); // Eat new line
 
-	// Read line (timeout 10 seconds)
+	// Read OK (timeout 10 seconds)
 	if (this->serial->read_line(10) != "OK")
 	{
 		this->logger->log("Error sending SMS. Could not read 'OK'.");
