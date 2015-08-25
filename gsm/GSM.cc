@@ -236,6 +236,8 @@ bool GSM::has_connectivity()
 	while (this->occupied) this_thread::sleep_for(10ms);
 	this->occupied = true;
 	string response = this->send_command_read("AT+CREG?");
+	this->serial->read_line(); // Read new line
+	this->serial->read_line(); // Read OK
 	this->occupied = false;
 
 	return response == "+CREG: 0,1" || response == "+CREG: 0,5";
@@ -304,8 +306,17 @@ const string GSM::send_command_read(const string& command) const
 	this->serial->flush();
 	this->serial->println(command);
 	string response = this->serial->read_line();
+	// Trimming
+	string ltrim = response.erase(0, response.find_first_not_of(" \r\n\t"));
+	response = ltrim.erase(ltrim.find_last_not_of(" \r\n\t")+1);
+
 	if (response == command) // Sent command
+	{
 		response = this->serial->read_line();
+		// Trimming
+		string ltrim = response.erase(0, response.find_first_not_of(" \r\n\t"));
+		response = ltrim.erase(ltrim.find_last_not_of(" \r\n\t")+1);
+	}
 
 	this->command_logger->log("Received: '"+response+"'");
 	return response;
