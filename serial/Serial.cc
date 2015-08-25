@@ -146,6 +146,7 @@ const string Serial::read_line(double timeout) const
 				this->logger->log("Error: Serial available < 0.");
 				break;
 			}
+			this_thread::sleep_for(1ms);
 		}
 	#endif
 	this->logger->log("Received: '"+logstr+"'");
