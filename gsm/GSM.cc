@@ -203,7 +203,7 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 	{
 		string gsm_response = this->send_command_read("AT+CBC");
 		string adc_response = this->send_command_read("AT+CADC?");
-		while (adc_response != '' && adc_response.substr(0, 6) != "+CADC:")
+		while (adc_response != "" && adc_response.substr(0, 6) != "+CADC:")
 			adc_response = this->serial->read_line();
 
 		if (gsm_response.substr(0, 5) == "+CBC:" && adc_response.substr(0, 6) == "+CADC:")
