@@ -307,15 +307,15 @@ const string GSM::send_command_read(const string& command) const
 	this->serial->println(command);
 	string response = this->serial->read_line();
 	// Trimming
-	string ltrim = response.erase(0, response.find_first_not_of(" \r\n\t"));
-	response = ltrim.erase(ltrim.find_last_not_of(" \r\n\t")+1);
+	string ltrim = response.erase(0, response.find_first_not_of("\r\n\t"));
+	response = ltrim.erase(ltrim.find_last_not_of("\r\n\t")+1);
 
 	if (response == command) // Sent command
 	{
 		response = this->serial->read_line();
 		// Trimming
-		string ltrim = response.erase(0, response.find_first_not_of(" \r\n\t"));
-		response = ltrim.erase(ltrim.find_last_not_of(" \r\n\t")+1);
+		string ltrim = response.erase(0, response.find_first_not_of("\r\n\t"));
+		response = ltrim.erase(ltrim.find_last_not_of("\r\n\t")+1);
 	}
 
 	this->command_logger->log("Received: '"+response+"'");
