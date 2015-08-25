@@ -2,14 +2,30 @@
 
 int main(void)
 {
-	cout << "[OpenStratos] Starting..." << endl; // Only if verbose
+	#if DEBUG
+		cout << "[OpenStratos] Starting..." << endl;
+	#endif
 
-	State last_state;
-	if (file_exists(STATE_FILE))
-		last_state = get_state();
+	if ( ! file_exists(STATE_FILE))
+	{
+		#if DEBUG
+			cout << "[OpenStratos] No state file. Starting main logic..." << endl;
+		#endif
+		main_logic();
+	}
 	else
-		last_state = SHUT_DOWN;
+	{
+		#if DEBUG
+			cout << "[OpenStratos] State file found. Starting safe mode..." << endl;
+		#endif
+		safe_mode();
+	}
 
+	return 0;
+}
+
+void os::main_logic()
+{
 	State state = set_state(INITIALIZING);
 
 	struct timeval timer;
@@ -547,7 +563,11 @@ int main(void)
 	logger.log("Powering off...");
 	sync();
 	// reboot(RB_POWER_OFF);
-	return 0;
+}
+
+void os::safe_mode()
+{
+	// TODO
 }
 
 inline bool os::file_exists(const string& name)
@@ -750,8 +770,7 @@ bool os::has_landed()
 	this_thread::sleep_for(5s);
 	double second_altitude = GPS::get_instance().get_altitude();
 
-	return true;
-	// return abs(first_altitude-second_altitude) < 5;
+	return abs(first_altitude-second_altitude) < 5;
 }
 
 const string os::generate_exif_data()
