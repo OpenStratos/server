@@ -128,7 +128,7 @@ int main(void)
 
 		exit(1);
 	}
-	logger.log("GSM initialized");
+	logger.log("GSM initialized.");
 
 	logger.log("Checking batteries...");
 	double main_battery, gsm_battery;
