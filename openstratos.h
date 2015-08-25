@@ -2,8 +2,8 @@
 #define OPENSTRATOS_H_
 
 #include <cstdlib>
+#include <cmath>
 
-#include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <string>
@@ -25,6 +25,10 @@
 #include "camera/Camera.h"
 #include "gsm/GSM.h"
 
+#if DEBUG
+	#include <iostream>
+#endif
+
 namespace os
 {
 	enum State {
@@ -38,6 +42,9 @@ namespace os
 		SAFE_MODE,
 		RECOVERY,
 	};
+
+	void main_logic();
+	void safe_mode();
 
 	inline bool file_exists(const string& name);
 	inline float get_available_disk_space();
