@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_H_
 	#define CONSTANTS_H_
 
+	#define DEBUG true
+
 	#define FLIGHT_LENGTH 4.8 // Hours
 
 	#define BAT_GSM_MAX 4.2
