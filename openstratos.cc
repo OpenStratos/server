@@ -156,12 +156,10 @@ int main(void)
 	}
 
 	logger.log("Waiting for GSM connectivity...");
-	this_thread::sleep_for(25ms);
 	while ( ! GSM::get_instance().has_connectivity())
 	{
 		this_thread::sleep_for(1s);
 	}
-	this_thread::sleep_for(25ms);
 	logger.log("GSM connected.");
 
 	logger.log("Starting battery thread...");
@@ -301,7 +299,7 @@ int main(void)
 				{
 					this_thread::sleep_for(1s);
 				}
-				this_thread::sleep_for(1min); // TODO delete
+				this_thread::sleep_for(2min); // TODO: delete
 				logger.log("Balloon launched.");
 
 				state = set_state(GOING_UP);
@@ -324,7 +322,7 @@ int main(void)
 				// {
 					this_thread::sleep_for(5s);
 				// }
-				this_thread::sleep_for(3min); // TODO: delete
+				this_thread::sleep_for(270s); // TODO: delete
 				logger.log("1.5 km mark.");
 				logger.log("Trying to send \"going up\" SMS...");
 				if ( ! GSM::get_instance().send_SMS("1.5 km mark passed going up in Lat: "+
@@ -342,7 +340,7 @@ int main(void)
 				GSM::get_instance().turn_off();
 				logger.log("GSM off.");
 
-				this_thread::sleep_for(15min); // TODO delete
+				this_thread::sleep_for(10min); // TODO: delete
 
 				while ( ! has_bursted());
 				logger.log("Balloon burst.");
@@ -365,13 +363,17 @@ int main(void)
 				count = 0;
 				while ( ! GSM::get_instance().has_connectivity())
 				{
-					if (count > 15) break;
+					if (count > 20)
+					{
+						logger.log("Timeout.");
+						break;
+					}
 					this_thread::sleep_for(1s);
 					++count;
 				}
 				if ( ! GSM::get_instance().has_connectivity())
 				{
-					logger.log("No connectivity, waiting for 1.5 km mark.");
+					logger.log("No connectivity, waiting for 1.5 km mark or landing.");
 				}
 				else
 				{
@@ -393,6 +395,7 @@ int main(void)
 				{
 					this_thread::sleep_for(5s);
 				}
+				this_thread::sleep_for(200s); // TODO: delete
 				// if ( ! has_landed())
 				// {
 					logger.log("1.5 km mark.");
@@ -400,7 +403,11 @@ int main(void)
 					count = 0;
 					while ( ! GSM::get_instance().has_connectivity())
 					{
-						if (count > 15) break;
+						if (count > 20)
+						{
+							logger.log("Timeout.");
+							break;
+						}
 						this_thread::sleep_for(1s);
 						++count;
 					}
@@ -461,6 +468,8 @@ int main(void)
 						}
 					}
 				}
+
+				this_thread::sleep_for(200s); // TODO: delete
 
 				while ( ! has_landed())
 				{
