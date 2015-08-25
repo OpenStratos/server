@@ -727,7 +727,7 @@ const string os::state_to_string(State state)
 bool os::has_launched()
 {
 	double first_altitude = GPS::get_instance().get_altitude();
-	this_thread::sleep_for(3s);
+	this_thread::sleep_for(5s);
 	double second_altitude = GPS::get_instance().get_altitude();
 
 	return true;
@@ -737,11 +737,11 @@ bool os::has_launched()
 bool os::has_bursted()
 {
 	double first_altitude = GPS::get_instance().get_altitude();
-	this_thread::sleep_for(3s);
+	this_thread::sleep_for(6s);
 	double second_altitude = GPS::get_instance().get_altitude();
 
 	return true;
-	// return second_altitude < first_altitude - 15;
+	// return second_altitude < first_altitude - 10;
 }
 
 bool os::has_landed()
@@ -751,7 +751,7 @@ bool os::has_landed()
 	double second_altitude = GPS::get_instance().get_altitude();
 
 	return true;
-	// return first_altitude-second_altitude < 5;
+	// return abs(first_altitude-second_altitude) < 5;
 }
 
 const string os::generate_exif_data()
