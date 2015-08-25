@@ -202,7 +202,11 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 	if (this->get_status())
 	{
 		string gsm_response = this->send_command_read("AT+CBC");
+		this->serial->read_line(); // Eat new line
+		this->serial->read_line(); // Eat OK
 		string adc_response = this->send_command_read("AT+CADC?");
+		this->serial->read_line(); // Eat new line
+		this->serial->read_line(); // Eat OK
 		while (adc_response != "" && adc_response.substr(0, 6) != "+CADC:")
 			adc_response = this->serial->read_line();
 
@@ -236,8 +240,8 @@ bool GSM::has_connectivity()
 	while (this->occupied) this_thread::sleep_for(10ms);
 	this->occupied = true;
 	string response = this->send_command_read("AT+CREG?");
-	this->serial->read_line(); // Read new line
-	this->serial->read_line(); // Read OK
+	this->serial->read_line(); // Eat new line
+	this->serial->read_line(); // Eat OK
 	this->occupied = false;
 
 	return response == "+CREG: 0,1" || response == "+CREG: 0,5";
