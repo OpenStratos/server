@@ -34,6 +34,7 @@ namespace os
 	enum State {
 		INITIALIZING,
 		ACQUIRING_FIX,
+		FIX_ACQUIRED,
 		WAITING_LAUNCH,
 		GOING_UP,
 		GOING_DOWN,
@@ -46,18 +47,31 @@ namespace os
 	void main_logic();
 	void safe_mode();
 
-	inline bool file_exists(const string& name);
-	inline float get_available_disk_space();
-	void gps_thread_fn(State& state);
+	void initialize(Logger* logger, tm* now);
+	void aquire_fix(Logger* logger);
+	void start_recording(Logger* logger);
+	void send_init_sms(Logger* logger);
+	void wait_launch(Logger* logger);
+	void go_up(Logger* logger);
+	void go_down(Logger* logger);
+	void land(Logger* logger);
+	void shut_down(Logger* logger);
+
+	inline bool has_launched();
+	inline bool has_bursted();
+	inline bool has_landed();
+
 	void picture_thread_fn(State& state);
 	void battery_thread_fn(State& state);
-	State set_state(State new_state);
-	State get_state();
-	const string state_to_string(State state);
-	bool has_launched();
-	bool has_bursted();
-	bool has_landed();
+
+	void check_or_create(const string& path, Logger* logger = NULL);
+	inline bool file_exists(const string& name);
+	inline float get_available_disk_space();
 	const string generate_exif_data();
+
+	State set_state(State new_state);
+	State get_last_state();
+	const string state_to_string(State state);
 }
 
 using namespace std;
