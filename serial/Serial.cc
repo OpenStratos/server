@@ -12,6 +12,9 @@
 
 #include "constants.h"
 #include "gps/GPS.h"
+#if DEBUG
+	#include "logger/Logger.h"
+#endif
 
 using namespace std;
 using namespace os;
@@ -24,15 +27,21 @@ Serial::Serial(const string& url, int baud_rate, const string& log_path)
 	gettimeofday(&timer, NULL);
 	struct tm * now = gmtime(&timer.tv_sec);
 
-	this->logger = new Logger("data/logs/"+log_path+"/Serial."+ to_string(now->tm_year+1900) +"-"+
-		to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
-		to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "Serial");
+	#if DEBUG
+		this->logger = new Logger("data/logs/"+log_path+"/Serial."+ to_string(now->tm_year+1900) +"-"+
+			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
+			to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "Serial");
+	#endif
 
 	#ifndef OS_TESTING
 		this->fd = serialOpen(url.c_str(), baud_rate);
 
-		if (this->fd == -1) this->logger->log("Error: connection fd is -1.");
-		else this->open = true;
+		#if DEBUG
+			if (this->fd == -1) this->logger->log("Error: connection fd is -1.");
+			else this->open = true;
+		#else
+			if (this->fd != -1) this->open = true;
+		#endif
 	#endif
 }
 
@@ -40,25 +49,37 @@ Serial::~Serial()
 {
 	if (this->open)
 		this->close();
-	delete this->logger;
+
+	#if DEBUG
+		delete this->logger;
+	#endif
 }
 
 void Serial::println(const string& str) const
 {
 	serialPuts(this->fd, (str+"\r\n").c_str());
-	this->logger->log("Sent: '"+str+"\\r\\n'");
+
+	#if DEBUG
+		this->logger->log("Sent: '"+str+"\\r\\n'");
+	#endif
 }
 
 void Serial::println() const
 {
 	serialPuts(this->fd, "\r\n");
-	this->logger->log("Sent: '\\r\\n'");
+
+	#if DEBUG
+		this->logger->log("Sent: '\\r\\n'");
+	#endif
 }
 
 void Serial::write(unsigned char c) const
 {
 	serialPutchar(this->fd, c);
-	this->logger->log("Sent char: '"+string(1, c)+"'");
+
+	#if DEBUG
+		this->logger->log("Sent char: '"+string(1, c)+"'");
+	#endif
 }
 
 void Serial::close()
@@ -111,7 +132,10 @@ const string Serial::read_line(double timeout) const
 
 			if (elapsed_time > timeout)
 			{
-				this->logger->log("Error: Serial timeout. ("+to_string(timeout)+" s)");
+				#if DEBUG
+					this->logger->log("Error: Serial timeout. ("+to_string(timeout)+" s)");
+				#endif
+
 				break;
 			}
 
@@ -143,13 +167,20 @@ const string Serial::read_line(double timeout) const
 
 			if (available < 0)
 			{
-				this->logger->log("Error: Serial available < 0.");
+				#if DEBUG
+					this->logger->log("Error: Serial available < 0.");
+				#endif
+
 				break;
 			}
 			this_thread::sleep_for(1ms);
 		}
 	#endif
-	this->logger->log("Received: '"+logstr+"'");
+
+	#if DEBUG
+		this->logger->log("Received: '"+logstr+"'");
+	#endif
+
 	return response;
 }
 
