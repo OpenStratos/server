@@ -92,7 +92,7 @@ describe("GPS", [](){
 		tm gps_time = GPS::get_instance().get_time();
 
 		AssertThat(gps_time.tm_mday, Equals(19));
-		AssertThat(gps_time.tm_mon, Equals(11));
+		AssertThat(gps_time.tm_mon, Equals(10));
 		AssertThat(gps_time.tm_year, Equals(194));
 		AssertThat(gps_time.tm_hour, Equals(22));
 		AssertThat(gps_time.tm_min, Equals(54));

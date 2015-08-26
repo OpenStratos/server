@@ -293,7 +293,7 @@ void GPS::parse_RMC(const string& frame)
 		this->time.tm_sec = stoi(s_data[1].substr(4, 2));
 
 		this->time.tm_mday = stoi(s_data[9].substr(0, 2));
-		this->time.tm_mon = stoi(s_data[9].substr(2, 2));
+		this->time.tm_mon = stoi(s_data[9].substr(2, 2))-1;
 		this->time.tm_year = stoi(s_data[9].substr(4, 2))+100;
 
 		// Update latitude
