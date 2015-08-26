@@ -311,7 +311,7 @@ void os::start_recording(Logger* logger)
 	logger->log("Recording started.");
 }
 
-void send_init_sms(Logger* logger)
+void os::send_init_sms(Logger* logger)
 {
 	logger->log("Sending initialization SMS...");
 	if ( ! GSM::get_instance().send_SMS("Initialization finished OK. Recording. Waiting for launch.", SMS_PHONE))
@@ -345,7 +345,7 @@ void send_init_sms(Logger* logger)
 	logger->log("Initialization SMS sent.");
 }
 
-void wait_launch(Logger* logger)
+void os::wait_launch(Logger* logger)
 {
 	logger->log("Waiting for launch...");
 	while ( ! has_launched())
@@ -355,7 +355,7 @@ void wait_launch(Logger* logger)
 	logger->log("Balloon launched.");
 }
 
-void go_up(Logger* logger)
+void os::go_up(Logger* logger)
 {
 	logger->log("Trying to send launch confirmation SMS...");
 	if ( ! GSM::get_instance().send_SMS("Launched in Lat: "+
@@ -397,7 +397,7 @@ void go_up(Logger* logger)
 	logger->log("Balloon burst.");
 }
 
-void go_down(Logger* logger)
+void os::go_down(Logger* logger)
 {
 	while (GPS::get_instance().get_altitude() > 2500)
 	{
