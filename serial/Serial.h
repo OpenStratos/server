@@ -5,7 +5,10 @@
 
 #include <string>
 
-#include "logger/Logger.h"
+#include "constants.h"
+#if DEBUG
+	#include "logger/Logger.h"
+#endif
 using namespace std;
 
 namespace os {
@@ -15,7 +18,9 @@ namespace os {
 		int fd;
 		bool open;
 
-		Logger* logger;
+		#if DEBUG
+			Logger* logger;
+		#endif
 
 		void gps_thread();
 	public:
