@@ -670,7 +670,7 @@ void os::check_or_create(const string& path, Logger* logger)
 	if ( ! file_exists(path))
 	{
 		if (logger != NULL)
-			logger->log("[OpenStratos] No '"+path+"' directory, creating...");
+			logger->log("No '"+path+"' directory, creating...");
 		#if DEBUG
 			else
 				cout << "[OpenStratos] No '"+path+"' directory, creating..." << endl;
@@ -678,7 +678,7 @@ void os::check_or_create(const string& path, Logger* logger)
 		if (mkdir(path.c_str(), 0755) != 0)
 		{
 			if (logger != NULL)
-				logger->log("[OpenStratos] Error creating '"+path+"' directory.");
+				logger->log("Error creating '"+path+"' directory.");
 			#if DEBUG
 				else
 					cout << "[OpenStratos] Error creating '"+path+"' directory." << endl;
@@ -689,7 +689,7 @@ void os::check_or_create(const string& path, Logger* logger)
 		else
 		{
 			if (logger != NULL)
-				logger->log("[OpenStratos] '"+path+"' directory created.");
+				logger->log("'"+path+"' directory created.");
 			#if DEBUG
 				else
 					cout << "[OpenStratos] '"+path+"' directory created." << endl;
