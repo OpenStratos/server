@@ -3,6 +3,14 @@
 int main(void)
 {
 	#if DEBUG
+		#ifdef SIM
+			cout << "[OpenStratos] Simulation." << endl;
+		#endif
+
+		#ifdef REAL_SIM
+			cout << "[OpenStratos] Realistic simulation." << endl;
+		#endif
+
 		cout << "[OpenStratos] Starting..." << endl;
 	#endif
 
