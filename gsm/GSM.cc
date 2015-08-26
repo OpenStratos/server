@@ -122,43 +122,47 @@ bool GSM::send_SMS(const string& message, const string& number)
 	this->occupied = true;
 
 	this->logger->log("Sending SMS: \""+message+"\" to number "+number+".");
-	if (this->send_command_read("AT+CMGF=1") != "OK")
-	{
-		this->logger->log("Error sending SMS on 'AT+CMGD=1' response.");
-		this->occupied = false;
-		return false;
-	}
+	#ifndef NO_SMS
+		if (this->send_command_read("AT+CMGF=1") != "OK")
+		{
+			this->logger->log("Error sending SMS on 'AT+CMGD=1' response.");
+			this->occupied = false;
+			return false;
+		}
 
-	if (this->send_command_read("AT+CMGS=\""+number+"\"") != "> ")
-	{
-		this->logger->log("Error sending SMS on 'AT+CMGS' response.");
-		this->occupied = false;
-		return false;
-	}
+		if (this->send_command_read("AT+CMGS=\""+number+"\"") != "> ")
+		{
+			this->logger->log("Error sending SMS on 'AT+CMGS' response.");
+			this->occupied = false;
+			return false;
+		}
 
-	this->serial->println(message);
-	this->serial->read_line(); // Eat message echo
-	this->serial->println();
-	this->serial->read_line(); // Eat prompt
-	this->serial->write('\x1A');
-	this->serial->read_line(10); // Eat prompt (timeout 10 seconds)
+		this->serial->println(message);
+		this->serial->read_line(); // Eat message echo
+		this->serial->println();
+		this->serial->read_line(); // Eat prompt
+		this->serial->write('\x1A');
+		this->serial->read_line(10); // Eat prompt (timeout 10 seconds)
 
-	// Read line
-	if (this->serial->read_line().find("+CMGS") == string::npos)
-	{
-		this->logger->log("Error sending SMS. Could not read '+CMGS'.");
-		this->occupied = false;
-		return false;
-	}
-	this->serial->read_line(); // Eat new line
+		// Read line
+		if (this->serial->read_line().find("+CMGS") == string::npos)
+		{
+			this->logger->log("Error sending SMS. Could not read '+CMGS'.");
+			this->occupied = false;
+			return false;
+		}
+		this->serial->read_line(); // Eat new line
 
-	// Read OK (timeout 10 seconds)
-	if (this->serial->read_line(10) != "OK")
-	{
-		this->logger->log("Error sending SMS. Could not read 'OK'.");
-		this->occupied = false;
-		return false;
-	}
+		// Read OK (timeout 10 seconds)
+		if (this->serial->read_line(10) != "OK")
+		{
+			this->logger->log("Error sending SMS. Could not read 'OK'.");
+			this->occupied = false;
+			return false;
+		}
+	#else
+		this_thread::sleep_for(5s);
+	#endif
 	this->occupied = false;
 
 	this->logger->log("SMS sent.");
