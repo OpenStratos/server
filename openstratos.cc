@@ -397,7 +397,7 @@ void os::go_up(Logger* logger)
 			this_thread::sleep_for(2s);
 		}
 	#else
-		this_thread::sleep_for(275s);
+		this_thread::sleep_for(260s);
 	#endif
 	logger->log("1.5 km mark.");
 	logger->log("Trying to send \"going up\" SMS...");
@@ -422,7 +422,7 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2min);
 		logger->log("5 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1435s);
+		this_thread::sleep_for(1400s);
 		logger->log("5 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted()) && GPS::get_instance().get_altitude() < 5000);
@@ -434,7 +434,7 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2min);
 		logger->log("10 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(2000s);
+		this_thread::sleep_for(2008s);
 		logger->log("10 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted()) && GPS::get_instance().get_altitude() < 10000);
@@ -446,7 +446,7 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2min);
 		logger->log("15 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(2000s);
+		this_thread::sleep_for(2008s);
 		logger->log("15 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted()) && GPS::get_instance().get_altitude() < 15000);
@@ -458,7 +458,7 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2min);
 		logger->log("20 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(2000s);
+		this_thread::sleep_for(2008s);
 		logger->log("20 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted()) && GPS::get_instance().get_altitude() < 20000);
@@ -470,7 +470,7 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2min);
 		logger->log("25 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(2000s);
+		this_thread::sleep_for(2008s);
 		logger->log("25 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted()) && GPS::get_instance().get_altitude() < 25000);
@@ -482,7 +482,7 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2min);
 		logger->log("30 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(2000s);
+		this_thread::sleep_for(2008s);
 		logger->log("30 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted()) && GPS::get_instance().get_altitude() < 30000);
@@ -494,7 +494,7 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2min);
 		logger->log("35 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(2000s);
+		this_thread::sleep_for(2008s);
 		logger->log("35 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted()) && GPS::get_instance().get_altitude() < 35000);
