@@ -3,7 +3,7 @@
 
 	#define DEBUG true
 
-	#define FLIGHT_LENGTH 4.8 // Hours
+	#define FLIGHT_LENGTH 4.55 // Hours
 
 	#define BAT_GSM_MAX 4.2
 	#define BAT_GSM_MIN 3.7
