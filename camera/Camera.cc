@@ -167,12 +167,30 @@ bool Camera::stop()
 			return true;
 		}
 		this->logger->log("Error stopping video recording.");
+
+		if ( ! this->is_really_recording())
+		{
+			this->logger->log("Warning: error was already stopped.");
+			this->recording = false;
+			return true;
+		}
 		return false;
 	#else
 		this->logger->log("Test mode. Video recording stop simulated.");
 		this->recording = false;
 		return true;
 	#endif
+}
+
+bool Camera::is_really_recording() const
+{
+	FILE* process = popen("pgrep raspivid", "r");
+	char response[5];
+	fgets(response, 5, process);
+	pclose(process);
+
+	if (process == NULL) this->logger->log("Error checking if raspivid is really recording");
+	return (process != NULL && response != NULL);
 }
 
 int os::get_file_count(const string& path)
