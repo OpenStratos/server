@@ -79,50 +79,7 @@ void os::main_logic()
 	state = set_state(ACQUIRING_FIX);
 	logger.log("State changed to "+ state_to_string(state) +".");
 
-	while (state != SHUT_DOWN)
-	{
-		if (state == ACQUIRING_FIX)
-		{
-			aquire_fix(&logger);
-			state = set_state(FIX_ACQUIRED);
-			logger.log("State changed to "+ state_to_string(state) +".");
-		}
-		else if (state == FIX_ACQUIRED)
-		{
-			start_recording(&logger);
-			send_init_sms(&logger);
-			state = set_state(WAITING_LAUNCH);
-			logger.log("State changed to "+ state_to_string(state) +".");
-		}
-		else if (state == WAITING_LAUNCH)
-		{
-			wait_launch(&logger);
-			state = set_state(GOING_UP);
-			logger.log("State changed to "+ state_to_string(state) +".");
-		}
-		else if (state == GOING_UP)
-		{
-			go_up(&logger);
-			logger.log("Balloon burst.");
-
-			state = set_state(GOING_DOWN);
-			logger.log("State changed to "+ state_to_string(state) +".");
-		}
-		else if (state == GOING_DOWN)
-		{
-			go_down(&logger);
-			state = set_state(LANDED);
-			logger.log("State changed to "+ state_to_string(state) +".");
-		}
-		else if (state == LANDED)
-		{
-			land(&logger);
-			state = set_state(SHUT_DOWN);
-			logger.log("State changed to "+ state_to_string(state) +".");
-		}
-		// else
-		// TODO reboot
-	}
+	main_while(&logger, &state);
 
 	logger.log("Joining threads...");
 	picture_thread.join();
@@ -134,7 +91,143 @@ void os::main_logic()
 
 void os::safe_mode()
 {
-	// TODO
+	State last_state = get_last_state();
+	State state = set_state(SAFE_MODE);
+	Logger* logger;
+	int count = 0;
+
+	if (last_state > INITIALIZING)
+	{
+		struct timeval timer;
+		gettimeofday(&timer, NULL);
+		struct tm* now = gmtime(&timer.tv_sec);
+
+		logger = new Logger("data/logs/main/OpenStratos."+ to_string(now->tm_year+1900) +"-"+
+			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
+			to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "OpenStratos");
+	}
+
+	switch (last_state)
+	{
+		case INITIALIZING:
+		case ACQUIRING_FIX:
+			remove("data");
+			reboot(RB_AUTOBOOT);
+		break;
+		case FIX_ACQUIRED: // It could be that the SMS was sent but the state didn't change
+		case WAITING_LAUNCH:
+			logger->log("Initializing WiringPi...");
+			wiringPiSetup();
+			logger->log("WiringPi initialized.");
+
+			logger->log("Initializing GPS...");
+
+			while ( ! GPS::get_instance().initialize() && ++count < 5)
+				logger->log("GPS initialization error.");
+
+			if (count < 5)
+			{
+				logger->log("GPS initialized.");
+				count = 0;
+				while ( ! GPS::get_instance().is_active() && ++count < 10)
+					this_thread::sleep_for(10s);
+				this_thread::sleep_for(10s);
+				if (count == 10)
+				{
+					logger->log("Not getting fix. Going to recovery mode.");
+					reboot(RB_AUTOBOOT);
+				}
+
+				double start_alt = GPS::get_instance().get_altitude();
+				this_thread::sleep_for(5s);
+				double end_alt = GPS::get_instance().get_altitude();
+
+				if (end_alt - start_alt < -10) state = set_state(GOING_DOWN);
+				else if (end_alt - start_alt > 10) state = set_state(GOING_UP);
+				else if (end_alt > 5000) state = set_state(GOING_DOWN);
+				else state = set_state(LANDED);
+
+				logger->log("Initializing GSM...");
+				if ( ! GSM::get_instance().initialize())
+				{
+					logger->log("GSM initialization error. Going to recovery mode.");
+					reboot(RB_AUTOBOOT);
+				}
+				logger->log("GSM initialized.");
+
+				main_while(logger, &state);
+				shut_down(logger);
+			}
+			else
+			{
+				logger->log("Error initializing GPS. Going to recovery mode.");
+				reboot(RB_AUTOBOOT);
+			}
+		break;
+		case GOING_UP:
+		break;
+		case GOING_DOWN:
+		break;
+		case LANDED:
+		break;
+		case SHUT_DOWN:
+		break;
+		case SAFE_MODE:
+			logger->log("Recovery mode");
+			// TODO recovery mode
+	}
+
+	if (logger) delete logger;
+}
+
+void os::main_while(Logger* logger, State* state)
+{
+	while (*state != SHUT_DOWN)
+	{
+		if (*state == ACQUIRING_FIX)
+		{
+			aquire_fix(logger);
+			*state = set_state(FIX_ACQUIRED);
+			logger->log("State changed to "+ state_to_string(*state) +".");
+		}
+		else if (*state == FIX_ACQUIRED)
+		{
+			start_recording(logger);
+			send_init_sms(logger);
+			*state = set_state(WAITING_LAUNCH);
+			logger->log("State changed to "+ state_to_string(*state) +".");
+		}
+		else if (*state == WAITING_LAUNCH)
+		{
+			wait_launch(logger);
+			*state = set_state(GOING_UP);
+			logger->log("State changed to "+ state_to_string(*state) +".");
+		}
+		else if (*state == GOING_UP)
+		{
+			go_up(logger);
+			logger->log("Balloon burst.");
+
+			*state = set_state(GOING_DOWN);
+			logger->log("State changed to "+ state_to_string(*state) +".");
+		}
+		else if (*state == GOING_DOWN)
+		{
+			go_down(logger);
+			*state = set_state(LANDED);
+			logger->log("State changed to "+ state_to_string(*state) +".");
+		}
+		else if (*state == LANDED)
+		{
+			land(logger);
+			*state = set_state(SHUT_DOWN);
+			logger->log("State changed to "+ state_to_string(*state) +".");
+		}
+		else
+		{
+			reboot(RB_AUTOBOOT);
+		}
+	}
 }
 
 inline bool os::has_launched()
@@ -183,7 +276,8 @@ void os::initialize(Logger* logger, tm* now)
 	if (available_disk_space < FLIGHT_LENGTH*9437184000) // 1.25 times the flight length
 	{
 		logger->log("Error: Not enough disk space.");
-		exit(1);
+		sync();
+		reboot(RB_POWER_OFF);
 	}
 
 	logger->log("Disk space enough for about " + to_string(available_disk_space/7549747200) +
@@ -197,7 +291,8 @@ void os::initialize(Logger* logger, tm* now)
 	if ( ! GPS::get_instance().initialize())
 	{
 		logger->log("GPS initialization error.");
-		exit(1);
+		sync();
+		reboot(RB_POWER_OFF);
 	}
 	logger->log("GPS initialized.");
 
@@ -211,7 +306,8 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		exit(1);
+		sync();
+		reboot(RB_POWER_OFF);
 	}
 	logger->log("GSM initialized.");
 
@@ -237,7 +333,8 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		exit(1);
+		sync();
+		reboot(RB_POWER_OFF);
 	}
 
 	logger->log("Waiting for GSM connectivity...");
@@ -256,7 +353,8 @@ void os::initialize(Logger* logger, tm* now)
 	if ( ! Camera::get_instance().record(10000))
 	{
 		logger->log("Error starting recording");
-		exit(1);
+		sync();
+		reboot(RB_POWER_OFF);
 	}
 	this_thread::sleep_for(11s);
 	if (file_exists("data/video/test.h264"))
@@ -284,7 +382,8 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		exit(1);
+		sync();
+		reboot(RB_POWER_OFF);
 	}
 }
 
@@ -322,7 +421,8 @@ void os::start_recording(Logger* logger)
 		else
 			logger->log("Error turning GPS off.");
 
-		exit(1);
+		sync();
+		reboot(RB_POWER_OFF);
 	}
 	logger->log("Recording started.");
 }
@@ -356,7 +456,8 @@ void os::send_init_sms(Logger* logger)
 		else
 			logger->log("Error turning GPS off.");
 
-		exit(1);
+		sync();
+		reboot(RB_POWER_OFF);
 	}
 	logger->log("Initialization SMS sent.");
 }
@@ -746,7 +847,7 @@ void os::shut_down(Logger* logger)
 
 	logger->log("Powering off...");
 	sync();
-	// reboot(RB_POWER_OFF);
+	reboot(RB_POWER_OFF);
 }
 
 void os::picture_thread_fn(State& state)
@@ -843,8 +944,9 @@ void os::check_or_create(const string& path, Logger* logger)
 				else
 					cout << "[OpenStratos] Error creating '"+path+"' directory." << endl;
 			#endif
-			exit(1);
 
+			sync();
+			reboot(RB_POWER_OFF);
 		}
 		else
 		{
@@ -922,9 +1024,8 @@ State os::get_last_state()
 	if (str_state == "GOING_DOWN") return GOING_DOWN;
 	if (str_state == "LANDED") return LANDED;
 	if (str_state == "SHUT_DOWN") return SHUT_DOWN;
-	if (str_state == "SAFE_MODE") return SAFE_MODE;
 
-	return RECOVERY;
+	return SAFE_MODE;
 }
 
 const string os::state_to_string(State state)
@@ -957,8 +1058,5 @@ const string os::state_to_string(State state)
 		break;
 		case SAFE_MODE:
 			return "SAFE_MODE";
-		break;
-		case RECOVERY:
-			return "RECOVERY";
 	}
 }
