@@ -22,7 +22,6 @@ GSM& GSM::get_instance()
 
 GSM::~GSM()
 {
-	this->turn_off();
 	if (this->serial->is_open())
 	{
 		this->logger->log("Closing serial interface...");
@@ -35,9 +34,13 @@ GSM::~GSM()
 		this->logger->log("Deallocating command logger...");
 		delete this->command_logger;
 	}
-	this->logger->log("Shutting down...");
-	this->turn_off();
-	this->logger->log("Shut down finished.");
+
+	if (this->get_status())
+	{
+		this->logger->log("Shutting down...");
+		this->turn_off();
+		this->logger->log("Shut down finished.");
+	}
 	delete this->logger;
 }
 
