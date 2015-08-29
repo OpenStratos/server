@@ -17,6 +17,7 @@ namespace os {
 		bool recording = false;
 		Camera();
 		void record_thread(int time);
+		bool is_really_recording() const;
 	public:
 		Camera(Camera& copy) = delete;
 		~Camera();
