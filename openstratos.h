@@ -41,11 +41,11 @@ namespace os
 		LANDED,
 		SHUT_DOWN,
 		SAFE_MODE,
-		RECOVERY,
 	};
 
 	void main_logic();
 	void safe_mode();
+	void main_while(Logger* logger, State* state);
 
 	void initialize(Logger* logger, tm* now);
 	void aquire_fix(Logger* logger);
