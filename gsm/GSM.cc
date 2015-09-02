@@ -177,22 +177,92 @@ bool GSM::get_location(double& latitude, double& longitude)
 	while (this->occupied) this_thread::sleep_for(10ms);
 	this->occupied = true;
 
-	if ( ! this->init_GPRS())
+	if (this->send_command_read("AT+CMGF=1") != "OK")
 	{
+		this->logger->log("Error getting location on 'AT+CMGD=1' response.");
 		this->occupied = false;
 		return false;
 	}
-	// TODO
-	// OLD:
-	// uint16_t responseLength = SerialSendRead("AT+CIPGSMLOC=1,1");
-	// serialin[responseLength+1] = (char)0x0;
-	if (this->tear_down_GPRS())
+
+	if (this->send_command_read("AT+CGATT=1") != "OK")
 	{
+		this->logger->log("Error getting location on 'AT+CGATT=1' response.");
+		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
+			this->logger->log("Error turning GPRS down.");
+		else
+			this->logger->log("GPRS off.");
+
 		this->occupied = false;
 		return false;
 	}
+
+	if (this->send_command_read("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"") != "OK")
+	{
+		this->logger->log("Error getting location on 'AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"' response.");
+		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
+			this->logger->log("Error turning GPRS down.");
+		else
+			this->logger->log("GPRS off.");
+
+		this->occupied = false;
+		return false;
+	}
+
+	if (this->send_command_read("AT+SAPBR=3,1,\"APN\",\""+string(GSM_LOC_SERV)+"\"") != "OK")
+	{
+		this->logger->log("Error getting location on 'AT+SAPBR=3,1,\"APN\",\""+string(GSM_LOC_SERV)+"\"' response.");
+		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
+			this->logger->log("Error turning GPRS down.");
+		else
+			this->logger->log("GPRS off.");
+
+		this->occupied = false;
+		return false;
+	}
+
+	if (this->send_command_read("AT+SAPBR=1,1") != "OK")
+	{
+		this->logger->log("Error getting location on 'AT+SAPBR=1,1' response.");
+		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
+			this->logger->log("Error turning GPRS down.");
+		else
+			this->logger->log("GPRS off.");
+
+		this->occupied = false;
+		return false;
+	}
+
+	string response = this->send_command_read("AT+CIPGSMLOC=1,1");
+	if (response == "ERROR" || this->serial->read_line() != "OK")
+	{
+		this->logger->log("Error getting location on 'AT+CIPGSMLOC=1,1' response.");
+		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
+			this->logger->log("Error turning GPRS down.");
+		else
+			this->logger->log("GPRS off.");
+
+		this->occupied = false;
+		return false;
+	}
+
+	if (this->send_command_read("AT+SAPBR=0,1") != "OK")
+		this->logger->log("Error turning GPRS down.");
+	else
+		this->logger->log("GPRS off.");
+
 	this->occupied = false;
-	return false;
+
+	stringstream ss(response);
+	string data;
+	vector<string> s_data;
+
+	// We put all fields in a vector
+	while(getline(ss, data, ',')) s_data.push_back(data);
+
+	latitude = stod(s_data[2]);
+	longitude = stod(s_data[1]);
+
+	return true;
 }
 
 bool GSM::get_status() const

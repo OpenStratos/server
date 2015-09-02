@@ -114,6 +114,7 @@ bool GPS::turn_on() const
 	}
 	else
 	{
+		this->logger->log("Error: Turning on GPS but GPS already on.");
 		return false;
 	}
 }
@@ -127,6 +128,7 @@ bool GPS::turn_off() const
 	}
 	else
 	{
+		this->logger->log("Error: Turning off GPS but GPS already off.");
 		return false;
 	}
 }
