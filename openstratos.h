@@ -57,8 +57,8 @@ namespace os
 	void land(Logger* logger);
 	void shut_down(Logger* logger);
 
-	inline bool has_launched();
-	inline bool has_bursted();
+	inline bool has_launched(double launch_altitude);
+	inline bool has_bursted(double maximum_altitude);
 	inline bool has_landed();
 
 	void picture_thread_fn(State& state);
