@@ -230,9 +230,11 @@ void os::main_while(Logger* logger, State* state)
 	}
 }
 
-inline bool os::has_launched()
+inline bool os::has_launched(double launch_altitude)
 {
 	double first_altitude = GPS::get_instance().get_altitude();
+	if (first_altitude > launch_altitude + 100) return true;
+
 	this_thread::sleep_for(5s);
 	double second_altitude = GPS::get_instance().get_altitude();
 
@@ -243,9 +245,11 @@ inline bool os::has_launched()
 	#endif
 }
 
-inline bool os::has_bursted()
+inline bool os::has_bursted(double maximum_altitude)
 {
 	double first_altitude = GPS::get_instance().get_altitude();
+	if (first_altitude < maximum_altitude - 1000) return true;
+
 	this_thread::sleep_for(6s);
 	double second_altitude = GPS::get_instance().get_altitude();
 
@@ -465,6 +469,7 @@ void os::send_init_sms(Logger* logger)
 void os::wait_launch(Logger* logger)
 {
 	logger->log("Waiting for launch...");
+	double launch_altitude = GPS::get_instance().get_altitude();
 	#ifdef SIM
 		this_thread::sleep_for(2min);
 	#endif
@@ -472,7 +477,7 @@ void os::wait_launch(Logger* logger)
 		this_thread::sleep_for(20min);
 	#endif
 
-	while ( ! has_launched())
+	while ( ! has_launched(launch_altitude))
 		this_thread::sleep_for(1s);
 
 	logger->log("Balloon launched.");
@@ -492,9 +497,13 @@ void os::go_up(Logger* logger)
 		logger->log("Launch confirmation SMS sent.");
 	}
 
+	double maximum_altitude = 0;
+	double current_altitude = GPS::get_instance().get_altitude();
+
 	#if !defined SIM && !defined REAL_SIM
-		while (GPS::get_instance().get_altitude() < 1500)
+		while (current_altitude = GPS::get_instance().get_altitude() < 1500)
 		{
+			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
 			this_thread::sleep_for(2s);
 		}
 	#else
@@ -526,7 +535,11 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(1400s);
 		logger->log("5 km mark passed going up.");
 	#else
-		while ( ! (bursted = has_bursted()) && GPS::get_instance().get_altitude() < 5000);
+		while ( ! (bursted = has_bursted(maximum_altitude)) &&
+			(current_altitude = GPS::get_instance().get_altitude()) < 5000)
+		{
+			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
+		}
 		if ( ! bursted) logger->log("5 km mark passed going up.");
 		else return;
 	#endif
@@ -538,7 +551,11 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2008s);
 		logger->log("10 km mark passed going up.");
 	#else
-		while ( ! (bursted = has_bursted()) && GPS::get_instance().get_altitude() < 10000);
+		while ( ! (bursted = has_bursted(maximum_altitude)) &&
+			(current_altitude = GPS::get_instance().get_altitude()) < 10000)
+		{
+			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
+		}
 		if ( ! bursted) logger->log("10 km mark passed going up.");
 		else return;
 	#endif
@@ -550,7 +567,11 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2008s);
 		logger->log("15 km mark passed going up.");
 	#else
-		while ( ! (bursted = has_bursted()) && GPS::get_instance().get_altitude() < 15000);
+		while ( ! (bursted = has_bursted(maximum_altitude)) &&
+			(current_altitude = GPS::get_instance().get_altitude()) < 15000)
+		{
+			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
+		}
 		if ( ! bursted) logger->log("15 km mark passed going up.");
 		else return;
 	#endif
@@ -562,7 +583,11 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2008s);
 		logger->log("20 km mark passed going up.");
 	#else
-		while ( ! (bursted = has_bursted()) && GPS::get_instance().get_altitude() < 20000);
+		while ( ! (bursted = has_bursted(maximum_altitude)) &&
+			(current_altitude = GPS::get_instance().get_altitude()) < 20000)
+		{
+			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
+		}
 		if ( ! bursted) logger->log("20 km mark passed going up.");
 		else return;
 	#endif
@@ -574,7 +599,11 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2008s);
 		logger->log("25 km mark passed going up.");
 	#else
-		while ( ! (bursted = has_bursted()) && GPS::get_instance().get_altitude() < 25000);
+		while ( ! (bursted = has_bursted(maximum_altitude)) &&
+			(current_altitude = GPS::get_instance().get_altitude()) < 25000)
+		{
+			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
+		}
 		if ( ! bursted) logger->log("25 km mark passed going up.");
 		else return;
 	#endif
@@ -586,7 +615,11 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2008s);
 		logger->log("30 km mark passed going up.");
 	#else
-		while ( ! (bursted = has_bursted()) && GPS::get_instance().get_altitude() < 30000);
+		while ( ! (bursted = has_bursted(maximum_altitude)) &&
+			(current_altitude = GPS::get_instance().get_altitude()) < 30000)
+		{
+			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
+		}
 		if ( ! bursted) logger->log("30 km mark passed going up.");
 		else return;
 	#endif
@@ -598,12 +631,18 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2008s);
 		logger->log("35 km mark passed going up.");
 	#else
-		while ( ! (bursted = has_bursted()) && GPS::get_instance().get_altitude() < 35000);
+		while ( ! (bursted = has_bursted(maximum_altitude)) &&
+			(current_altitude = GPS::get_instance().get_altitude()) < 35000)
+		{
+			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
+		}
 		if ( ! bursted) logger->log("35 km mark passed going up.");
 		else return;
 	#endif
 
-	while ( ! has_bursted());
+	while ( ! has_bursted(maximum_altitude))
+		if ((current_altitude = GPS::get_instance().get_altitude()) > maximum_altitude)
+			maximum_altitude = current_altitude;
 }
 
 void os::go_down(Logger* logger)
