@@ -6,6 +6,8 @@
 
 #include <iomanip>
 #include <fstream>
+#include <vector>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <functional>
@@ -15,6 +17,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <sys/reboot.h>
+#include <sys/sysinfo.h>
 
 #include <wiringPi.h>
 
@@ -61,6 +64,7 @@ namespace os
 	inline bool has_bursted(double maximum_altitude);
 	inline bool has_landed();
 
+	void system_thread_fn(State& state);
 	void picture_thread_fn(State& state);
 	void battery_thread_fn(State& state);
 
