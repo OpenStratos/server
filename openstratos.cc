@@ -50,6 +50,7 @@ void os::main_logic()
 
 	check_or_create("data/logs");
 	check_or_create("data/logs/main");
+	check_or_create("data/logs/system");
 	check_or_create("data/logs/camera");
 	check_or_create("data/logs/GPS");
 	check_or_create("data/logs/GSM");
@@ -65,6 +66,10 @@ void os::main_logic()
 	#if DEBUG
 		cout << "[OpenStratos] Logger started." << endl;
 	#endif
+
+	logger.log("Starting system thread...");
+	thread system_thread(&system_thread_fn, ref(state));
+	logger.log("System thread started.");
 
 	initialize(&logger, now);
 
@@ -84,6 +89,7 @@ void os::main_logic()
 	logger.log("Joining threads...");
 	picture_thread.join();
 	battery_thread.join();
+	system_thread.join();
 	logger.log("Threads joined.");
 
 	shut_down(&logger);
@@ -507,7 +513,7 @@ void os::go_up(Logger* logger)
 			this_thread::sleep_for(2s);
 		}
 	#else
-		this_thread::sleep_for(260s);
+		this_thread::sleep_for(225s);
 	#endif
 	logger->log("1.5 km mark.");
 	logger->log("Trying to send \"going up\" SMS...");
@@ -532,7 +538,7 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2min);
 		logger->log("5 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1400s);
+		this_thread::sleep_for(1225s);
 		logger->log("5 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted(maximum_altitude)) &&
@@ -548,7 +554,7 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2min);
 		logger->log("10 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(2008s);
+		this_thread::sleep_for(1750s);
 		logger->log("10 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted(maximum_altitude)) &&
@@ -564,7 +570,7 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2min);
 		logger->log("15 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(2008s);
+		this_thread::sleep_for(1725s);
 		logger->log("15 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted(maximum_altitude)) &&
@@ -580,7 +586,7 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2min);
 		logger->log("20 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(2008s);
+		this_thread::sleep_for(1750s);
 		logger->log("20 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted(maximum_altitude)) &&
@@ -596,7 +602,7 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2min);
 		logger->log("25 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(2008s);
+		this_thread::sleep_for(1750s);
 		logger->log("25 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted(maximum_altitude)) &&
@@ -612,7 +618,7 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(2min);
 		logger->log("30 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(2008s);
+		this_thread::sleep_for(1725s);
 		logger->log("30 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted(maximum_altitude)) &&
@@ -626,10 +632,8 @@ void os::go_up(Logger* logger)
 
 	#if defined SIM && !defined REAL_SIM
 		this_thread::sleep_for(2min);
-		logger->log("35 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(2008s);
-		logger->log("35 km mark passed going up.");
+		this_thread::sleep_for(1650s);
 	#else
 		while ( ! (bursted = has_bursted(maximum_altitude)) &&
 			(current_altitude = GPS::get_instance().get_altitude()) < 35000)
@@ -651,7 +655,7 @@ void os::go_down(Logger* logger)
 		this_thread::sleep_for(1min);
 		logger->log("25 km mark passed going down.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(5min);
+		this_thread::sleep_for(325s);
 		logger->log("25 km mark passed going down.");
 	#else
 		while (GPS::get_instance().get_altitude() > 25000)
@@ -664,7 +668,7 @@ void os::go_down(Logger* logger)
 		this_thread::sleep_for(1min);
 		logger->log("15 km mark passed going down.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(650s);
+		this_thread::sleep_for(700s);
 		logger->log("15 km mark passed going down.");
 	#else
 		while (GPS::get_instance().get_altitude() > 15000)
@@ -677,7 +681,7 @@ void os::go_down(Logger* logger)
 		this_thread::sleep_for(2min);
 		logger->log("5 km mark passed going down.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1400s);
+		this_thread::sleep_for(1450s);
 		logger->log("5 km mark passed going down.");
 	#else
 		while (GPS::get_instance().get_altitude() > 5000)
@@ -690,7 +694,7 @@ void os::go_down(Logger* logger)
 		this_thread::sleep_for(1min);
 		logger->log("2.5 km mark passed going down.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(500s);
+		this_thread::sleep_for(525s);
 		logger->log("2.5 km mark passed going down.");
 	#else
 		while (GPS::get_instance().get_altitude() > 2500)
@@ -736,7 +740,7 @@ void os::go_down(Logger* logger)
 		this_thread::sleep_for(1min);
 		logger->log("1.5 km mark passed going down.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(175s);
+		this_thread::sleep_for(225s);
 		logger->log("1.5 km mark passed going down.");
 	#else
 		while (GPS::get_instance().get_altitude() > 1500 && ! (landed = has_landed()));
@@ -777,7 +781,7 @@ void os::go_down(Logger* logger)
 		this_thread::sleep_for(1min);
 		logger->log("500 m mark passed going down.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(225s);
+		this_thread::sleep_for(175s);
 		logger->log("500 m mark passed going down.");
 	#else
 		while (GPS::get_instance().get_altitude() > 500 && ! (landed = has_landed()));
@@ -887,6 +891,66 @@ void os::shut_down(Logger* logger)
 	logger->log("Powering off...");
 	sync();
 	reboot(RB_POWER_OFF);
+}
+
+void os::system_thread_fn(State& state)
+{
+	struct timeval timer;
+	gettimeofday(&timer, NULL);
+	struct tm * now = gmtime(&timer.tv_sec);
+
+	Logger cpu_logger("data/logs/system/CPU."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
+		to_string(now->tm_sec) +".log", "CPU");
+
+	Logger ram_logger("data/logs/system/RAM."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
+		to_string(now->tm_sec) +".log", "RAM");
+
+	Logger temp_logger("data/logs/system/Temp."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
+		to_string(now->tm_sec) +".log", "Temp");
+
+	FILE *gpu_temp_process, *cpu_command_process;
+	char gpu_response[11];
+	char cpu_command[100];
+	struct sysinfo* info;
+
+	while (state != SHUT_DOWN)
+	{
+		ifstream cpu_temp_file("/sys/class/thermal/thermal_zone0/temp");
+		string cpu_temp_str((istreambuf_iterator<char>(cpu_temp_file)),
+			istreambuf_iterator<char>());
+		cpu_temp_file.close();
+
+		gpu_temp_process = popen("/opt/vc/bin/vcgencmd measure_temp", "r");
+		fgets(gpu_response, 11, gpu_temp_process);
+		pclose(gpu_temp_process);
+
+		temp_logger.log("CPU: "+to_string(stoi(cpu_temp_str)/1000.0)+" GPU: "+
+			string(gpu_response).substr(5, 4));
+
+		cpu_command_process = popen("grep 'cpu ' /proc/stat", "r");
+		fgets(cpu_command, 100, cpu_command_process);
+		pclose(cpu_command_process);
+
+		const string cpu_command_str = string(cpu_command);
+		stringstream ss(cpu_command_str);
+		string data;
+		vector<string> s_data;
+
+		// We put all fields in a vector
+		while(getline(ss, data, ' ')) s_data.push_back(data);
+
+		// Note that s_data[1] is ""
+		cpu_logger.log(to_string((stof(s_data[2])+stof(s_data[4]))/
+			(stof(s_data[2])+stof(s_data[4])+stof(s_data[5]))));
+
+		sysinfo(info);
+		ram_logger.log(to_string(info->freeram/info->totalram));
+
+		this_thread::sleep_for(30s);
+	}
 }
 
 void os::picture_thread_fn(State& state)
@@ -1051,18 +1115,18 @@ State os::set_state(State new_state)
 State os::get_last_state()
 {
 	ifstream state_file(STATE_FILE);
-	string str_state((istreambuf_iterator<char>(state_file)),
-                 istreambuf_iterator<char>());
+	string state_str((istreambuf_iterator<char>(state_file)),
+				 istreambuf_iterator<char>());
 	state_file.close();
 
-	if (str_state == "INITIALIZING") return INITIALIZING;
-	if (str_state == "ACQUIRING_FIX") return ACQUIRING_FIX;
-	if (str_state == "FIX_ACQUIRED") return FIX_ACQUIRED;
-	if (str_state == "WAITING_LAUNCH") return WAITING_LAUNCH;
-	if (str_state == "GOING_UP") return GOING_UP;
-	if (str_state == "GOING_DOWN") return GOING_DOWN;
-	if (str_state == "LANDED") return LANDED;
-	if (str_state == "SHUT_DOWN") return SHUT_DOWN;
+	if (state_str == "INITIALIZING") return INITIALIZING;
+	if (state_str == "ACQUIRING_FIX") return ACQUIRING_FIX;
+	if (state_str == "FIX_ACQUIRED") return FIX_ACQUIRED;
+	if (state_str == "WAITING_LAUNCH") return WAITING_LAUNCH;
+	if (state_str == "GOING_UP") return GOING_UP;
+	if (state_str == "GOING_DOWN") return GOING_DOWN;
+	if (state_str == "LANDED") return LANDED;
+	if (state_str == "SHUT_DOWN") return SHUT_DOWN;
 
 	return SAFE_MODE;
 }
