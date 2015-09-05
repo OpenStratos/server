@@ -139,7 +139,7 @@ void os::safe_mode()
 				logger->log("GPS initialized.");
 				count = 0;
 				logger->log("Waiting for GPS fix...");
-				while ( ! GPS::get_instance().is_active() && ++count < 100)
+				while ( ! GPS::get_instance().is_fixed() && ++count < 100)
 					this_thread::sleep_for(10s);
 
 				if (count == 100)
@@ -162,7 +162,7 @@ void os::safe_mode()
 
 				if (state != LANDED)
 				{
-					logger->log("Trying to start recording...")
+					logger->log("Trying to start recording...");
 					if (Camera::get_instance().record())
 						logger->log("Recording.");
 					else
@@ -191,16 +191,14 @@ void os::safe_mode()
 			while ( ! GSM::get_instance().has_connectivity()) this_thread::sleep_for(5s);
 			logger->log("GSM connected.");
 
-			count = 0;
 			logger->log("Sending mayday messages...");
-			while (count < 10)
+			for (count = 0; count < 10;)
 			{
 				this_thread::sleep_for(20s);
 
 				GSM::get_instance().get_location(latitude, longitude);
-				GSM::get_instance().send_SMS("MAYDAY - Lat: "+
-					to_string(latitude) +" and Lon: "+
-					to_string(longitude), SMS_PHONE) && ++count;
+				GSM::get_instance().send_SMS("MAYDAY\r\nLat: "+ to_string(latitude) +"\r\n"+
+					"Lon: "+ to_string(longitude), SMS_PHONE) && ++count;
 			}
 			logger->log("Mayday messages sent.");
 
@@ -214,7 +212,7 @@ void os::safe_mode()
 				logger->log("GPS initialized.");
 				count = 0;
 				logger->log("Waiting for GPS fix...");
-				while ( ! GPS::get_instance().is_active() && ++count < 100)
+				while ( ! GPS::get_instance().is_fixed() && ++count < 100)
 					this_thread::sleep_for(10s);
 
 				if (count == 100)
@@ -238,6 +236,8 @@ void os::safe_mode()
 
 void os::main_while(Logger* logger, State* state)
 {
+	double launch_altitude;
+
 	while (*state != SHUT_DOWN)
 	{
 		if (*state == ACQUIRING_FIX)
@@ -255,13 +255,13 @@ void os::main_while(Logger* logger, State* state)
 		}
 		else if (*state == WAITING_LAUNCH)
 		{
-			wait_launch(logger);
+			wait_launch(logger, launch_altitude);
 			*state = set_state(GOING_UP);
 			logger->log("State changed to "+ state_to_string(*state) +".");
 		}
 		else if (*state == GOING_UP)
 		{
-			go_up(logger);
+			go_up(logger, launch_altitude);
 			logger->log("Balloon burst.");
 
 			*state = set_state(GOING_DOWN);
@@ -284,45 +284,6 @@ void os::main_while(Logger* logger, State* state)
 			reboot(RB_AUTOBOOT);
 		}
 	}
-}
-
-inline bool os::has_launched(double launch_altitude)
-{
-	double first_altitude = GPS::get_instance().get_altitude();
-	if (first_altitude > launch_altitude + 100) return true;
-
-	this_thread::sleep_for(5s);
-	double second_altitude = GPS::get_instance().get_altitude();
-
-	#if defined SIM || defined REAL_SIM
-		return true;
-	#else
-		return second_altitude > first_altitude + 10;
-	#endif
-}
-
-inline bool os::has_bursted(double maximum_altitude)
-{
-	double first_altitude = GPS::get_instance().get_altitude();
-	if (first_altitude < maximum_altitude - 1000) return true;
-
-	this_thread::sleep_for(6s);
-	double second_altitude = GPS::get_instance().get_altitude();
-
-	#if defined SIM || defined REAL_SIM
-		return true;
-	#else
-		return second_altitude < first_altitude - 10;
-	#endif
-}
-
-inline bool os::has_landed()
-{
-	double first_altitude = GPS::get_instance().get_altitude();
-	this_thread::sleep_for(5s);
-	double second_altitude = GPS::get_instance().get_altitude();
-
-	return abs(first_altitude-second_altitude) < 5;
 }
 
 void os::initialize(Logger* logger, tm* now)
@@ -449,7 +410,7 @@ void os::initialize(Logger* logger, tm* now)
 
 void os::aquire_fix(Logger* logger)
 {
-	while ( ! GPS::get_instance().is_active())
+	while ( ! GPS::get_instance().is_fixed())
 		this_thread::sleep_for(1s);
 
 	logger->log("GPS fix acquired, waiting for date change.");
@@ -489,8 +450,23 @@ void os::start_recording(Logger* logger)
 
 void os::send_init_sms(Logger* logger)
 {
+	double main_battery = 0, gsm_battery = 0;
+	bool bat_status = false;
+
+	logger->log("Getting battery values...");
+	if (bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery))
+		logger->log("Battery status received.");
+	else
+		logger->log("Error getting battery status.");
+
 	logger->log("Sending initialization SMS...");
-	if ( ! GSM::get_instance().send_SMS("Initialization finished OK. Recording. Waiting for launch.", SMS_PHONE))
+	if ( ! GSM::get_instance().send_SMS("Init: OK\r\n"+
+		(bat_status ? "Main bat: "+to_string(main_battery*100)+"%\r\n"+
+		"GSM bat: "+to_string(gsm_battery*100)+"%\r\n" : "Bat: ERR\r\n")+
+		"Lat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+		"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
+		"Fix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +"\r\n"+
+		"Waiting Launch", SMS_PHONE))
 	{
 		logger->log("Error sending initialization SMS.");
 
@@ -522,10 +498,10 @@ void os::send_init_sms(Logger* logger)
 	logger->log("Initialization SMS sent.");
 }
 
-void os::wait_launch(Logger* logger)
+void os::wait_launch(Logger* logger, double& launch_altitude)
 {
 	logger->log("Waiting for launch...");
-	double launch_altitude = GPS::get_instance().get_altitude();
+	launch_altitude = GPS::get_instance().get_altitude();
 	#ifdef SIM
 		this_thread::sleep_for(2min);
 	#endif
@@ -539,12 +515,25 @@ void os::wait_launch(Logger* logger)
 	logger->log("Balloon launched.");
 }
 
-void os::go_up(Logger* logger)
+void os::go_up(Logger* logger, double launch_altitude)
 {
+	double main_battery = 0, gsm_battery = 0;
+	bool bat_status = false;
+
+	logger->log("Getting battery values...");
+	if (bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery))
+		logger->log("Battery status received.");
+	else
+		logger->log("Error getting battery status.");
+
 	logger->log("Trying to send launch confirmation SMS...");
-	if ( ! GSM::get_instance().send_SMS("Launched in Lat: "+
-		to_string(GPS::get_instance().get_latitude()) +" and Lon: "+
-		to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+	if ( ! GSM::get_instance().send_SMS(
+		"Launched.\r\nAlt: "+ to_string(launch_altitude) +
+		"m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+		"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
+		(bat_status ? "Main bat: "+ to_string(main_battery*100) +"%\r\n"+
+			"GSM bat: "+ to_string(gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+		"FIX: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +".", SMS_PHONE))
 	{
 		logger->log("Error sending launch confirmation SMS.");
 	}
@@ -566,10 +555,20 @@ void os::go_up(Logger* logger)
 		this_thread::sleep_for(225s);
 	#endif
 	logger->log("1.5 km mark.");
+
+	logger->log("Getting battery values...");
+	if (bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery))
+		logger->log("Battery status received.");
+	else
+		logger->log("Error getting battery status.");
+
 	logger->log("Trying to send \"going up\" SMS...");
-	if ( ! GSM::get_instance().send_SMS("1.5 km mark passed going up in Lat: "+
-	to_string(GPS::get_instance().get_latitude()) +" and Lon: "+
-	to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+	if ( ! GSM::get_instance().send_SMS(
+		"Alt: > 1.5km\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+		"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
+		(bat_status ? "Main bat: "+ to_string(main_battery*100) +"%\r\n"+
+			"GSM bat: "+ to_string(gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+		"FIX: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +".", SMS_PHONE))
 	{
 		logger->log("Error sending \"going up\" SMS.");
 	}
@@ -701,6 +700,9 @@ void os::go_up(Logger* logger)
 
 void os::go_down(Logger* logger)
 {
+	double main_battery = 0, gsm_battery = 0;
+	bool bat_status = false;
+
 	#if defined SIM && !defined REAL_SIM
 		this_thread::sleep_for(1min);
 		logger->log("25 km mark passed going down.");
@@ -772,9 +774,19 @@ void os::go_down(Logger* logger)
 	{
 		logger->log("GSM connected.");
 
+		logger->log("Getting battery values...");
+			if (bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery))
+				logger->log("Battery status received.");
+			else
+				logger->log("Error getting battery status.");
+
 		logger->log("Trying to send first SMS...");
-		if ( ! GSM::get_instance().send_SMS("2.5 km mark passed going down in Lat: "+ to_string(GPS::get_instance().get_latitude())
-			+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+		if ( ! GSM::get_instance().send_SMS(
+				"Alt: < 2.5km\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+				"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
+				(bat_status ? "Main bat: "+ to_string(main_battery*100) +"%\r\n"+
+					"GSM bat: "+ to_string(gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+				"FIX: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +".", SMS_PHONE))
 		{
 			logger->log("Error sending first SMS.");
 		}
@@ -782,6 +794,8 @@ void os::go_down(Logger* logger)
 		{
 			logger->log("First SMS sent.");
 		}
+
+		bat_status = false;
 	}
 
 	bool landed = false;
@@ -814,9 +828,19 @@ void os::go_down(Logger* logger)
 		{
 			logger->log("GSM connected.");
 
+			logger->log("Getting battery values...");
+			if (bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery))
+				logger->log("Battery status received.");
+			else
+				logger->log("Error getting battery status.");
+
 			logger->log("Trying to send second SMS...");
-			if ( ! GSM::get_instance().send_SMS("1.5 km mark passed going down in Lat: "+ to_string(GPS::get_instance().get_latitude())
-				+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+			if ( ! GSM::get_instance().send_SMS(
+				"Alt: < 1.5km\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+				"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
+				(bat_status ? "Main bat: "+ to_string(main_battery*100) +"%\r\n"+
+					"GSM bat: "+ to_string(gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+				"FIX: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +".", SMS_PHONE))
 			{
 				logger->log("Error sending second SMS.");
 			}
@@ -824,6 +848,8 @@ void os::go_down(Logger* logger)
 			{
 				logger->log("Second SMS sent.");
 			}
+
+			bat_status = false;
 		}
 	}
 
@@ -857,9 +883,20 @@ void os::go_down(Logger* logger)
 		{
 			logger->log("GSM connected.");
 
+			logger->log("Getting battery values...");
+			if (bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery))
+				logger->log("Battery status received.");
+			else
+				logger->log("Error getting battery status.");
+
+
 			logger->log("Trying to send third SMS...");
-			if ( ! GSM::get_instance().send_SMS("500 m mark passed in Lat: "+ to_string(GPS::get_instance().get_latitude())
-				+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+			if ( ! GSM::get_instance().send_SMS(
+				"Alt: < 500m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+				"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
+				(bat_status ? "Main bat: "+ to_string(main_battery*100) +"%\r\n"+
+					"GSM bat: "+ to_string(gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+				"FIX: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +".", SMS_PHONE))
 			{
 				logger->log("Error sending third SMS.");
 			}
@@ -885,9 +922,22 @@ void os::land(Logger* logger)
 	logger->log("Waiting 1 minute before sending landed SMS...");
 	this_thread::sleep_for(1min);
 
+	double main_battery = 0, gsm_battery = 0;
+	bool bat_status = false;
+
+	logger->log("Getting battery values...");
+	if (bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery))
+		logger->log("Battery status received.");
+	else
+		logger->log("Error getting battery status.");
+
 	logger->log("Sending landed SMS...");
-	if ( ! GSM::get_instance().send_SMS("Landed in Lat: "+ to_string(GPS::get_instance().get_latitude())
-		+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE))
+	if ( ! GSM::get_instance().send_SMS(
+				"Landed.\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+				"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
+				(bat_status ? "Main bat: "+ to_string(main_battery*100) +"%\r\n"+
+					"GSM bat: "+ to_string(gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+				"FIX: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +".", SMS_PHONE))
 	{
 		logger->log("Error sending landed SMS. Trying again in 10 minutes...");
 	}
@@ -899,13 +949,16 @@ void os::land(Logger* logger)
 	this_thread::sleep_for(10min);
 
 	logger->log("Sending second landed SMS...");
-
-	double main_battery = 1, gsm_battery = 1;
-	while ( ! GSM::get_instance().send_SMS("Landed in Lat: "+ to_string(GPS::get_instance().get_latitude())
-		+" and Lon: "+ to_string(GPS::get_instance().get_longitude()) +".", SMS_PHONE) &&
-		(main_battery >= 0.05 || main_battery < -1) && gsm_battery >= 0.05)
+	while ( ! GSM::get_instance().send_SMS(
+				"Landed.\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+				"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
+				(bat_status ? "Main bat: "+ to_string(main_battery*100) +"%\r\n"+
+					"GSM bat: "+ to_string(gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+				"FIX: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +".", SMS_PHONE) ||
+				! GPS::get_instance().is_fixed() &&
+		(main_battery >= 0 || main_battery < -1) && gsm_battery >= 0)
 	{
-		logger->log("Error sending second SMS, trying again in 5 minutes.");
+		logger->log("Error sending second SMS or GPS without fix, trying again in 5 minutes.");
 		this_thread::sleep_for(5min);
 		GSM::get_instance().get_battery_status(main_battery, gsm_battery);
 	}

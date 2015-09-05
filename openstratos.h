@@ -1,8 +1,6 @@
 #ifndef OPENSTRATOS_H_
 #define OPENSTRATOS_H_
 
-#include <cmath>
-
 #include <iomanip>
 #include <thread>
 
@@ -35,15 +33,11 @@ namespace os
 	void aquire_fix(Logger* logger);
 	void start_recording(Logger* logger);
 	void send_init_sms(Logger* logger);
-	void wait_launch(Logger* logger);
-	void go_up(Logger* logger);
+	void wait_launch(Logger* logger, double& launch_altitude);
+	void go_up(Logger* logger, double launch_altitude);
 	void go_down(Logger* logger);
 	void land(Logger* logger);
 	void shut_down(Logger* logger);
-
-	inline bool has_launched(double launch_altitude);
-	inline bool has_bursted(double maximum_altitude);
-	inline bool has_landed();
 }
 
 using namespace std;

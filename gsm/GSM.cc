@@ -125,6 +125,12 @@ bool GSM::send_SMS(const string& message, const string& number)
 	this->occupied = true;
 
 	this->logger->log("Sending SMS: \""+message+"\" to number "+number+".");
+	if (message.length() > 160)
+	{
+		this->logger->log("Error: SMS has more than 10 characters");
+	}
+	else
+	{
 	#ifndef NO_SMS
 		if (this->send_command_read("AT+CMGF=1") != "OK")
 		{
@@ -166,6 +172,7 @@ bool GSM::send_SMS(const string& message, const string& number)
 	#else
 		this_thread::sleep_for(5s);
 	#endif
+	}
 	this->occupied = false;
 
 	this->logger->log("SMS sent.");
