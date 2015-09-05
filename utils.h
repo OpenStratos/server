@@ -1,6 +1,8 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include <cmath>
+
 #include <string>
 #include <thread>
 
@@ -54,6 +56,54 @@ namespace os {
 		else if (end_alt - start_alt > 5) return set_state(GOING_UP);
 		else if (end_alt > 8000) return set_state(GOING_DOWN);
 		else return set_state(LANDED);
+	}
+
+	inline bool has_launched(double launch_altitude)
+	{
+		for (int i = 0; ! GPS::get_instance().is_fixed() && i < 10; ++i);
+		if ( ! GPS::get_instance().is_fixed()) return false;
+
+		double first_altitude = GPS::get_instance().get_altitude();
+		if (first_altitude > launch_altitude + 100) return true;
+
+		this_thread::sleep_for(5s);
+		double second_altitude = GPS::get_instance().get_altitude();
+
+		#if defined SIM || defined REAL_SIM
+			return true;
+		#else
+			return second_altitude > first_altitude + 10;
+		#endif
+	}
+
+	inline bool has_bursted(double maximum_altitude)
+	{
+		for (int i = 0; ! GPS::get_instance().is_fixed() && i < 10; ++i);
+		if ( ! GPS::get_instance().is_fixed()) return false;
+
+		double first_altitude = GPS::get_instance().get_altitude();
+		if (first_altitude < maximum_altitude - 1000) return true;
+
+		this_thread::sleep_for(6s);
+		double second_altitude = GPS::get_instance().get_altitude();
+
+		#if defined SIM || defined REAL_SIM
+			return true;
+		#else
+			return second_altitude < first_altitude - 10;
+		#endif
+	}
+
+	inline bool has_landed()
+	{
+		for (int i = 0; ! GPS::get_instance().is_fixed() && i < 10; ++i);
+		if ( ! GPS::get_instance().is_fixed()) return false;
+
+		double first_altitude = GPS::get_instance().get_altitude();
+		this_thread::sleep_for(5s);
+		double second_altitude = GPS::get_instance().get_altitude();
+
+		return abs(first_altitude-second_altitude) < 5;
 	}
 }
 
