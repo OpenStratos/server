@@ -32,6 +32,7 @@ namespace os {
 	};
 
 	int get_file_count(const string& path);
+	const string generate_exif_data();
 }
 
 #endif // CAMERA_CAMERA_H_
