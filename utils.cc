@@ -4,8 +4,6 @@
 
 #include <unistd.h>
 #include <sys/reboot.h>
-#include <sys/stat.h>
-#include <sys/statvfs.h>
 
 #include "constants.h"
 
@@ -48,20 +46,6 @@ void os::check_or_create(const string& path, Logger* logger)
 			#endif
 		}
 	}
-}
-
-inline bool os::file_exists(const string& name)
-{
-	struct stat buffer;
-	return stat(name.c_str(), &buffer) == 0;
-}
-
-inline float os::get_available_disk_space()
-{
-	struct statvfs fs;
-	statvfs("data", &fs);
-
-	return ((float) fs.f_bsize)*fs.f_bavail;
 }
 
 State os::set_state(State new_state)
