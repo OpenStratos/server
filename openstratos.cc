@@ -334,7 +334,26 @@ void os::initialize(Logger* logger, tm* now)
 
 	logger->log("Checking batteries...");
 	double main_battery, gsm_battery;
-	GSM::get_instance().get_battery_status(main_battery, gsm_battery);
+	if ( ! GSM::get_instance().get_battery_status(main_battery, gsm_battery)
+	{
+		logger->log("Error checking batteries.");
+
+		logger->log("Turning GSM off...");
+		if (GSM::get_instance().turn_off())
+			logger->log("GSM off.");
+		else
+			logger->log("Error turning GSM off.");
+
+		logger->log("Turning GPS off...");
+		if (GPS::get_instance().turn_off())
+			logger->log("GPS off.");
+		else
+			logger->log("Error turning GPS off.");
+
+		sync();
+		reboot(RB_POWER_OFF);
+	}
+
 	logger->log("Batteries checked => Main battery: "+ (main_battery > -1 ? to_string(main_battery*100)+"%" : "disconnected") +
 		" - GSM battery: "+ to_string(gsm_battery*100) +"%");
 
