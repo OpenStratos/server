@@ -23,7 +23,7 @@ describe("GPS", [](){
 	it("GGA frame parser test", [&](){
 		GPS::get_instance().parse("$GPGGA,151025,2011.3454,N,12020.2464,W,1,05,1.53,20134.13,M,20103.45,M,,*56");
 
-		AssertThat(GPS::get_instance().is_active(), Equals(true));
+		AssertThat(GPS::get_instance().is_fixed(), Equals(true));
 
 		tm gps_time = GPS::get_instance().get_time();
 		AssertThat(gps_time.tm_hour, Equals(15));
@@ -52,7 +52,7 @@ describe("GPS", [](){
 
 		GPS::get_instance().parse("$GPGGA,170810,2316.3654,S,12225.2464,E,0,07,1.89,18647.15,M,18640.35,M,,*53");
 
-		AssertThat(GPS::get_instance().is_active(), Equals(false));
+		AssertThat(GPS::get_instance().is_fixed(), Equals(false));
 
 		AssertThat(GPS::get_instance().get_time().tm_hour, Equals(hour));
 		AssertThat(GPS::get_instance().get_time().tm_min, Equals(min));
@@ -68,7 +68,7 @@ describe("GPS", [](){
 	it("GSA frame parser test", [&](){
 		GPS::get_instance().parse("$GPGSA,A,3,,,,,,16,18,,22,24,,,3.6,2.1,2.2*3C");
 
-		AssertThat(GPS::get_instance().is_active(), Equals(true));
+		AssertThat(GPS::get_instance().is_fixed(), Equals(true));
 		AssertThat(GPS::get_instance().get_HDOP(), Is().EqualToWithDelta(2.1, 0.0005));
 		AssertThat(GPS::get_instance().get_VDOP(), Is().EqualToWithDelta(2.2, 0.0005));
 	});
@@ -79,7 +79,7 @@ describe("GPS", [](){
 
 		GPS::get_instance().parse("$GPGSA,A,1,19,28,14,18,27,22,31,39,,,,,1.7,1.0,1.3*36");
 
-		AssertThat(GPS::get_instance().is_active(), Equals(false));
+		AssertThat(GPS::get_instance().is_fixed(), Equals(false));
 		AssertThat(GPS::get_instance().get_HDOP(), Equals(hdop));
 		AssertThat(GPS::get_instance().get_VDOP(), Equals(vdop));
 	});
@@ -87,7 +87,7 @@ describe("GPS", [](){
 	it("RMC frame parser test", [&](){
 		GPS::get_instance().parse("$GPRMC,225446,A,4916.45,N,12311.12,W,000.5,054.7,191194,020.3,E*68");
 
-		AssertThat(GPS::get_instance().is_active(), Equals(true));
+		AssertThat(GPS::get_instance().is_fixed(), Equals(true));
 
 		tm gps_time = GPS::get_instance().get_time();
 
@@ -122,7 +122,7 @@ describe("GPS", [](){
 
 		GPS::get_instance().parse("$GPRMC,081836,V,3751.65,S,14507.36,E,000.0,360.0,130998,011.3,E*75");
 
-		AssertThat(GPS::get_instance().is_active(), Equals(false));
+		AssertThat(GPS::get_instance().is_fixed(), Equals(false));
 
 		tm new_gps_time = GPS::get_instance().get_time();
 

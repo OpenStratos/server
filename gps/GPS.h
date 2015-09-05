@@ -55,7 +55,7 @@ namespace os {
 		static bool is_valid(string frame);
 
 		tm get_time() const {return this->time;}
-		bool is_active() const {return this->active;}
+		bool is_fixed() const {return this->active;}
 		uint_fast8_t get_satellites() const {return this->satellites;}
 		double get_latitude() const {return this->latitude;}
 		double get_longitude() const {return this->longitude;}
