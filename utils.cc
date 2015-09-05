@@ -1,15 +1,14 @@
 #include "utils.h"
 
 #include <fstream>
+#ifdef DEBUG
+	#include <iostream>
+#endif
 
 #include <unistd.h>
 #include <sys/reboot.h>
 
 #include "constants.h"
-
-#ifdef DEBUG
-	#include <iostream>
-#endif
 
 using namespace std;
 using namespace os;
@@ -20,7 +19,7 @@ void os::check_or_create(const string& path, Logger* logger)
 	{
 		if (logger != NULL)
 			logger->log("No '"+path+"' directory, creating...");
-		#if DEBUG
+		#ifdef DEBUG
 			else
 				cout << "[OpenStratos] No '"+path+"' directory, creating..." << endl;
 		#endif
@@ -40,7 +39,7 @@ void os::check_or_create(const string& path, Logger* logger)
 		{
 			if (logger != NULL)
 				logger->log("'"+path+"' directory created.");
-			#if DEBUG
+			#ifdef DEBUG
 				else
 					cout << "[OpenStratos] '"+path+"' directory created." << endl;
 			#endif

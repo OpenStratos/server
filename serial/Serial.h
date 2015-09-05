@@ -6,7 +6,7 @@
 #include <string>
 
 #include "constants.h"
-#if DEBUG
+#ifdef DEBUG
 	#include "logger/Logger.h"
 #endif
 using namespace std;
@@ -18,7 +18,7 @@ namespace os {
 		int fd;
 		bool open;
 
-		#if DEBUG
+		#ifdef DEBUG
 			Logger* logger;
 		#endif
 
