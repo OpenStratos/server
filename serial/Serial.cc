@@ -12,7 +12,7 @@
 
 #include "constants.h"
 #include "gps/GPS.h"
-#if DEBUG
+#ifdef DEBUG
 	#include "logger/Logger.h"
 #endif
 
@@ -27,7 +27,7 @@ Serial::Serial(const string& url, int baud_rate, const string& log_path)
 	gettimeofday(&timer, NULL);
 	struct tm * now = gmtime(&timer.tv_sec);
 
-	#if DEBUG
+	#ifdef DEBUG
 		this->logger = new Logger("data/logs/"+log_path+"/Serial."+ to_string(now->tm_year+1900) +"-"+
 			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
 			to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "Serial");
@@ -36,7 +36,7 @@ Serial::Serial(const string& url, int baud_rate, const string& log_path)
 	#ifndef OS_TESTING
 		this->fd = serialOpen(url.c_str(), baud_rate);
 
-		#if DEBUG
+		#ifdef DEBUG
 			if (this->fd == -1) this->logger->log("Error: connection fd is -1.");
 			else this->open = true;
 		#else
@@ -50,7 +50,7 @@ Serial::~Serial()
 	if (this->open)
 		this->close();
 
-	#if DEBUG
+	#ifdef DEBUG
 		delete this->logger;
 	#endif
 }
@@ -59,7 +59,7 @@ void Serial::println(const string& str) const
 {
 	serialPuts(this->fd, (str+"\r\n").c_str());
 
-	#if DEBUG
+	#ifdef DEBUG
 		this->logger->log("Sent: '"+str+"\\r\\n'");
 	#endif
 }
@@ -68,7 +68,7 @@ void Serial::println() const
 {
 	serialPuts(this->fd, "\r\n");
 
-	#if DEBUG
+	#ifdef DEBUG
 		this->logger->log("Sent: '\\r\\n'");
 	#endif
 }
@@ -77,7 +77,7 @@ void Serial::write(unsigned char c) const
 {
 	serialPutchar(this->fd, c);
 
-	#if DEBUG
+	#ifdef DEBUG
 		this->logger->log("Sent char: '"+string(1, c)+"'");
 	#endif
 }
@@ -132,7 +132,7 @@ const string Serial::read_line(double timeout) const
 
 			if (elapsed_time > timeout)
 			{
-				#if DEBUG
+				#ifdef DEBUG
 					this->logger->log("Error: Serial timeout. ("+to_string(timeout)+" s)");
 				#endif
 
@@ -167,7 +167,7 @@ const string Serial::read_line(double timeout) const
 
 			if (available < 0)
 			{
-				#if DEBUG
+				#ifdef DEBUG
 					this->logger->log("Error: Serial available < 0.");
 				#endif
 
@@ -177,7 +177,7 @@ const string Serial::read_line(double timeout) const
 		}
 	#endif
 
-	#if DEBUG
+	#ifdef DEBUG
 		this->logger->log("Received: '"+logstr+"'");
 	#endif
 
