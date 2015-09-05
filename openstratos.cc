@@ -160,6 +160,15 @@ void os::safe_mode()
 				}
 				logger->log("GSM initialized.");
 
+				if (state != LANDED)
+				{
+					logger->log("Trying to start recording...")
+					if (Camera::get_instance().record())
+						logger->log("Recording.");
+					else
+						logger->log("Error starting recording");
+				}
+
 				main_while(logger, &state);
 				shut_down(logger);
 			}
