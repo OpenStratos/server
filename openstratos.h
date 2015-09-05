@@ -21,7 +21,7 @@
 #include "camera/Camera.h"
 #include "gsm/GSM.h"
 
-#if DEBUG
+#ifdef DEBUG
 	#include <iostream>
 #endif
 

@@ -2,7 +2,7 @@
 
 int main(void)
 {
-	#if DEBUG
+	#ifdef DEBUG
 		#ifdef SIM
 			cout << "[OpenStratos] Simulation." << endl;
 		#endif
@@ -16,14 +16,14 @@ int main(void)
 
 	if ( ! file_exists(STATE_FILE))
 	{
-		#if DEBUG
+		#ifdef DEBUG
 			cout << "[OpenStratos] No state file. Starting main logic..." << endl;
 		#endif
 		main_logic();
 	}
 	else
 	{
-		#if DEBUG
+		#ifdef DEBUG
 			cout << "[OpenStratos] State file found. Starting safe mode..." << endl;
 		#endif
 		safe_mode();
@@ -38,7 +38,7 @@ void os::main_logic()
 	gettimeofday(&timer, NULL);
 	struct tm* now = gmtime(&timer.tv_sec);
 
-	#if DEBUG
+	#ifdef DEBUG
 		cout << "[OpenStratos] Current time: " << setfill('0') << setw(2) << now->tm_hour << ":" <<
 			setfill('0') << setw(2) << now->tm_min << ":" << setfill('0') << setw(2) << now->tm_sec <<
 			" UTC of " << setfill('0') << setw(2) << now->tm_mon << "/" <<
@@ -55,7 +55,7 @@ void os::main_logic()
 	check_or_create("data/logs/GPS");
 	check_or_create("data/logs/GSM");
 
-	#if DEBUG
+	#ifdef DEBUG
 		cout << "[OpenStratos] Starting logger..." << endl;
 	#endif
 
@@ -63,7 +63,7 @@ void os::main_logic()
 		to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
 		to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "OpenStratos");
 
-	#if DEBUG
+	#ifdef DEBUG
 		cout << "[OpenStratos] Logger started." << endl;
 	#endif
 
@@ -101,6 +101,7 @@ void os::safe_mode()
 	State state = set_state(SAFE_MODE);
 	Logger* logger;
 	int count = 0;
+	double latitude = 0, longitude = 0;
 
 	if (last_state > INITIALIZING)
 	{
@@ -117,17 +118,19 @@ void os::safe_mode()
 	{
 		case INITIALIZING:
 		case ACQUIRING_FIX:
-			remove("data");
+			remove(STATE_FILE);
 			reboot(RB_AUTOBOOT);
 		break;
 		case FIX_ACQUIRED: // It could be that the SMS was sent but the state didn't change
 		case WAITING_LAUNCH:
+		case GOING_UP:
+		case GOING_DOWN:
+		case LANDED:
 			logger->log("Initializing WiringPi...");
 			wiringPiSetup();
 			logger->log("WiringPi initialized.");
 
 			logger->log("Initializing GPS...");
-
 			while ( ! GPS::get_instance().initialize() && ++count < 5)
 				logger->log("GPS initialization error.");
 
@@ -135,23 +138,19 @@ void os::safe_mode()
 			{
 				logger->log("GPS initialized.");
 				count = 0;
-				while ( ! GPS::get_instance().is_active() && ++count < 10)
+				logger->log("Waiting for GPS fix...");
+				while ( ! GPS::get_instance().is_active() && ++count < 100)
 					this_thread::sleep_for(10s);
-				this_thread::sleep_for(10s);
-				if (count == 10)
+
+				if (count == 100)
 				{
 					logger->log("Not getting fix. Going to recovery mode.");
 					reboot(RB_AUTOBOOT);
 				}
 
-				double start_alt = GPS::get_instance().get_altitude();
-				this_thread::sleep_for(5s);
-				double end_alt = GPS::get_instance().get_altitude();
-
-				if (end_alt - start_alt < -10) state = set_state(GOING_DOWN);
-				else if (end_alt - start_alt > 10) state = set_state(GOING_UP);
-				else if (end_alt > 5000) state = set_state(GOING_DOWN);
-				else state = set_state(LANDED);
+				logger->log("GPS fix acquired.");
+				this_thread::sleep_for(10s);
+				state = (state == LANDED) ? LANDED : get_real_state();
 
 				logger->log("Initializing GSM...");
 				if ( ! GSM::get_instance().initialize())
@@ -170,17 +169,59 @@ void os::safe_mode()
 				reboot(RB_AUTOBOOT);
 			}
 		break;
-		case GOING_UP:
-		break;
-		case GOING_DOWN:
-		break;
-		case LANDED:
-		break;
 		case SHUT_DOWN:
+			shut_down(logger);
 		break;
 		case SAFE_MODE:
 			logger->log("Recovery mode");
-			// TODO recovery mode
+
+			logger->log("Initializing GSM...");
+			while ( ! GSM::get_instance().initialize()) GSM::get_instance().turn_off();
+			logger->log("GSM initialized");
+			logger->log("Waiting for GSM connectivity...");
+			while ( ! GSM::get_instance().has_connectivity()) this_thread::sleep_for(5s);
+			logger->log("GSM connected.");
+
+			count = 0;
+			logger->log("Sending mayday messages...");
+			while (count < 10)
+			{
+				this_thread::sleep_for(20s);
+
+				GSM::get_instance().get_location(latitude, longitude);
+				GSM::get_instance().send_SMS("MAYDAY - Lat: "+
+					to_string(latitude) +" and Lon: "+
+					to_string(longitude), SMS_PHONE) && ++count;
+			}
+			logger->log("Mayday messages sent.");
+
+			logger->log("Initializing GPS...");
+			while ( ! GPS::get_instance().initialize() && ++count < 5)
+				logger->log("GPS initialization error.");
+				shut_down(logger);
+
+			if (count < 5)
+			{
+				logger->log("GPS initialized.");
+				count = 0;
+				logger->log("Waiting for GPS fix...");
+				while ( ! GPS::get_instance().is_active() && ++count < 100)
+					this_thread::sleep_for(10s);
+
+				if (count == 100)
+				{
+					logger->log("Not getting fix.");
+					shut_down(logger);
+				}
+
+				logger->log("GPS fix acquired.");
+				this_thread::sleep_for(10s);
+				state = (state == LANDED) ? LANDED : get_real_state();
+
+				main_while(logger, &state);
+				shut_down(logger);
+			}
+
 	}
 
 	if (logger) delete logger;

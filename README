@@ -73,6 +73,26 @@ It can be combined with the *NO_SMS* flag:
 After that, the software can be compiled using ```make```. The result of combining the two
 simulation flags is undetermined. They should not be combined.
 
+### Debug Mode ###
+
+The software has a small debug mode, that prints from *stdio* some logs that occur before the log
+file is created. It also enables serial logging, that will log everything that happens in the
+serial. This has a moderate overhead and should not be used in production. GSM and GPS loggers log everythong they send and receive. This is only needed to debug if something goes wrong with the
+serial. For using this mode the directory should be cleaned with ```make clean``` and then pass the
+*DEBUG* flag to the configure script:
+
+```
+./configure CPPFLAGS="-DDEBUG"
+```
+
+It can be combined with the *NO_SMS* flag or/and one of the simulation flags:
+
+```
+./configure CPPFLAGS="-DREAL_SIM -DNO_SMS -DDEBUG"
+./configure CPPFLAGS="-DSIM -DDEBUG"
+./configure CPPFLAGS="-DNO_SMS -DDEBUG"
+```
+
 ## License ##
 
 This software is licensed under the GNU General Public License version 3. You can use, copy, modify
