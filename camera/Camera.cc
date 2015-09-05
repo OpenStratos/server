@@ -13,6 +13,7 @@
 
 #include "config.h"
 #include "constants.h"
+#include "gps/GPS.h"
 
 using namespace os;
 using namespace std;
@@ -207,4 +208,30 @@ int os::get_file_count(const string& path)
 	(void) closedir(dp);
 
 	return i-2;
+}
+
+const string os::generate_exif_data()
+{
+	string exif;
+	while (GPS::get_instance().get_PDOP() > 5)
+	{
+		this_thread::sleep_for(1s);
+	}
+	double gps_lat = GPS::get_instance().get_latitude();
+	double gps_lon = GPS::get_instance().get_longitude();
+	double gps_alt = GPS::get_instance().get_altitude();
+	uint_fast8_t gps_sat = GPS::get_instance().get_satellites();
+	float gps_pdop = GPS::get_instance().get_PDOP();
+	euc_vec gps_velocity = GPS::get_instance().get_velocity();
+
+	exif += "GPSLatitudeRef="+to_string(gps_lat > 0 ? 'N' : 'S');
+	exif += " GPSLatitude="+to_string(abs((int) gps_lat*1000000))+"/1000000,0/1,0/1";
+	exif += " GPSLongitudeRef="+to_string(gps_lon > 0 ? 'E' : 'W');
+	exif += " GPSLongitude="+to_string(abs((int) gps_lon*1000000))+"/1000000,0/1,0/1";
+	exif += " GPSAltitudeRef=0 GPSAltitude="+to_string(gps_alt);
+	exif += " GPSSatellites="+to_string(gps_sat);
+	exif += " GPSDOP="+to_string(gps_pdop);
+	exif += " GPSSpeedRef=K GPSSpeed="+to_string(gps_velocity.speed*3.6);
+	exif += " GPSTrackRef=T GPSTrack="+to_string(gps_velocity.course);
+	exif += " GPSDifferential=0";
 }

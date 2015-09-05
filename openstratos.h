@@ -1,28 +1,21 @@
 #ifndef OPENSTRATOS_H_
 #define OPENSTRATOS_H_
 
-#include <cstdlib>
 #include <cmath>
 
 #include <iomanip>
-#include <fstream>
-#include <vector>
-#include <sstream>
-#include <string>
 #include <thread>
-#include <functional>
 
-#include <sys/stat.h>
-#include <sys/statvfs.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <sys/reboot.h>
-#include <sys/sysinfo.h>
 
 #include <wiringPi.h>
 
 #include "config.h"
 #include "constants.h"
+#include "utils.h"
+#include "threads.h"
 #include "logger/Logger.h"
 #include "gps/GPS.h"
 #include "camera/Camera.h"
@@ -34,18 +27,6 @@
 
 namespace os
 {
-	enum State {
-		INITIALIZING,
-		ACQUIRING_FIX,
-		FIX_ACQUIRED,
-		WAITING_LAUNCH,
-		GOING_UP,
-		GOING_DOWN,
-		LANDED,
-		SHUT_DOWN,
-		SAFE_MODE,
-	};
-
 	void main_logic();
 	void safe_mode();
 	void main_while(Logger* logger, State* state);
@@ -63,19 +44,6 @@ namespace os
 	inline bool has_launched(double launch_altitude);
 	inline bool has_bursted(double maximum_altitude);
 	inline bool has_landed();
-
-	void system_thread_fn(State& state);
-	void picture_thread_fn(State& state);
-	void battery_thread_fn(State& state);
-
-	void check_or_create(const string& path, Logger* logger = NULL);
-	inline bool file_exists(const string& name);
-	inline float get_available_disk_space();
-	const string generate_exif_data();
-
-	State set_state(State new_state);
-	State get_last_state();
-	const string state_to_string(State state);
 }
 
 using namespace std;
