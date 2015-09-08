@@ -29,6 +29,11 @@ int main(void)
 		safe_mode();
 	}
 
+	#ifndef NO_POWER_OFF
+		sync();
+		reboot(RB_POWER_OFF);
+	#endif
+
 	return 0;
 }
 
@@ -228,7 +233,6 @@ void os::safe_mode()
 			logger->log("Initializing GPS...");
 			while ( ! GPS::get_instance().initialize() && ++count < 5)
 				logger->log("GPS initialization error.");
-				shut_down(logger);
 
 			if (count < 5)
 			{
@@ -251,7 +255,10 @@ void os::safe_mode()
 				main_while(logger, &state);
 				shut_down(logger);
 			}
-
+			else
+			{
+				shut_down(logger);
+			}
 	}
 
 	if (logger) delete logger;
@@ -1180,11 +1187,4 @@ void os::shut_down(Logger* logger)
 		logger->log("Error turning GPS off.");
 
 	logger->log("Powering off...");
-
-	#ifndef NO_POWER_OFF
-		sync();
-		reboot(RB_POWER_OFF);
-	#else
-		exit(0);
-	#endif
 }
