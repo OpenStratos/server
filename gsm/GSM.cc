@@ -71,8 +71,6 @@ bool GSM::initialize()
 
 	this->logger->log("Turning module on...");
 	this->turn_on();
-	this->logger->log("Module on. Sleeping 3 seconds to let it turn completely on...");
-	this_thread::sleep_for(3s);
 	if (this->get_status())
 	{
 		this->logger->log("Status checked. Module is on.");
@@ -82,6 +80,8 @@ bool GSM::initialize()
 		this->logger->log("Error: Status checked. Module is off. Finishing initialization.");
 		return false;
 	}
+	this->logger->log("Sleeping 3 seconds to let it turn completely on...");
+	this_thread::sleep_for(3s);
 
 	this->occupied = true;
 	this->logger->log("Starting serial connection...");
