@@ -93,11 +93,29 @@ It can be combined with the *NO_SMS* flag or/and one of the simulation flags:
 ./configure CPPFLAGS="-DNO_SMS -DDEBUG"
 ```
 
+### No power off mode ###
+
+For some testing there is no need to reboot or shut down the system in failures. For this, the
+software provides the no power off mode, that will prevent the software from shutting the
+Raspberry Pi down. For using this mode the directory should be cleaned with ```make clean``` and
+then pass the *NO_POWER_OFF* flag to the configure script:
+
+```
+./configure CPPFLAGS="-DNO_POWER_OFF"
+```
+
+It can be combined with the *NO_SMS* flag, the *DEBUG* flag or/and one of the simulation flags:
+
+```
+./configure CPPFLAGS="-DREAL_SIM -DNO_SMS -DDEBUG -DNO_POWER_OFF"
+./configure CPPFLAGS="-DSIM -DDEBUG -DNO_POWER_OFF"
+./configure CPPFLAGS="-DNO_SMS -DDEBUG -DNO_POWER_OFF"
+
 ## License ##
 
 This software is licensed under the GNU General Public License version 3. You can use, copy, modify
-the software as long as all the derivative work is published under the same license. A copy of the license can be found in the *[COPYING](COPYING)* file of the repository where a detailed explanation of the
-copying rights can be found.
+the software as long as all the derivative work is published under the same license. A copy of the license can be found in the *[COPYING](COPYING)* file of the repository where a detailed explanation
+of the copying rights can be found.
 
 ## Contributing guidelines ##
 

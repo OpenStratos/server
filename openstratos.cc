@@ -119,7 +119,12 @@ void os::safe_mode()
 		case INITIALIZING:
 		case ACQUIRING_FIX:
 			remove(STATE_FILE);
-			reboot(RB_AUTOBOOT);
+			delete logger;
+			#ifndef NO_POWER_OFF
+				reboot(RB_AUTOBOOT);
+			#else
+				exit(0);
+			#endif
 		break;
 		case FIX_ACQUIRED: // It could be that the SMS was sent but the state didn't change
 		case WAITING_LAUNCH:
@@ -145,7 +150,12 @@ void os::safe_mode()
 				if (count == 100)
 				{
 					logger->log("Not getting fix. Going to recovery mode.");
-					reboot(RB_AUTOBOOT);
+					delete logger;
+					#ifndef NO_POWER_OFF
+						reboot(RB_AUTOBOOT);
+					#else
+						exit(1);
+					#endif
 				}
 
 				logger->log("GPS fix acquired.");
@@ -156,7 +166,12 @@ void os::safe_mode()
 				if ( ! GSM::get_instance().initialize())
 				{
 					logger->log("GSM initialization error. Going to recovery mode.");
-					reboot(RB_AUTOBOOT);
+					delete logger;
+					#ifndef NO_POWER_OFF
+						reboot(RB_AUTOBOOT);
+					#else
+						exit(1);
+					#endif
 				}
 				logger->log("GSM initialized.");
 
@@ -175,7 +190,12 @@ void os::safe_mode()
 			else
 			{
 				logger->log("Error initializing GPS. Going to recovery mode.");
-				reboot(RB_AUTOBOOT);
+				delete logger;
+				#ifndef NO_POWER_OFF
+					reboot(RB_AUTOBOOT);
+				#else
+					exit(1);
+				#endif
 			}
 		break;
 		case SHUT_DOWN:
@@ -281,7 +301,12 @@ void os::main_while(Logger* logger, State* state)
 		}
 		else
 		{
-			reboot(RB_AUTOBOOT);
+			delete logger;
+			#ifndef NO_POWER_OFF
+				reboot(RB_AUTOBOOT);
+			#else
+				exit(1);
+			#endif
 		}
 	}
 }
@@ -297,8 +322,14 @@ void os::initialize(Logger* logger, tm* now)
 	if (available_disk_space < FLIGHT_LENGTH*9437184000) // 1.25 times the flight length
 	{
 		logger->log("Error: Not enough disk space.");
-		sync();
-		reboot(RB_POWER_OFF);
+
+		delete logger;
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 
 	logger->log("Disk space enough for about " + to_string(available_disk_space/7549747200) +
@@ -312,8 +343,14 @@ void os::initialize(Logger* logger, tm* now)
 	if ( ! GPS::get_instance().initialize())
 	{
 		logger->log("GPS initialization error.");
-		sync();
-		reboot(RB_POWER_OFF);
+
+		delete logger;
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 	logger->log("GPS initialized.");
 
@@ -327,8 +364,13 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		sync();
-		reboot(RB_POWER_OFF);
+		delete logger;
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 	logger->log("GSM initialized.");
 
@@ -350,8 +392,13 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		sync();
-		reboot(RB_POWER_OFF);
+		delete logger;
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 
 	logger->log("Batteries checked => Main battery: "+ (main_battery > -1 ? to_string(main_battery*100)+"%" : "disconnected") +
@@ -373,15 +420,19 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		sync();
-		reboot(RB_POWER_OFF);
+		delete logger;
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 
 	logger->log("Waiting for GSM connectivity...");
 	while ( ! GSM::get_instance().has_connectivity())
-	{
 		this_thread::sleep_for(1s);
-	}
+
 	logger->log("GSM connected.");
 
 	logger->log("Testing camera recording...");
@@ -393,8 +444,14 @@ void os::initialize(Logger* logger, tm* now)
 	if ( ! Camera::get_instance().record(10000))
 	{
 		logger->log("Error starting recording");
-		sync();
-		reboot(RB_POWER_OFF);
+
+		delete logger;
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 	this_thread::sleep_for(11s);
 	if (file_exists("data/video/test.h264"))
@@ -422,8 +479,13 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		sync();
-		reboot(RB_POWER_OFF);
+		delete logger;
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 }
 
@@ -461,8 +523,13 @@ void os::start_recording(Logger* logger)
 		else
 			logger->log("Error turning GPS off.");
 
-		sync();
-		reboot(RB_POWER_OFF);
+		delete logger;
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 	logger->log("Recording started.");
 }
@@ -511,8 +578,13 @@ void os::send_init_sms(Logger* logger)
 		else
 			logger->log("Error turning GPS off.");
 
-		sync();
-		reboot(RB_POWER_OFF);
+		delete logger;
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 	logger->log("Initialization SMS sent.");
 }
@@ -1011,6 +1083,12 @@ void os::shut_down(Logger* logger)
 		logger->log("Error turning GPS off.");
 
 	logger->log("Powering off...");
-	sync();
-	reboot(RB_POWER_OFF);
+
+	delete logger;
+	#ifndef NO_POWER_OFF
+		sync();
+		reboot(RB_POWER_OFF);
+	#else
+		exit(0);
+	#endif
 }
