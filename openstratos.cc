@@ -120,6 +120,7 @@ void os::safe_mode()
 		case ACQUIRING_FIX:
 			remove(STATE_FILE);
 			#ifndef NO_POWER_OFF
+				sync();
 				reboot(RB_AUTOBOOT);
 			#else
 				exit(0);
@@ -151,6 +152,7 @@ void os::safe_mode()
 					logger->log("Not getting fix. Going to recovery mode.");
 					delete logger;
 					#ifndef NO_POWER_OFF
+						sync();
 						reboot(RB_AUTOBOOT);
 					#else
 						exit(1);
@@ -167,6 +169,7 @@ void os::safe_mode()
 					logger->log("GSM initialization error. Going to recovery mode.");
 					delete logger;
 					#ifndef NO_POWER_OFF
+						sync();
 						reboot(RB_AUTOBOOT);
 					#else
 						exit(1);
@@ -191,6 +194,7 @@ void os::safe_mode()
 				logger->log("Error initializing GPS. Going to recovery mode.");
 				delete logger;
 				#ifndef NO_POWER_OFF
+					sync();
 					reboot(RB_AUTOBOOT);
 				#else
 					exit(1);
@@ -300,8 +304,8 @@ void os::main_while(Logger* logger, State* state)
 		}
 		else
 		{
-			delete logger;
 			#ifndef NO_POWER_OFF
+				sync();
 				reboot(RB_AUTOBOOT);
 			#else
 				exit(1);
@@ -322,7 +326,6 @@ void os::initialize(Logger* logger, tm* now)
 	{
 		logger->log("Error: Not enough disk space.");
 
-		delete logger;
 		#ifndef NO_POWER_OFF
 			sync();
 			reboot(RB_POWER_OFF);
@@ -343,7 +346,6 @@ void os::initialize(Logger* logger, tm* now)
 	{
 		logger->log("GPS initialization error.");
 
-		delete logger;
 		#ifndef NO_POWER_OFF
 			sync();
 			reboot(RB_POWER_OFF);
@@ -363,7 +365,6 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		delete logger;
 		#ifndef NO_POWER_OFF
 			sync();
 			reboot(RB_POWER_OFF);
@@ -391,7 +392,6 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		delete logger;
 		#ifndef NO_POWER_OFF
 			sync();
 			reboot(RB_POWER_OFF);
@@ -419,7 +419,6 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		delete logger;
 		#ifndef NO_POWER_OFF
 			sync();
 			reboot(RB_POWER_OFF);
@@ -444,7 +443,6 @@ void os::initialize(Logger* logger, tm* now)
 	{
 		logger->log("Error starting recording");
 
-		delete logger;
 		#ifndef NO_POWER_OFF
 			sync();
 			reboot(RB_POWER_OFF);
@@ -478,7 +476,6 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		delete logger;
 		#ifndef NO_POWER_OFF
 			sync();
 			reboot(RB_POWER_OFF);
@@ -522,7 +519,6 @@ void os::start_recording(Logger* logger)
 		else
 			logger->log("Error turning GPS off.");
 
-		delete logger;
 		#ifndef NO_POWER_OFF
 			sync();
 			reboot(RB_POWER_OFF);
@@ -578,7 +574,6 @@ void os::send_init_sms(Logger* logger)
 		else
 			logger->log("Error turning GPS off.");
 
-		delete logger;
 		#ifndef NO_POWER_OFF
 			sync();
 			reboot(RB_POWER_OFF);
