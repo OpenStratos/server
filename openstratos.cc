@@ -1186,7 +1186,6 @@ void os::shut_down(Logger* logger)
 
 	logger->log("Powering off...");
 
-	delete logger;
 	#ifndef NO_POWER_OFF
 		sync();
 		reboot(RB_POWER_OFF);
