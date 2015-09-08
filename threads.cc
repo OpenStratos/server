@@ -71,7 +71,7 @@ void os::system_thread_fn(State& state)
 			(stof(s_data[2])+stof(s_data[4])+stof(s_data[5]))));
 
 		sysinfo(&info);
-		ram_logger.log(to_string(info.freeram/info.totalram));
+		ram_logger.log(to_string(((double) info.freeram)/info.totalram));
 
 		this_thread::sleep_for(30s);
 	}
@@ -124,7 +124,6 @@ void os::picture_thread_fn(State& state)
 
 		this_thread::sleep_for(4min);
 	}
-
 	logger.log("Going down, no more pictures are being taken, picture thread is closing.");
 }
 
