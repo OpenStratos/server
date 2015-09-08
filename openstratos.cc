@@ -103,7 +103,7 @@ void os::safe_mode()
 	int count = 0;
 	double latitude = 0, longitude = 0;
 
-	if (last_state > INITIALIZING)
+	if (last_state > ACQUIRING_FIX)
 	{
 		struct timeval timer;
 		gettimeofday(&timer, NULL);
@@ -119,7 +119,6 @@ void os::safe_mode()
 		case INITIALIZING:
 		case ACQUIRING_FIX:
 			remove(STATE_FILE);
-			delete logger;
 			#ifndef NO_POWER_OFF
 				reboot(RB_AUTOBOOT);
 			#else
