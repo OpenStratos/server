@@ -219,6 +219,10 @@ void os::safe_mode()
 		case SAFE_MODE:
 			logger->log("Recovery mode");
 
+			logger->log("Initializing WiringPi...");
+			wiringPiSetup();
+			logger->log("WiringPi initialized.");
+
 			logger->log("Initializing GSM...");
 			while ( ! GSM::get_instance().initialize())
 				logger->log("GSM initialization error.");
