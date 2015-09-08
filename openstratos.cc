@@ -108,6 +108,13 @@ void os::safe_mode()
 	int count = 0;
 	double latitude = 0, longitude = 0;
 
+	check_or_create("data/logs");
+	check_or_create("data/logs/main");
+	check_or_create("data/logs/system");
+	check_or_create("data/logs/camera");
+	check_or_create("data/logs/GPS");
+	check_or_create("data/logs/GSM");
+
 	if (last_state > ACQUIRING_FIX)
 	{
 		struct timeval timer;
@@ -213,7 +220,8 @@ void os::safe_mode()
 			logger->log("Recovery mode");
 
 			logger->log("Initializing GSM...");
-			while ( ! GSM::get_instance().initialize()) GSM::get_instance().turn_off();
+			while ( ! GSM::get_instance().initialize())
+				logger->log("GSM initialization error.");
 			logger->log("GSM initialized");
 			logger->log("Waiting for GSM connectivity...");
 			while ( ! GSM::get_instance().has_connectivity()) this_thread::sleep_for(5s);
