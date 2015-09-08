@@ -3,10 +3,15 @@
 
 #include <iomanip>
 #include <thread>
+#ifdef DEBUG
+	#include <iostream>
+#endif
 
 #include <sys/time.h>
-#include <unistd.h>
-#include <sys/reboot.h>
+#ifndef NO_POWER_OFF
+	#include <unistd.h>
+	#include <sys/reboot.h>
+#endif
 
 #include <wiringPi.h>
 
@@ -18,10 +23,6 @@
 #include "gps/GPS.h"
 #include "camera/Camera.h"
 #include "gsm/GSM.h"
-
-#ifdef DEBUG
-	#include <iostream>
-#endif
 
 namespace os
 {
