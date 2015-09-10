@@ -42,13 +42,9 @@ Camera::~Camera()
 	{
 		this->logger->log("Stopping video recording...");
 		if ( ! this->stop())
-		{
 			this->logger->log("Error soping video recording.");
-		}
 		else
-		{
 			this->logger->log("Video recording stopped.");
-		}
 	}
 	this->logger->log("Shut down finished");
 	delete this->logger;
@@ -171,7 +167,7 @@ bool Camera::stop()
 
 		if ( ! this->is_really_recording())
 		{
-			this->logger->log("Warning: error was already stopped.");
+			this->logger->log("Warning: video was already stopped.");
 			this->recording = false;
 			return true;
 		}
