@@ -149,13 +149,13 @@ bool GSM::send_SMS(const string& message, const string& number)
 
 		this->serial->println(message);
 
-		for (int i = 0; i < std::count(message.begin(), message.end(), '\n'); i++)
+		for (int i = 0; i <= std::count(message.begin(), message.end(), '\n'); i++)
 			this->serial->read_line(); // Eat message echo
 
 		this->serial->println();
 		this->serial->read_line(); // Eat prompt
 		this->serial->write('\x1A');
-		this->serial->read_line(10); // Eat prompt (timeout 10 seconds)
+		this->serial->read_line(60); // Eat prompt (timeout 60 seconds)
 
 		// Read line
 		if (this->serial->read_line().find("+CMGS") == string::npos)
