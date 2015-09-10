@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 #include <sys/time.h>
 
@@ -147,7 +148,10 @@ bool GSM::send_SMS(const string& message, const string& number)
 		}
 
 		this->serial->println(message);
-		this->serial->read_line(); // Eat message echo
+
+		for (int i = 0; i < std::count(message.begin(), message.end(), '\n'); i++)
+			this->serial->read_line(); // Eat message echo
+
 		this->serial->println();
 		this->serial->read_line(); // Eat prompt
 		this->serial->write('\x1A');
@@ -240,6 +244,7 @@ bool GSM::get_location(double& latitude, double& longitude)
 	}
 
 	string response = this->send_command_read("AT+CIPGSMLOC=1,1");
+	this->serial->read_line(); // Eat new line
 	if (response == "ERROR" || this->serial->read_line() != "OK")
 	{
 		this->logger->log("Error getting location on 'AT+CIPGSMLOC=1,1' response.");
