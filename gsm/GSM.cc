@@ -148,17 +148,20 @@ bool GSM::send_SMS(const string& message, const string& number)
 		}
 
 		this->serial->println(message);
+		this->command_logger->log("Sent: '"+message+"'");
 
 		for (int i = 0; i <= std::count(message.begin(), message.end(), '\n'); i++)
-			this->serial->read_line(); // Eat message echo
+			this->command_logger->log("Received: '"+this->serial->read_line()+"'"); // Eat message echo
 
 		this->serial->println();
 		this->serial->read_line(); // Eat prompt
 		this->serial->write('\x1A');
 		this->serial->read_line(60); // Eat prompt (timeout 60 seconds)
 
-		// Read line
-		if (this->serial->read_line().find("+CMGS") == string::npos)
+		// Read +CMGS response
+		response = this->serial->read_line();
+		this->command_logger->log("Received: '"+response+"'");
+		if (response.find("+CMGS") == string::npos)
 		{
 			this->logger->log("Error sending SMS. Could not read '+CMGS'.");
 			this->occupied = false;
@@ -167,7 +170,9 @@ bool GSM::send_SMS(const string& message, const string& number)
 		this->serial->read_line(); // Eat new line
 
 		// Read OK (timeout 10 seconds)
-		if (this->serial->read_line(10) != "OK")
+		string response = this->serial->read_line(10);
+		this->command_logger->log("Received: '"+response+"'");
+		if (response != "OK")
 		{
 			this->logger->log("Error sending SMS. Could not read 'OK'.");
 			this->occupied = false;
