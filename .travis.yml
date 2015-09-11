@@ -1,0 +1,40 @@
+language: cpp
+compiler: gcc
+sudo: required
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - autoconf
+    - automake
+    - m4
+    - gcc-4.9
+    - g++-4.9
+
+before_install:
+  - git submodule update --init --recursive > /dev/null
+  - export CXX="g++-4.9"
+
+install:
+  - "bash -ex ./install-wiringpi.sh"
+
+script:
+  - "bash -ex ./build.sh"
+
+branches:
+  only:
+    - master
+    - develop
+    - /^feature\/.+$/
+    - /^release\/.+$/
+    - /^hotfix\/.+$/
+
+notifications:
+  email:
+    recipients:
+      - iban.eguia@opendeusto.es
+      - eneko.cruz@opendeusto.es
+    on_success: change
+    on_failure: always
