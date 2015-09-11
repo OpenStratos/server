@@ -197,10 +197,7 @@ int os::get_file_count(const string& path)
 	struct dirent *ep;
 	dp = opendir(path.c_str());
 
-	while (ep = readdir(dp))
-	{
-		i++;
-	}
+	while (ep = readdir(dp)) i++;
 	(void) closedir(dp);
 
 	return i-2;
@@ -210,9 +207,8 @@ const string os::generate_exif_data()
 {
 	string exif;
 	while (GPS::get_instance().get_PDOP() > 5)
-	{
 		this_thread::sleep_for(1s);
-	}
+
 	double gps_lat = GPS::get_instance().get_latitude();
 	double gps_lon = GPS::get_instance().get_longitude();
 	double gps_alt = GPS::get_instance().get_altitude();
