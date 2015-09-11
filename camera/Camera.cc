@@ -42,13 +42,9 @@ Camera::~Camera()
 	{
 		this->logger->log("Stopping video recording...");
 		if ( ! this->stop())
-		{
 			this->logger->log("Error soping video recording.");
-		}
 		else
-		{
 			this->logger->log("Video recording stopped.");
-		}
 	}
 	this->logger->log("Shut down finished");
 	delete this->logger;
@@ -171,7 +167,7 @@ bool Camera::stop()
 
 		if ( ! this->is_really_recording())
 		{
-			this->logger->log("Warning: error was already stopped.");
+			this->logger->log("Warning: video was already stopped.");
 			this->recording = false;
 			return true;
 		}
@@ -201,10 +197,7 @@ int os::get_file_count(const string& path)
 	struct dirent *ep;
 	dp = opendir(path.c_str());
 
-	while (ep = readdir(dp))
-	{
-		i++;
-	}
+	while (ep = readdir(dp)) i++;
 	(void) closedir(dp);
 
 	return i-2;
@@ -214,9 +207,8 @@ const string os::generate_exif_data()
 {
 	string exif;
 	while (GPS::get_instance().get_PDOP() > 5)
-	{
 		this_thread::sleep_for(1s);
-	}
+
 	double gps_lat = GPS::get_instance().get_latitude();
 	double gps_lon = GPS::get_instance().get_longitude();
 	double gps_alt = GPS::get_instance().get_altitude();

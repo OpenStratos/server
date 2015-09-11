@@ -48,9 +48,9 @@ namespace os {
 
 	inline State get_real_state()
 	{
-		double start_alt = 0;//GPS::get_instance().get_altitude();
+		double start_alt = GPS::get_instance().get_altitude();
 		this_thread::sleep_for(5s);
-		double end_alt = 0;//GPS::get_instance().get_altitude();
+		double end_alt = GPS::get_instance().get_altitude();
 
 		if (end_alt - start_alt < -10) return set_state(GOING_DOWN);
 		else if (end_alt - start_alt > 5) return set_state(GOING_UP);

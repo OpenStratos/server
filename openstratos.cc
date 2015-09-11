@@ -29,6 +29,11 @@ int main(void)
 		safe_mode();
 	}
 
+	#ifndef NO_POWER_OFF
+		sync();
+		reboot(RB_POWER_OFF);
+	#endif
+
 	return 0;
 }
 
@@ -103,7 +108,14 @@ void os::safe_mode()
 	int count = 0;
 	double latitude = 0, longitude = 0;
 
-	if (last_state > INITIALIZING)
+	check_or_create("data/logs");
+	check_or_create("data/logs/main");
+	check_or_create("data/logs/system");
+	check_or_create("data/logs/camera");
+	check_or_create("data/logs/GPS");
+	check_or_create("data/logs/GSM");
+
+	if (last_state > ACQUIRING_FIX)
 	{
 		struct timeval timer;
 		gettimeofday(&timer, NULL);
@@ -119,7 +131,12 @@ void os::safe_mode()
 		case INITIALIZING:
 		case ACQUIRING_FIX:
 			remove(STATE_FILE);
-			reboot(RB_AUTOBOOT);
+			#ifndef NO_POWER_OFF
+				sync();
+				reboot(RB_AUTOBOOT);
+			#else
+				exit(0);
+			#endif
 		break;
 		case FIX_ACQUIRED: // It could be that the SMS was sent but the state didn't change
 		case WAITING_LAUNCH:
@@ -145,18 +162,30 @@ void os::safe_mode()
 				if (count == 100)
 				{
 					logger->log("Not getting fix. Going to recovery mode.");
-					reboot(RB_AUTOBOOT);
+					delete logger;
+					#ifndef NO_POWER_OFF
+						sync();
+						reboot(RB_AUTOBOOT);
+					#else
+						exit(1);
+					#endif
 				}
 
 				logger->log("GPS fix acquired.");
-				this_thread::sleep_for(10s);
+				this_thread::sleep_for(1min);
 				state = (state == LANDED) ? LANDED : get_real_state();
 
 				logger->log("Initializing GSM...");
 				if ( ! GSM::get_instance().initialize())
 				{
 					logger->log("GSM initialization error. Going to recovery mode.");
-					reboot(RB_AUTOBOOT);
+					delete logger;
+					#ifndef NO_POWER_OFF
+						sync();
+						reboot(RB_AUTOBOOT);
+					#else
+						exit(1);
+					#endif
 				}
 				logger->log("GSM initialized.");
 
@@ -175,7 +204,13 @@ void os::safe_mode()
 			else
 			{
 				logger->log("Error initializing GPS. Going to recovery mode.");
-				reboot(RB_AUTOBOOT);
+				delete logger;
+				#ifndef NO_POWER_OFF
+					sync();
+					reboot(RB_AUTOBOOT);
+				#else
+					exit(1);
+				#endif
 			}
 		break;
 		case SHUT_DOWN:
@@ -184,8 +219,13 @@ void os::safe_mode()
 		case SAFE_MODE:
 			logger->log("Recovery mode");
 
+			logger->log("Initializing WiringPi...");
+			wiringPiSetup();
+			logger->log("WiringPi initialized.");
+
 			logger->log("Initializing GSM...");
-			while ( ! GSM::get_instance().initialize()) GSM::get_instance().turn_off();
+			while ( ! GSM::get_instance().initialize())
+				logger->log("GSM initialization error.");
 			logger->log("GSM initialized");
 			logger->log("Waiting for GSM connectivity...");
 			while ( ! GSM::get_instance().has_connectivity()) this_thread::sleep_for(5s);
@@ -205,7 +245,6 @@ void os::safe_mode()
 			logger->log("Initializing GPS...");
 			while ( ! GPS::get_instance().initialize() && ++count < 5)
 				logger->log("GPS initialization error.");
-				shut_down(logger);
 
 			if (count < 5)
 			{
@@ -222,13 +261,16 @@ void os::safe_mode()
 				}
 
 				logger->log("GPS fix acquired.");
-				this_thread::sleep_for(10s);
+				this_thread::sleep_for(1min);
 				state = (state == LANDED) ? LANDED : get_real_state();
 
 				main_while(logger, &state);
 				shut_down(logger);
 			}
-
+			else
+			{
+				shut_down(logger);
+			}
 	}
 
 	if (logger) delete logger;
@@ -248,6 +290,7 @@ void os::main_while(Logger* logger, State* state)
 		}
 		else if (*state == FIX_ACQUIRED)
 		{
+			this_thread::sleep_for(5min); //
 			start_recording(logger);
 			send_init_sms(logger);
 			*state = set_state(WAITING_LAUNCH);
@@ -262,8 +305,6 @@ void os::main_while(Logger* logger, State* state)
 		else if (*state == GOING_UP)
 		{
 			go_up(logger, launch_altitude);
-			logger->log("Balloon burst.");
-
 			*state = set_state(GOING_DOWN);
 			logger->log("State changed to "+ state_to_string(*state) +".");
 		}
@@ -281,7 +322,12 @@ void os::main_while(Logger* logger, State* state)
 		}
 		else
 		{
-			reboot(RB_AUTOBOOT);
+			#ifndef NO_POWER_OFF
+				sync();
+				reboot(RB_AUTOBOOT);
+			#else
+				exit(1);
+			#endif
 		}
 	}
 }
@@ -294,11 +340,16 @@ void os::initialize(Logger* logger, tm* now)
 	float available_disk_space = get_available_disk_space();
 
 	logger->log("Available disk space: " + to_string(available_disk_space/1073741824) + " GiB");
-	if (available_disk_space < FLIGHT_LENGTH*9437184000) // 1.25 times the flight length
+	if (available_disk_space < (FLIGHT_LENGTH*1.25+0.5)*7549747200)
 	{
 		logger->log("Error: Not enough disk space.");
-		sync();
-		reboot(RB_POWER_OFF);
+
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 
 	logger->log("Disk space enough for about " + to_string(available_disk_space/7549747200) +
@@ -312,8 +363,13 @@ void os::initialize(Logger* logger, tm* now)
 	if ( ! GPS::get_instance().initialize())
 	{
 		logger->log("GPS initialization error.");
-		sync();
-		reboot(RB_POWER_OFF);
+
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 	logger->log("GPS initialized.");
 
@@ -327,14 +383,18 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		sync();
-		reboot(RB_POWER_OFF);
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 	logger->log("GSM initialized.");
 
 	logger->log("Checking batteries...");
 	double main_battery, gsm_battery;
-	if ( ! GSM::get_instance().get_battery_status(main_battery, gsm_battery)
+	if ( ! GSM::get_instance().get_battery_status(main_battery, gsm_battery))
 	{
 		logger->log("Error checking batteries.");
 
@@ -350,8 +410,12 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		sync();
-		reboot(RB_POWER_OFF);
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 
 	logger->log("Batteries checked => Main battery: "+ (main_battery > -1 ? to_string(main_battery*100)+"%" : "disconnected") +
@@ -373,15 +437,18 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		sync();
-		reboot(RB_POWER_OFF);
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 
 	logger->log("Waiting for GSM connectivity...");
 	while ( ! GSM::get_instance().has_connectivity())
-	{
 		this_thread::sleep_for(1s);
-	}
+
 	logger->log("GSM connected.");
 
 	logger->log("Testing camera recording...");
@@ -393,8 +460,13 @@ void os::initialize(Logger* logger, tm* now)
 	if ( ! Camera::get_instance().record(10000))
 	{
 		logger->log("Error starting recording");
-		sync();
-		reboot(RB_POWER_OFF);
+
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 	this_thread::sleep_for(11s);
 	if (file_exists("data/video/test.h264"))
@@ -422,8 +494,12 @@ void os::initialize(Logger* logger, tm* now)
 		else
 			logger->log("Error turning GPS off.");
 
-		sync();
-		reboot(RB_POWER_OFF);
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 }
 
@@ -461,8 +537,12 @@ void os::start_recording(Logger* logger)
 		else
 			logger->log("Error turning GPS off.");
 
-		sync();
-		reboot(RB_POWER_OFF);
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 	logger->log("Recording started.");
 }
@@ -479,12 +559,14 @@ void os::send_init_sms(Logger* logger)
 		logger->log("Error getting battery status.");
 
 	logger->log("Sending initialization SMS...");
-	if ( ! GSM::get_instance().send_SMS("Init: OK\r\n"+
-		(bat_status ? "Main bat: "+to_string(main_battery*100)+"%\r\n"+
-		"GSM bat: "+to_string(gsm_battery*100)+"%\r\n" : "Bat: ERR\r\n")+
-		"Lat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+	if ( ! GSM::get_instance().send_SMS(
+		"Init: OK\r\nAlt: "+ to_string((int) GPS::get_instance().get_altitude()) +
+		" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
 		"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
-		"Fix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +"\r\n"+
+		(bat_status ? "Main bat: "+ to_string((int) main_battery*100) +"%\r\n"+
+			"GSM bat: "+ to_string((int) gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+		"Fix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
+		"Sat: "+ to_string(GPS::get_instance().get_satellites()) +
 		"Waiting Launch", SMS_PHONE))
 	{
 		logger->log("Error sending initialization SMS.");
@@ -511,8 +593,12 @@ void os::send_init_sms(Logger* logger)
 		else
 			logger->log("Error turning GPS off.");
 
-		sync();
-		reboot(RB_POWER_OFF);
+		#ifndef NO_POWER_OFF
+			sync();
+			reboot(RB_POWER_OFF);
+		#else
+			exit(1);
+		#endif
 	}
 	logger->log("Initialization SMS sent.");
 }
@@ -547,12 +633,13 @@ void os::go_up(Logger* logger, double launch_altitude)
 
 	logger->log("Trying to send launch confirmation SMS...");
 	if ( ! GSM::get_instance().send_SMS(
-		"Launched.\r\nAlt: "+ to_string(launch_altitude) +
-		"m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+		"Launch\r\nAlt: "+ to_string((int) launch_altitude) +
+		" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
 		"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
-		(bat_status ? "Main bat: "+ to_string(main_battery*100) +"%\r\n"+
-			"GSM bat: "+ to_string(gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
-		"FIX: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +".", SMS_PHONE))
+		(bat_status ? "Main bat: "+ to_string((int) main_battery*100) +"%\r\n"+
+			"GSM bat: "+ to_string((int) gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+		"Fix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
+		"Sat: "+ to_string(GPS::get_instance().get_satellites()), SMS_PHONE))
 	{
 		logger->log("Error sending launch confirmation SMS.");
 	}
@@ -565,15 +652,15 @@ void os::go_up(Logger* logger, double launch_altitude)
 	double current_altitude = GPS::get_instance().get_altitude();
 
 	#if !defined SIM && !defined REAL_SIM
-		while (current_altitude = GPS::get_instance().get_altitude() < 1500)
+		while (current_altitude = GPS::get_instance().get_altitude() < 1200)
 		{
 			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
 			this_thread::sleep_for(2s);
 		}
 	#else
-		this_thread::sleep_for(225s);
+		this_thread::sleep_for(124s);
 	#endif
-	logger->log("1.5 km mark.");
+	logger->log("1.2 km mark.");
 
 	logger->log("Getting battery values...");
 	if (bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery))
@@ -583,11 +670,13 @@ void os::go_up(Logger* logger, double launch_altitude)
 
 	logger->log("Trying to send \"going up\" SMS...");
 	if ( ! GSM::get_instance().send_SMS(
-		"Alt: > 1.5km\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+		"Alt: "+ to_string((int) GPS::get_instance().get_altitude()) +
+		" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
 		"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
-		(bat_status ? "Main bat: "+ to_string(main_battery*100) +"%\r\n"+
-			"GSM bat: "+ to_string(gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
-		"FIX: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +".", SMS_PHONE))
+		(bat_status ? "Main bat: "+ to_string((int) main_battery*100) +"%\r\n"+
+			"GSM bat: "+ to_string((int) gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+		"Fix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
+		"Sat: "+ to_string(GPS::get_instance().get_satellites()), SMS_PHONE))
 	{
 		logger->log("Error sending \"going up\" SMS.");
 	}
@@ -606,7 +695,7 @@ void os::go_up(Logger* logger, double launch_altitude)
 		this_thread::sleep_for(2min);
 		logger->log("5 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1225s);
+		this_thread::sleep_for(1357s);
 		logger->log("5 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted(maximum_altitude)) &&
@@ -618,11 +707,17 @@ void os::go_up(Logger* logger, double launch_altitude)
 		else return;
 	#endif
 
+	if (get_available_disk_space() < 2000000000)
+	{
+		logger->log("Not enough disk space. Stopping video...");
+		Camera::get_instance().stop();
+	}
+
 	#if defined SIM && !defined REAL_SIM
 		this_thread::sleep_for(2min);
 		logger->log("10 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1750s);
+		this_thread::sleep_for(1786s);
 		logger->log("10 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted(maximum_altitude)) &&
@@ -634,11 +729,17 @@ void os::go_up(Logger* logger, double launch_altitude)
 		else return;
 	#endif
 
+	if (get_available_disk_space() < 2000000000)
+	{
+		logger->log("Not enough disk space. Stopping video...");
+		Camera::get_instance().stop();
+	}
+
 	#if defined SIM && !defined REAL_SIM
 		this_thread::sleep_for(2min);
 		logger->log("15 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1725s);
+		this_thread::sleep_for(1786s);
 		logger->log("15 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted(maximum_altitude)) &&
@@ -650,11 +751,17 @@ void os::go_up(Logger* logger, double launch_altitude)
 		else return;
 	#endif
 
+	if (get_available_disk_space() < 2000000000)
+	{
+		logger->log("Not enough disk space. Stopping video...");
+		Camera::get_instance().stop();
+	}
+
 	#if defined SIM && !defined REAL_SIM
 		this_thread::sleep_for(2min);
 		logger->log("20 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1750s);
+		this_thread::sleep_for(1786s);
 		logger->log("20 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted(maximum_altitude)) &&
@@ -666,11 +773,17 @@ void os::go_up(Logger* logger, double launch_altitude)
 		else return;
 	#endif
 
+	if (get_available_disk_space() < 2000000000)
+	{
+		logger->log("Not enough disk space. Stopping video...");
+		Camera::get_instance().stop();
+	}
+
 	#if defined SIM && !defined REAL_SIM
 		this_thread::sleep_for(2min);
 		logger->log("25 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1750s);
+		this_thread::sleep_for(1786s);
 		logger->log("25 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted(maximum_altitude)) &&
@@ -682,11 +795,17 @@ void os::go_up(Logger* logger, double launch_altitude)
 		else return;
 	#endif
 
+	if (get_available_disk_space() < 2000000000)
+	{
+		logger->log("Not enough disk space. Stopping video...");
+		Camera::get_instance().stop();
+	}
+
 	#if defined SIM && !defined REAL_SIM
 		this_thread::sleep_for(2min);
 		logger->log("30 km mark passed going up.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1725s);
+		this_thread::sleep_for(1786s);
 		logger->log("30 km mark passed going up.");
 	#else
 		while ( ! (bursted = has_bursted(maximum_altitude)) &&
@@ -698,10 +817,16 @@ void os::go_up(Logger* logger, double launch_altitude)
 		else return;
 	#endif
 
+	if (get_available_disk_space() < 2000000000)
+	{
+		logger->log("Not enough disk space. Stopping video...");
+		Camera::get_instance().stop();
+	}
+
 	#if defined SIM && !defined REAL_SIM
 		this_thread::sleep_for(2min);
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1650s);
+		this_thread::sleep_for(1740s);
 	#else
 		while ( ! (bursted = has_bursted(maximum_altitude)) &&
 			(current_altitude = GPS::get_instance().get_altitude()) < 35000)
@@ -713,8 +838,18 @@ void os::go_up(Logger* logger, double launch_altitude)
 	#endif
 
 	while ( ! has_bursted(maximum_altitude))
+	{
 		if ((current_altitude = GPS::get_instance().get_altitude()) > maximum_altitude)
 			maximum_altitude = current_altitude;
+
+		if (get_available_disk_space() < 2000000000)
+		{
+			logger->log("Not enough disk space. Stopping video...");
+			Camera::get_instance().stop();
+		}
+	}
+
+	logger->log("Balloon burst at about "+ to_string((int) maximum_altitude) +" m.");
 }
 
 void os::go_down(Logger* logger)
@@ -724,55 +859,77 @@ void os::go_down(Logger* logger)
 
 	#if defined SIM && !defined REAL_SIM
 		this_thread::sleep_for(1min);
-		logger->log("25 km mark passed going down.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(325s);
-		logger->log("25 km mark passed going down.");
+		this_thread::sleep_for(317s);
 	#else
 		while (GPS::get_instance().get_altitude() > 25000)
+		{
 			this_thread::sleep_for(5s);
-
-		logger->log("25 km mark passed going down.");
+			if (get_available_disk_space() < 2000000000)
+			{
+				logger->log("Not enough disk space. Stopping video...");
+				Camera::get_instance().stop();
+			}
+		}
 	#endif
+
+	logger->log("25 km mark passed going down.");
 
 	#if defined SIM && !defined REAL_SIM
 		this_thread::sleep_for(1min);
-		logger->log("15 km mark passed going down.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(700s);
-		logger->log("15 km mark passed going down.");
+		this_thread::sleep_for(684s);
 	#else
 		while (GPS::get_instance().get_altitude() > 15000)
+		{
 			this_thread::sleep_for(5s);
 
-		logger->log("15 km mark passed going down.");
+			if (get_available_disk_space() < 2000000000)
+			{
+				logger->log("Not enough disk space. Stopping video...");
+				Camera::get_instance().stop();
+			}
+		}
 	#endif
+
+	logger->log("15 km mark passed going down.");
 
 	#if defined SIM && !defined REAL_SIM
 		this_thread::sleep_for(2min);
-		logger->log("5 km mark passed going down.");
 	#elif defined REAL_SIM && !defined SIM
 		this_thread::sleep_for(1450s);
-		logger->log("5 km mark passed going down.");
 	#else
 		while (GPS::get_instance().get_altitude() > 5000)
+		{
 			this_thread::sleep_for(5s);
 
-		logger->log("5 km mark passed going down.");
+			if (get_available_disk_space() < 2000000000)
+			{
+				logger->log("Not enough disk space. Stopping video...");
+				Camera::get_instance().stop();
+			}
+		}
 	#endif
+
+	logger->log("5 km mark passed going down.");
 
 	#if defined SIM && !defined REAL_SIM
 		this_thread::sleep_for(1min);
-		logger->log("2.5 km mark passed going down.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(525s);
-		logger->log("2.5 km mark passed going down.");
+		this_thread::sleep_for(650s);
 	#else
-		while (GPS::get_instance().get_altitude() > 2500)
+		while (GPS::get_instance().get_altitude() > 2000)
+		{
 			this_thread::sleep_for(5s);
 
-		logger->log("2.5 km mark passed going down.");
+			if (get_available_disk_space() < 2000000000)
+			{
+				logger->log("Not enough disk space. Stopping video...");
+				Camera::get_instance().stop();
+			}
+		}
 	#endif
+	logger->log("2 km mark passed going down.");
 
 	logger->log("Turning on GSM...");
 	GSM::get_instance().turn_on();
@@ -787,7 +944,7 @@ void os::go_down(Logger* logger)
 	}
 	if (count == 20)
 	{
-		logger->log("No connectivity, waiting for 1.5 km mark or landing.");
+		logger->log("No connectivity, waiting for 1.2 km mark or landing.");
 	}
 	else
 	{
@@ -801,11 +958,13 @@ void os::go_down(Logger* logger)
 
 		logger->log("Trying to send first SMS...");
 		if ( ! GSM::get_instance().send_SMS(
-				"Alt: < 2.5km\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
-				"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
-				(bat_status ? "Main bat: "+ to_string(main_battery*100) +"%\r\n"+
-					"GSM bat: "+ to_string(gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
-				"FIX: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +".", SMS_PHONE))
+			"Alt: "+ to_string((int) GPS::get_instance().get_altitude()) +
+			" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+			"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
+			(bat_status ? "Main bat: "+ to_string((int) main_battery*100) +"%\r\n"+
+				"GSM bat: "+ to_string((int) gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+			"Fix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
+			"Sat: "+ to_string(GPS::get_instance().get_satellites()), SMS_PHONE))
 		{
 			logger->log("Error sending first SMS.");
 		}
@@ -821,17 +980,23 @@ void os::go_down(Logger* logger)
 
 	#if defined SIM && !defined REAL_SIM
 		this_thread::sleep_for(1min);
-		logger->log("1.5 km mark passed going down.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(225s);
-		logger->log("1.5 km mark passed going down.");
+		this_thread::sleep_for(183s);
 	#else
-		while (GPS::get_instance().get_altitude() > 1500 && ! (landed = has_landed()));
-		if ( ! landed) logger->log("1.5 km mark passed going down.");
+		while (GPS::get_instance().get_altitude() > 1200 && ! (landed = has_landed()))
+		{
+			if (get_available_disk_space() < 2000000000)
+			{
+				logger->log("Not enough disk space. Stopping video...");
+				Camera::get_instance().stop();
+			}
+		}
 	#endif
 
 	if ( ! landed)
 	{
+		logger->log("1.2 km mark passed going down.");
+
 		count = 0;
 		while ( ! GSM::get_instance().has_connectivity())
 		{
@@ -855,11 +1020,13 @@ void os::go_down(Logger* logger)
 
 			logger->log("Trying to send second SMS...");
 			if ( ! GSM::get_instance().send_SMS(
-				"Alt: < 1.5km\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+				"Alt: "+ to_string((int) GPS::get_instance().get_altitude()) +
+				" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
 				"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
-				(bat_status ? "Main bat: "+ to_string(main_battery*100) +"%\r\n"+
-					"GSM bat: "+ to_string(gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
-				"FIX: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +".", SMS_PHONE))
+				(bat_status ? "Main bat: "+ to_string((int) main_battery*100) +"%\r\n"+
+					"GSM bat: "+ to_string((int) gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+				"Fix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
+				"Sat: "+ to_string(GPS::get_instance().get_satellites()), SMS_PHONE))
 			{
 				logger->log("Error sending second SMS.");
 			}
@@ -874,18 +1041,22 @@ void os::go_down(Logger* logger)
 
 	#if defined SIM && !defined REAL_SIM
 		this_thread::sleep_for(1min);
-		logger->log("500 m mark passed going down.");
 	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(175s);
-		logger->log("500 m mark passed going down.");
+		this_thread::sleep_for(117s);
 	#else
-		while (GPS::get_instance().get_altitude() > 500 && ! (landed = has_landed()));
-		if ( ! landed) logger->log("500 m mark passed going down.");
+		while (GPS::get_instance().get_altitude() > 500 && ! (landed = has_landed()))
+		{
+			if (get_available_disk_space() < 2000000000)
+			{
+				logger->log("Not enough disk space. Stopping video...");
+				Camera::get_instance().stop();
+			}
+		}
 	#endif
 
 	if ( ! landed)
 	{
-		logger->log("500 m mark.");
+		logger->log("500 m mark passed going down.");
 
 		count = 0;
 		while ( ! GSM::get_instance().has_connectivity())
@@ -911,11 +1082,13 @@ void os::go_down(Logger* logger)
 
 			logger->log("Trying to send third SMS...");
 			if ( ! GSM::get_instance().send_SMS(
-				"Alt: < 500m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+				"Alt: "+ to_string((int) GPS::get_instance().get_altitude()) +
+				" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
 				"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
-				(bat_status ? "Main bat: "+ to_string(main_battery*100) +"%\r\n"+
-					"GSM bat: "+ to_string(gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
-				"FIX: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +".", SMS_PHONE))
+				(bat_status ? "Main bat: "+ to_string((int) main_battery*100) +"%\r\n"+
+					"GSM bat: "+ to_string((int) gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+				"Fix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
+				"Sat: "+ to_string(GPS::get_instance().get_satellites()), SMS_PHONE))
 			{
 				logger->log("Error sending third SMS.");
 			}
@@ -926,7 +1099,14 @@ void os::go_down(Logger* logger)
 		}
 	}
 
-	while ( ! has_landed());
+	while ( ! has_landed())
+	{
+		if (get_available_disk_space() < 2000000000)
+		{
+			logger->log("Not enough disk space. Stopping video...");
+			Camera::get_instance().stop();
+		}
+	}
 	logger->log("Landed.");
 }
 
@@ -952,11 +1132,13 @@ void os::land(Logger* logger)
 
 	logger->log("Sending landed SMS...");
 	if ( ! GSM::get_instance().send_SMS(
-				"Landed.\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
-				"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
-				(bat_status ? "Main bat: "+ to_string(main_battery*100) +"%\r\n"+
-					"GSM bat: "+ to_string(gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
-				"FIX: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +".", SMS_PHONE))
+		"Landed\r\nAlt: "+ to_string((int) GPS::get_instance().get_altitude()) +
+		" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+		"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
+		(bat_status ? "Main bat: "+ to_string((int) main_battery*100) +"%\r\n"+
+			"GSM bat: "+ to_string((int) gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+		"Fix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
+		"Sat: "+ to_string(GPS::get_instance().get_satellites()), SMS_PHONE))
 	{
 		logger->log("Error sending landed SMS. Trying again in 10 minutes...");
 	}
@@ -969,12 +1151,14 @@ void os::land(Logger* logger)
 
 	logger->log("Sending second landed SMS...");
 	while ( ! GSM::get_instance().send_SMS(
-				"Landed.\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
-				"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
-				(bat_status ? "Main bat: "+ to_string(main_battery*100) +"%\r\n"+
-					"GSM bat: "+ to_string(gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
-				"FIX: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +".", SMS_PHONE) ||
-				! GPS::get_instance().is_fixed() &&
+		"Landed\r\nAlt: "+ to_string((int) GPS::get_instance().get_altitude()) +
+		" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+		"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
+		(bat_status ? "Main bat: "+ to_string((int) main_battery*100) +"%\r\n"+
+			"GSM bat: "+ to_string((int) gsm_battery*100) +"%\r\n" : "Bat: ERR\r\n") +
+		"Fix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
+		"Sat: "+ to_string(GPS::get_instance().get_satellites()), SMS_PHONE) ||
+		! GPS::get_instance().is_fixed() &&
 		(main_battery >= 0 || main_battery < -1) && gsm_battery >= 0)
 	{
 		logger->log("Error sending second SMS or GPS without fix, trying again in 5 minutes.");
@@ -1011,6 +1195,4 @@ void os::shut_down(Logger* logger)
 		logger->log("Error turning GPS off.");
 
 	logger->log("Powering off...");
-	sync();
-	reboot(RB_POWER_OFF);
 }

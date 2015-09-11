@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 #include <sys/time.h>
 
@@ -71,8 +72,6 @@ bool GSM::initialize()
 
 	this->logger->log("Turning module on...");
 	this->turn_on();
-	this->logger->log("Module on. Sleeping 3 seconds to let it turn completely on...");
-	this_thread::sleep_for(3s);
 	if (this->get_status())
 	{
 		this->logger->log("Status checked. Module is on.");
@@ -82,6 +81,8 @@ bool GSM::initialize()
 		this->logger->log("Error: Status checked. Module is off. Finishing initialization.");
 		return false;
 	}
+	this->logger->log("Sleeping 3 seconds to let it turn completely on...");
+	this_thread::sleep_for(3s);
 
 	this->occupied = true;
 	this->logger->log("Starting serial connection...");
@@ -124,7 +125,7 @@ bool GSM::send_SMS(const string& message, const string& number)
 	while (this->occupied) this_thread::sleep_for(10ms);
 	this->occupied = true;
 
-	this->logger->log("Sending SMS: \""+message+"\" to number "+number+".");
+	this->logger->log("Sending SMS: \""+message+"\" ("+ to_string(message.length()) +" characters) to number "+number+".");
 	if (message.length() > 160)
 	{
 		this->logger->log("Error: SMS has more than 10 characters");
@@ -147,14 +148,20 @@ bool GSM::send_SMS(const string& message, const string& number)
 		}
 
 		this->serial->println(message);
-		this->serial->read_line(); // Eat message echo
+		this->command_logger->log("Sent: '"+message+"'");
+
+		for (int i = 0; i <= std::count(message.begin(), message.end(), '\n'); i++)
+			this->command_logger->log("Received: '"+this->serial->read_line()+"'"); // Eat message echo
+
 		this->serial->println();
 		this->serial->read_line(); // Eat prompt
 		this->serial->write('\x1A');
-		this->serial->read_line(10); // Eat prompt (timeout 10 seconds)
+		this->serial->read_line(60); // Eat prompt (timeout 60 seconds)
 
-		// Read line
-		if (this->serial->read_line().find("+CMGS") == string::npos)
+		// Read +CMGS response
+		response = this->serial->read_line();
+		this->command_logger->log("Received: '"+response+"'");
+		if (response.find("+CMGS") == string::npos)
 		{
 			this->logger->log("Error sending SMS. Could not read '+CMGS'.");
 			this->occupied = false;
@@ -163,7 +170,9 @@ bool GSM::send_SMS(const string& message, const string& number)
 		this->serial->read_line(); // Eat new line
 
 		// Read OK (timeout 10 seconds)
-		if (this->serial->read_line(10) != "OK")
+		string response = this->serial->read_line(10);
+		this->command_logger->log("Received: '"+response+"'");
+		if (response != "OK")
 		{
 			this->logger->log("Error sending SMS. Could not read 'OK'.");
 			this->occupied = false;
@@ -240,6 +249,7 @@ bool GSM::get_location(double& latitude, double& longitude)
 	}
 
 	string response = this->send_command_read("AT+CIPGSMLOC=1,1");
+	this->serial->read_line(); // Eat new line
 	if (response == "ERROR" || this->serial->read_line() != "OK")
 	{
 		this->logger->log("Error getting location on 'AT+CIPGSMLOC=1,1' response.");
