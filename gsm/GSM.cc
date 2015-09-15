@@ -237,9 +237,13 @@ bool GSM::get_location(double& latitude, double& longitude)
 	}
 
 	this->serial->println("AT+SAPBR=1,1");
-	this->serial->read_line(5); // Eat message echo
+	this->command_logger->log("Sent: 'AT+SAPBR=1,1'");
+	this->serial->read_line(2); // Eat message echo
 
-	if (this->serial->read_line(5) != "OK")
+	string response = this->serial->read_line();
+	this->command_logger->log("Received: '"+ response +"'");
+
+	if (response != "OK")
 	{
 		this->logger->log("Error getting location on 'AT+SAPBR=1,1' response.");
 		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
@@ -253,9 +257,23 @@ bool GSM::get_location(double& latitude, double& longitude)
 
 	this->serial->println("AT+CIPGSMLOC=1,1");
 	this->serial->read_line(10); // Eat message echo
-	string response = this->serial->read_line(10);
-	this->serial->read_line(10); // Eat new line
-	if (response == "ERROR" || this->serial->read_line(10) != "OK")
+	response = this->serial->read_line();
+	this->command_logger->log("Received: '"+ response +"'");
+
+	stringstream ss(response);
+	string data;
+	vector<string> s_data;
+
+	// We put all fields in a vector
+	while(getline(ss, data, ',')) s_data.push_back(data);
+
+	latitude = stod(s_data[2]);
+	longitude = stod(s_data[1]);
+
+	this->serial->read_line(); // Eat new line
+	response = this->serial->read_line();
+	this->command_logger->log("Received: '"+ response +"'");
+	if (response == "ERROR" || response != "OK")
 	{
 		this->logger->log("Error getting location on 'AT+CIPGSMLOC=1,1' response.");
 		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
@@ -268,25 +286,15 @@ bool GSM::get_location(double& latitude, double& longitude)
 	}
 
 	this->serial->println("AT+SAPBR=0,1");
-	this->serial->read_line(5); // Eat message echo
-
-	if (this->serial->read_line(5) != "OK")
+	this->serial->read_line(2); // Eat message echo
+	response = this->serial->read_line();
+	this->command_logger->log("Received: '"+ response +"'");
+	if (response != "OK")
 		this->logger->log("Error turning GPRS down.");
 	else
 		this->logger->log("GPRS off.");
 
 	this->occupied = false;
-
-	stringstream ss(response);
-	string data;
-	vector<string> s_data;
-
-	// We put all fields in a vector
-	while(getline(ss, data, ',')) s_data.push_back(data);
-
-	latitude = stod(s_data[2]);
-	longitude = stod(s_data[1]);
-
 	return true;
 }
 
