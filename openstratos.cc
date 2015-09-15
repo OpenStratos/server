@@ -1150,7 +1150,7 @@ void os::land(Logger* logger)
 	this_thread::sleep_for(10min);
 
 	logger->log("Sending second landed SMS...");
-	while ( ! GSM::get_instance().send_SMS(
+	while (( ! GSM::get_instance().send_SMS(
 		"Landed\r\nAlt: "+ to_string((int) GPS::get_instance().get_altitude()) +
 		" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
 		"Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
@@ -1158,7 +1158,7 @@ void os::land(Logger* logger)
 			"GSM bat: "+ to_string((int) (gsm_battery*100)) +"%\r\n" : "Bat: ERR\r\n") +
 		"Fix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
 		"Sat: "+ to_string(GPS::get_instance().get_satellites()), SMS_PHONE) ||
-		! GPS::get_instance().is_fixed() &&
+		! GPS::get_instance().is_fixed()) &&
 		(main_battery >= 0 || main_battery < -1) && gsm_battery >= 0)
 	{
 		logger->log("Error sending second SMS or GPS without fix, trying again in 5 minutes.");
