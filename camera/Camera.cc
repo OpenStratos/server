@@ -1,7 +1,6 @@
 #include "camera/Camera.h"
 
 #include <cstdlib>
-#include <cstdio>
 
 #include <string>
 #include <thread>
@@ -181,13 +180,7 @@ bool Camera::stop()
 
 bool Camera::is_really_recording() const
 {
-	FILE* process = popen("pgrep raspivid", "r");
-	char response[5];
-	fgets(response, 5, process);
-	pclose(process);
-
-	if (process == NULL) this->logger->log("Error checking if raspivid is really recording");
-	return (process != NULL && response != NULL);
+	return (0 == system("pidof -x raspivid > /dev/null"));
 }
 
 int os::get_file_count(const string& path)
