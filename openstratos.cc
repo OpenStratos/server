@@ -243,6 +243,7 @@ void os::safe_mode()
 			logger->log("Mayday messages sent.");
 
 			logger->log("Initializing GPS...");
+			count = 0;
 			while ( ! GPS::get_instance().initialize() && ++count < 5)
 				logger->log("GPS initialization error.");
 
