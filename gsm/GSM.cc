@@ -236,7 +236,10 @@ bool GSM::get_location(double& latitude, double& longitude)
 		return false;
 	}
 
-	if (this->send_command_read("AT+SAPBR=1,1") != "OK")
+	this->serial->println("AT+SAPBR=1,1");
+	this->serial->read_line(5); // Eat message echo
+
+	if (this->serial->read_line(5) != "OK")
 	{
 		this->logger->log("Error getting location on 'AT+SAPBR=1,1' response.");
 		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
@@ -248,9 +251,11 @@ bool GSM::get_location(double& latitude, double& longitude)
 		return false;
 	}
 
-	string response = this->send_command_read("AT+CIPGSMLOC=1,1");
-	this->serial->read_line(); // Eat new line
-	if (response == "ERROR" || this->serial->read_line() != "OK")
+	this->serial->println("AT+CIPGSMLOC=1,1");
+	this->serial->read_line(10); // Eat message echo
+	string response = this->serial->read_line(10);
+	this->serial->read_line(10); // Eat new line
+	if (response == "ERROR" || this->serial->read_line(10) != "OK")
 	{
 		this->logger->log("Error getting location on 'AT+CIPGSMLOC=1,1' response.");
 		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
@@ -262,7 +267,10 @@ bool GSM::get_location(double& latitude, double& longitude)
 		return false;
 	}
 
-	if (this->send_command_read("AT+SAPBR=0,1") != "OK")
+	this->serial->println("AT+SAPBR=0,1");
+	this->serial->read_line(5); // Eat message echo
+
+	if (this->serial->read_line(5) != "OK")
 		this->logger->log("Error turning GPRS down.");
 	else
 		this->logger->log("GPRS off.");
@@ -383,19 +391,6 @@ bool GSM::turn_off() const
 		this->logger->log("Error: Turning off GSM but GSM already off.");
 		return false;
 	}
-}
-
-bool GSM::init_GPRS() const
-{
-	return (this->send_command_read("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"") == "OK" &&
-		this->send_command_read("AT+SAPBR=3,1,\"APN\",\"" + string(GSM_LOC_SERV) + ";") == "OK" &&
-		this->send_command_read("AT+SAPBR=1,1") == "OK" &
-		this->send_command_read("AT+SAPBR=2,1") == "OK");
-}
-
-bool GSM::tear_down_GPRS() const
-{
-	return this->send_command_read("AT+SAPBR=0,1") == "OK";
 }
 
 const string GSM::send_command_read(const string& command) const
