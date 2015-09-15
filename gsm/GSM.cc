@@ -159,7 +159,7 @@ bool GSM::send_SMS(const string& message, const string& number)
 		this->serial->read_line(60); // Eat prompt (timeout 60 seconds)
 
 		// Read +CMGS response
-		response = this->serial->read_line();
+		string response = this->serial->read_line();
 		this->command_logger->log("Received: '"+response+"'");
 		if (response.find("+CMGS") == string::npos)
 		{
@@ -170,7 +170,7 @@ bool GSM::send_SMS(const string& message, const string& number)
 		this->serial->read_line(); // Eat new line
 
 		// Read OK (timeout 10 seconds)
-		string response = this->serial->read_line(10);
+		response = this->serial->read_line(10);
 		this->command_logger->log("Received: '"+response+"'");
 		if (response != "OK")
 		{
