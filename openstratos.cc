@@ -397,7 +397,8 @@ void os::initialize(Logger* logger, tm* now)
 
 	logger->log("Checking batteries...");
 	double main_battery, gsm_battery;
-	if ( ! GSM::get_instance().get_battery_status(main_battery, gsm_battery))
+	if ( ! GSM::get_instance().get_battery_status(main_battery, gsm_battery) &&
+		 ! GSM::get_instance().get_battery_status(main_battery, gsm_battery))
 	{
 		logger->log("Error checking batteries.");
 
