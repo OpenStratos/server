@@ -291,7 +291,9 @@ void os::main_while(Logger* logger, State* state)
 		}
 		else if (*state == FIX_ACQUIRED)
 		{
-			this_thread::sleep_for(5min); //
+			logger->log("Sleeping 2 minutes for fix stabilization.")
+			this_thread::sleep_for(2min);
+
 			start_recording(logger);
 			send_init_sms(logger);
 			*state = set_state(WAITING_LAUNCH);
@@ -422,7 +424,7 @@ void os::initialize(Logger* logger, tm* now)
 	logger->log("Batteries checked => Main battery: "+ (main_battery > -1 ? to_string(main_battery*100)+"%" : "disconnected") +
 		" - GSM battery: "+ to_string(gsm_battery*100) +"%");
 
-	if ((main_battery < 0.95  && main_battery > -1) || gsm_battery < 0.95)
+	if ((main_battery < 0.9  && main_battery > -1) || gsm_battery < 0.85)
 	{
 		logger->log("Error: Not enough battery.");
 
@@ -612,7 +614,7 @@ void os::wait_launch(Logger* logger, double& launch_altitude)
 		this_thread::sleep_for(2min);
 	#endif
 	#ifdef REAL_SIM
-		this_thread::sleep_for(20min);
+		this_thread::sleep_for(10min);
 	#endif
 
 	while ( ! has_launched(launch_altitude))
