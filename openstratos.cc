@@ -680,7 +680,16 @@ void os::go_up(Logger* logger, double launch_altitude)
 		(bat_status ? "Main bat: "+ to_string((int) (main_battery*100)) +"%\r\n"+
 			"GSM bat: "+ to_string((int) (gsm_battery*100)) +"%\r\n" : "Bat: ERR\r\n") +
 		"Fix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
-		"\r\nSat: "+ to_string(GPS::get_instance().get_satellites()), SMS_PHONE))
+		"\r\nSat: "+ to_string(GPS::get_instance().get_satellites()), SMS_PHONE) &&
+		// Second attempt
+		! GSM::get_instance().send_SMS(
+		   "Alt: "+ to_string((int) GPS::get_instance().get_altitude()) +
+		   " m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
+		   "Lon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
+		   (bat_status ? "Main bat: "+ to_string((int) (main_battery*100)) +"%\r\n"+
+			   "GSM bat: "+ to_string((int) (gsm_battery*100)) +"%\r\n" : "Bat: ERR\r\n") +
+		   "Fix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
+		   "\r\nSat: "+ to_string(GPS::get_instance().get_satellites()), SMS_PHONE))
 	{
 		logger->log("Error sending \"going up\" SMS.");
 	}
