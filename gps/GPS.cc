@@ -198,7 +198,7 @@ bool GPS::is_valid(string frame)
 
 void GPS::parse(const string& frame)
 {
-	if (frame.length() > 1)
+	if (frame.length() > 1 && is_valid(frame))
 	{
 		this->frame_logger->log(frame);
 		string frame_type = frame.substr(1, frame.find_first_of(',')-1);

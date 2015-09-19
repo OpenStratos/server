@@ -291,8 +291,8 @@ void os::main_while(Logger* logger, State* state)
 		}
 		else if (*state == FIX_ACQUIRED)
 		{
-			logger->log("Sleeping 2 minutes for fix stabilization.");
 			this_thread::sleep_for(2min);
+			logger->log("Sleeping 2 minutes for fix stabilization.");
 
 			start_recording(logger);
 			send_init_sms(logger);
