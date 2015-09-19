@@ -1138,7 +1138,8 @@ void os::land(Logger* logger)
 	bool bat_status = false;
 
 	logger->log("Getting battery values...");
-	if (bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery))
+	if (bat_status = (GSM::get_instance().get_battery_status(main_battery, gsm_battery) ||
+						GSM::get_instance().get_battery_status(main_battery, gsm_battery)))
 		logger->log("Battery status received.");
 	else
 		logger->log("Error getting battery status.");
@@ -1161,6 +1162,13 @@ void os::land(Logger* logger)
 	}
 
 	this_thread::sleep_for(10min);
+
+	logger->log("Getting battery values...");
+	if (bat_status = (GSM::get_instance().get_battery_status(main_battery, gsm_battery) ||
+						GSM::get_instance().get_battery_status(main_battery, gsm_battery)))
+		logger->log("Battery status received.");
+	else
+		logger->log("Error getting battery status.");
 
 	logger->log("Sending second landed SMS...");
 	while (( ! GSM::get_instance().send_SMS(
