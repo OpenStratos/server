@@ -8,6 +8,7 @@ echo "[`date`] Starting OpenStratos..." >> /root/control.log
 sleep 5
 
 while true; do
-	(pgrep procname && sleep 60) ||
-	(echo "[`date`] Process not running, restarting..." >> /root/control.log; shutdown -r now)
+	(pgrep openstratos && sleep 60) ||
+	(echo "[`date`] Process not running, restarting..." >> /root/control.log;
+		shutdown -r now; sleep 5)
 done
