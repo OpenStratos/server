@@ -11,7 +11,7 @@ int main(void)
 			cout << "[OpenStratos] Realistic simulation." << endl;
 		#endif
 
-+		cout << "[OpenStratos] Starting " << PACKAGE_STRING << "..." << endl;
+		cout << "[OpenStratos] Starting " << PACKAGE_STRING << "..." << endl;
 	#endif
 
 	if ( ! file_exists(STATE_FILE))
@@ -45,8 +45,8 @@ void os::main_logic()
 
 	#ifdef DEBUG
 		cout << "[OpenStratos] Current time: " << setfill('0') << setw(2) << now->tm_hour << ":" <<
-			setfill('0') << setw(2) << now->tm_min << ":" << setfill('0') << setw(2) << now->tm_sec <<
-			" UTC of " << setfill('0') << setw(2) << now->tm_mon << "/" <<
+			setfill('0') << setw(2) << now->tm_min << ":" << setfill('0') << setw(2) << now->tm_sec
+			<< " UTC of " << setfill('0') << setw(2) << now->tm_mon << "/" <<
 			setfill('0') << setw(2) << now->tm_mday << "/" << (now->tm_year+1900) << endl;
 	#endif
 
@@ -124,10 +124,10 @@ void os::safe_mode()
 		struct tm* now = gmtime(&timer.tv_sec);
 
 		logger = new Logger("data/logs/main/OpenStratos."+ to_string(now->tm_year+1900) +"-"+
-			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
-			to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "OpenStratos");
+			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour)
+			+"-"+ to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "OpenStratos");
 
-		logger.log(PACKAGE_STRING);
+		logger->log(PACKAGE_STRING);
 	}
 
 	switch (last_state)
