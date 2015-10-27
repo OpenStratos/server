@@ -1,18 +1,20 @@
 #include <thread>
-#include <chrono>
+
+#include <sys/stat.h>
 
 #include <bandit/bandit.h>
 
-#include "serial/Serial.h"
+#include "config.h"
+#include "constants.h"
+
 #include "camera/Camera.h"
-#include "temperature/Temperature.h"
 #include "gps/GPS.h"
-#include "battery/Battery.h"
 
 using namespace bandit;
 using namespace os;
 using namespace std;
 
+inline bool file_exists(const string& name);
 
 int main(int argc, char* argv[])
 {
@@ -20,11 +22,30 @@ int main(int argc, char* argv[])
 }
 
 go_bandit([](){
+	if ( ! file_exists("data"))
+		mkdir("data", 0755);
 
-	#include "core_test.cc"
+	if ( ! file_exists("data/logs"))
+	{
+		mkdir("data/logs", 0755);
+		mkdir("data/logs/main", 0755);
+		mkdir("data/logs/camera", 0755);
+		mkdir("data/logs/GPS", 0755);
+		mkdir("data/logs/GSM", 0755);
+	}
+
+	if ( ! file_exists("data/video"))
+		mkdir("data/video", 0755);
+
+	if ( ! file_exists("data/img"))
+		mkdir("data/img", 0755);
+
 	#include "camera_test.cc"
-	#include "serial_test.cc"
 	#include "gps_test.cc"
-	#include "temperature_test.cc"
-	#include "battery_test.cc"
 });
+
+inline bool file_exists(const string& name)
+{
+	struct stat buffer;
+	return stat(name.c_str(), &buffer) == 0;
+}

@@ -2,4 +2,122 @@
 
 [![Build Status](https://travis-ci.org/OpenStratos/server.svg?branch=develop)](https://travis-ci.org/OpenStratos/server)
 
-Server implemented in C++11. It will be in charge of the management of the balloon.
+Server implemented in C++14. It will be in charge of the management of the balloon. It will
+communicate via SMS to the provided phone. It will initialize all needed components, track and log
+position and software messages, detect launch, burst and landing and send the landing position via
+SMS.
+
+## Requirements ##
+
+The software needs a working instalation of WiringPi and a RaspiCam for the tests. It will perform
+some basic tests if no Raspberry Pi is being used. It works with Adafruit Fona module, even though
+it should work with other GSM modules. It also uses the Adafruit Ultimate GPS module. The following
+software is needed to compile OpenStratos (apart from the WiringPi library):
+
+* build-essential
+* g++
+* m4
+* automake
+* autoconf
+
+## Compiling ##
+
+For compilation, a *build.sh* script is provided, that should be run as is. It will compile the
+tests of OpenStratos and run them. After that, the main program can be compiled using ```make```.
+Optional configuration arguments can be passed. The first optional configuration argument is the
+*NO_SMS* flag. This prevents actual SMSs being sent, even if they are simulated. This way no charges
+will be applied. For using this argument the directory should be cleaned with ```make clean``` and
+then pass the *NO_SMS* flag to the configure script:
+
+```
+./configure CPPFLAGS="-DNO_SMS"
+```
+
+After that the usual ```make``` will compile the software. Note that the test do not send SMSs. The software itself comes with two built-in simulation modes:
+
+### Normal Simulation ###
+
+In this mode, a simple simulation is made, with a length of about 45 minutes. It will run through
+all the main stages of the program. For using this mode the directory should be cleaned with
+```make clean``` and then pass the *SIM* flag to the configure script:
+
+```
+./configure CPPFLAGS="-DSIM"
+```
+
+It can be combined with the *NO_SMS* flag:
+
+```
+./configure CPPFLAGS="-DSIM -DNO_SMS"
+```
+
+After that, the software can be compiled using ```make```.
+
+### Realistic Simulation ###
+
+In this mode, a complete realistic simulation is made, that will last for about 5 hours. It will
+realistically simulate the times in a 35 km height balloon. It will be similar to the normal
+simulation, the only change will be in the timing. For using this mode the directory should be
+cleaned with ```make clean``` and then pass the *REAL_SIM* flag to the configure script:
+
+```
+./configure CPPFLAGS="-DREAL_SIM"
+```
+
+It can be combined with the *NO_SMS* flag:
+
+```
+./configure CPPFLAGS="-DREAL_SIM -DNO_SMS"
+```
+
+After that, the software can be compiled using ```make```. The result of combining the two
+simulation flags is undetermined. They should not be combined.
+
+### Debug Mode ###
+
+The software has a small debug mode, that prints from *stdio* some logs that occur before the log
+file is created. It also enables serial logging, that will log everything that happens in the
+serial. This has a moderate overhead and should not be used in production. GSM and GPS loggers log everythong they send and receive. This is only needed to debug if something goes wrong with the
+serial. For using this mode the directory should be cleaned with ```make clean``` and then pass the
+*DEBUG* flag to the configure script:
+
+```
+./configure CPPFLAGS="-DDEBUG"
+```
+
+It can be combined with the *NO_SMS* flag or/and one of the simulation flags:
+
+```
+./configure CPPFLAGS="-DREAL_SIM -DNO_SMS -DDEBUG"
+./configure CPPFLAGS="-DSIM -DDEBUG"
+./configure CPPFLAGS="-DNO_SMS -DDEBUG"
+```
+
+### No power off mode ###
+
+For some testing there is no need to reboot or shut down the system in failures. For this, the
+software provides the no power off mode, that will prevent the software from shutting the
+Raspberry Pi down. For using this mode the directory should be cleaned with ```make clean``` and
+then pass the *NO_POWER_OFF* flag to the configure script:
+
+```
+./configure CPPFLAGS="-DNO_POWER_OFF"
+```
+
+It can be combined with the *NO_SMS* flag, the *DEBUG* flag or/and one of the simulation flags:
+
+```
+./configure CPPFLAGS="-DREAL_SIM -DNO_SMS -DDEBUG -DNO_POWER_OFF"
+./configure CPPFLAGS="-DSIM -DDEBUG -DNO_POWER_OFF"
+./configure CPPFLAGS="-DNO_SMS -DDEBUG -DNO_POWER_OFF"
+
+## License ##
+
+This software is licensed under the GNU General Public License version 3. You can use, copy, modify
+the software as long as all the derivative work is published under the same license. A copy of the license can be found in the *[COPYING](COPYING)* file of the repository where a detailed explanation
+of the copying rights can be found.
+
+## Contributing guidelines ##
+
+The guidelines to contribute to this repository can be found in the
+[contribution guidelines](contributing.md) file of the repository.

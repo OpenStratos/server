@@ -3,5 +3,5 @@
 printf "Installing WiringPi\n"
 git clone https://github.com/OpenStratos/WiringPi.git > /dev/null
 cd WiringPi
-./build > /dev/null
+sudo ./build > /dev/null
 cd ..
