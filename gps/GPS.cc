@@ -1,12 +1,20 @@
 #include "gps/GPS.h"
+#include "constants.h"
 
 #include <functional>
 #include <vector>
 #include <sstream>
 #include <string>
+#include <regex>
+#include <thread>
+
+#include <sys/time.h>
+
+#include <wiringPi.h>
 
 #include "constants.h"
 #include "serial/Serial.h"
+#include "logger/Logger.h"
 
 
 using namespace std;
@@ -20,37 +28,194 @@ GPS& GPS::get_instance()
 
 GPS::~GPS()
 {
-	this->serial.close();
+	if ( ! this->stopped)
+	{
+		this->logger->log("Stopping GPS thread...");
+		this->should_stop = true;
+		while ( ! this->stopped) this_thread::sleep_for(1ms);
+		this->logger->log("GPS thread stopped");
+	}
+
+	if (this->serial->is_open())
+	{
+		this->logger->log("Closing serial interface...");
+		this->serial->close();
+		this->logger->log("Serial interface closed.");
+		this->logger->log("Deallocating serial...");
+		delete this->serial;
+		this->logger->log("Serial deallocated");
+
+		this->logger->log("Deallocating frame logger...");
+		delete this->frame_logger;
+		this->logger->log("Frame logger deallocated");
+	}
+	this->logger->log("Turning off GPS...");
+	this->turn_off();
+	this->logger->log("GPS off.");
+	delete this->logger;
 }
 
-void GPS::initialize(const string& serial_URL)
+bool GPS::initialize()
 {
-	this->serial.initialize(serial_URL, 9600, "\r\n", bind(&GPS::parse, this, placeholders::_1));
+	struct timeval timer;
+	gettimeofday(&timer, NULL);
+	struct tm * now = gmtime(&timer.tv_sec);
+
+	this->logger = new Logger("data/logs/GPS/GPS."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
+		to_string(now->tm_sec) +".log", "GPS");
+
+	this->frame_logger = new Logger("data/logs/GPS/GPSFrames."+ to_string(now->tm_year+1900) +"-"+
+		to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
+		to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "GPSFrame");
+
+	this->should_stop = false;
+	this->stopped = true;
 
 	#ifndef OS_TESTING
-		this->serial.send_frame("$PMTK220,100*2F");
-		this->serial.send_frame("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+		pinMode(GPS_ENABLE_GPIO, OUTPUT);
+
+		this->logger->log("Turning GPS on...");
+		this->turn_on();
+		this->logger->log("GPS on.");
 	#endif
+
+	this->logger->log("Starting serial connection...");
+	this->serial = new Serial(GPS_UART, GPS_BAUDRATE, "GPS");
+	if ( ! this->serial->is_open()) {
+		this->logger->log("GPS serial error.");
+		return false;
+	}
+	this->logger->log("Serial connection started.");
+
+	this->logger->log("Starting GPS frame thread...");
+	thread t(&GPS::gps_thread, this);
+	t.detach();
+	this->logger->log("GPS frame thread running.");
+
+	#ifndef OS_TESTING
+		this->logger->log("Sending configuration frames...");
+		this->serial->println("$PMTK220,100*2F");
+		this->frame_logger->log("Sent: $PMTK220,100*2F");
+		this->serial->println("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+		this->frame_logger->log("Sent: $PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+		this->logger->log("Configuration frames sent.");
+	#endif
+
+	return true;
 }
 
-uint_fast8_t GPS::parse(const string& frame)
+bool GPS::turn_on() const
 {
-	string frame_type = frame.substr(1, frame.find_first_of(',')-1);
+	if (digitalRead(GPS_ENABLE_GPIO) == LOW)
+	{
+		digitalWrite(GPS_ENABLE_GPIO, HIGH);
+		return true;
+	}
+	else
+	{
+		this->logger->log("Error: Turning on GPS but GPS already on.");
+		return false;
+	}
+}
 
-	if (frame_type == "GPGGA")
+bool GPS::turn_off() const
+{
+	if (digitalRead(GPS_ENABLE_GPIO) == HIGH)
 	{
-		this->parse_GGA(frame);
+		digitalWrite(GPS_ENABLE_GPIO, LOW);
+		return true;
 	}
-	else if (frame_type == "GPGSA")
+	else
 	{
-		this->parse_GSA(frame);
+		this->logger->log("Error: Turning off GPS but GPS already off.");
+		return false;
 	}
-	else if (frame_type == "GPRMC")
-	{
-		this->parse_RMC(frame);
-	}
+}
 
-	return ERR_OK;
+void GPS::gps_thread()
+{
+	this->stopped = false;
+	string response;
+
+	while( ! this->should_stop)
+	{
+		#ifndef OS_TESTING
+			int available = this->serial->available();
+
+			if (available > 0)
+			{
+				for (int i = 0; i < available; i++)
+				{
+					char c = this->serial->read_char();
+					response += c;
+					if (response[response.length()-2] == '\r' && c == '\n')
+					{
+						response = response.substr(0, response.length()-2);
+
+						if (response.at(0) == '$')
+						{
+							this->parse(response);
+						}
+						response = "";
+						this_thread::sleep_for(50ms);
+					}
+				}
+			}
+			else if (available == 0)
+			{
+				this_thread::sleep_for(50ms);
+			}
+			else if (available < 0)
+			{
+				this->logger->log("Error: Serial available < 0.");
+			}
+		#else
+			this_thread::sleep_for(50ms);
+		#endif
+	}
+	this->logger->log("Should-stop flag noticed.");
+	this->stopped = true;
+}
+
+bool GPS::is_valid(string frame)
+{
+	regex frame_regex("\\$[A-Z][0-9A-Z\\.,-]*\\*[0-9A-F]{1,2}");
+	if ( ! regex_match(frame, frame_regex)) return false;
+
+	uint_fast8_t checksum = 0;
+	for (char c : frame)
+	{
+		if (c == '$') continue;
+		if (c == '*') break;
+
+		checksum ^= c;
+	}
+	uint_fast8_t frame_cs = stoi(frame.substr(frame.rfind('*')+1, frame.length()-frame.rfind('*')-1), 0, 16);
+
+	return checksum == frame_cs;
+}
+
+void GPS::parse(const string& frame)
+{
+	if (frame.length() > 1 && is_valid(frame))
+	{
+		this->frame_logger->log(frame);
+		string frame_type = frame.substr(1, frame.find_first_of(',')-1);
+
+		if (frame_type == "GPGGA")
+		{
+			this->parse_GGA(frame);
+		}
+		else if (frame_type == "GPGSA")
+		{
+			this->parse_GSA(frame);
+		}
+		else if (frame_type == "GPRMC")
+		{
+			this->parse_RMC(frame);
+		}
+	}
 }
 
 void GPS::parse_GGA(const string& frame)
@@ -60,8 +225,7 @@ void GPS::parse_GGA(const string& frame)
 	vector<string> s_data;
 
 	// We put all fields in a vector
-	while(getline(ss, data, ','))
-			s_data.push_back(data);
+	while(getline(ss, data, ',')) s_data.push_back(data);
 
 	// Is the data valid?
 	this->active = s_data[6] > "0";
@@ -105,6 +269,7 @@ void GPS::parse_GSA(const string& frame)
 	if (this->active)
 	{
 		// Update DOP
+		this->pdop = stof(s_data[15]);
 		this->hdop = stof(s_data[16]);
 		this->vdop = stof(s_data[17].substr(0, s_data[17].find_first_of('*')));
 	}
@@ -130,7 +295,7 @@ void GPS::parse_RMC(const string& frame)
 		this->time.tm_sec = stoi(s_data[1].substr(4, 2));
 
 		this->time.tm_mday = stoi(s_data[9].substr(0, 2));
-		this->time.tm_mon = stoi(s_data[9].substr(2, 2));
+		this->time.tm_mon = stoi(s_data[9].substr(2, 2))-1;
 		this->time.tm_year = stoi(s_data[9].substr(4, 2))+100;
 
 		// Update latitude

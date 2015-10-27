@@ -3,9 +3,12 @@
 
 #include <cstdint>
 
-#include <functional>
 #include <string>
-#include <atomic>
+
+#include "constants.h"
+#ifdef DEBUG
+	#include "logger/Logger.h"
+#endif
 using namespace std;
 
 namespace os {
@@ -13,21 +16,29 @@ namespace os {
 	{
 	private:
 		int fd;
-		function<uint_fast8_t(const string&)> listener;
-		atomic_bool open;
-		atomic_bool stopped;
-		string endl;
+		bool open;
 
-		void serial_thread();
+		#ifdef DEBUG
+			Logger* logger;
+		#endif
+
+		void gps_thread();
 	public:
-		Serial() = default;
+		Serial(const string& url, int baud_rate, const string& log_path);
 		Serial(Serial& copy) = delete;
 		~Serial();
 
-		uint_fast8_t send_frame(string frame);
+		void println(const string& str) const;
+		void println() const;
+		void write(unsigned char c) const;
 		void close();
-		bool is_valid(string frame);
-		void initialize(const string& serial_URL, int baud, const string endl, function<uint_fast8_t(const string&)>);
+		bool is_open() const;
+		char read_char() const;
+		int available() const;
+		const string read_line() const;
+		const string read_line(double timeout) const;
+		bool read_only(const string& only) const;
+		void flush() const;
 	};
 }
 
