@@ -39,4 +39,7 @@
 	#define SMS_PHONE ""
 
 	#define STATE_FILE "data/last_state.txt"
+
+	// TODO get the real one
+	#define BME280_DEVICE (0x77)
 #endif // CONSTANTS_H_
