@@ -11,7 +11,7 @@ int main(void)
 			cout << "[OpenStratos] Realistic simulation." << endl;
 		#endif
 
-		cout << "[OpenStratos] Starting..." << endl;
+		cout << "[OpenStratos] Starting " << PACKAGE_STRING << "..." << endl;
 	#endif
 
 	if ( ! file_exists(STATE_FILE))
@@ -45,8 +45,8 @@ void os::main_logic()
 
 	#ifdef DEBUG
 		cout << "[OpenStratos] Current time: " << setfill('0') << setw(2) << now->tm_hour << ":" <<
-			setfill('0') << setw(2) << now->tm_min << ":" << setfill('0') << setw(2) << now->tm_sec <<
-			" UTC of " << setfill('0') << setw(2) << now->tm_mon << "/" <<
+			setfill('0') << setw(2) << now->tm_min << ":" << setfill('0') << setw(2) << now->tm_sec
+			<< " UTC of " << setfill('0') << setw(2) << now->tm_mon << "/" <<
 			setfill('0') << setw(2) << now->tm_mday << "/" << (now->tm_year+1900) << endl;
 	#endif
 
@@ -71,6 +71,8 @@ void os::main_logic()
 	#ifdef DEBUG
 		cout << "[OpenStratos] Logger started." << endl;
 	#endif
+
+	logger.log(PACKAGE_STRING);
 
 	logger.log("Starting system thread...");
 	thread system_thread(&system_thread_fn, ref(state));
@@ -122,8 +124,10 @@ void os::safe_mode()
 		struct tm* now = gmtime(&timer.tv_sec);
 
 		logger = new Logger("data/logs/main/OpenStratos."+ to_string(now->tm_year+1900) +"-"+
-			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
-			to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "OpenStratos");
+			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour)
+			+"-"+ to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "OpenStratos");
+
+		logger->log(PACKAGE_STRING);
 	}
 
 	switch (last_state)
@@ -232,9 +236,9 @@ void os::safe_mode()
 			logger->log("GSM connected.");
 
 			logger->log("Sending mayday messages...");
-			for (count = 0; count < 10;)
+			for (count = 0; count < 2;)
 			{
-				this_thread::sleep_for(20s);
+				this_thread::sleep_for(1min);
 
 				GSM::get_instance().get_location(latitude, longitude);
 				GSM::get_instance().send_SMS("MAYDAY\r\nLat: "+ to_string(latitude) +"\r\n"+
@@ -262,7 +266,14 @@ void os::safe_mode()
 				}
 
 				logger->log("GPS fix acquired.");
-				this_thread::sleep_for(1min);
+				this_thread::sleep_for(10s);
+				GSM::get_instance().send_SMS("MAYDAY\r\nLat: " +
+					to_string(GPS::get_instance().get_latitude()) +
+					"\r\nLon: "+ to_string(GPS::get_instance().get_longitude()) +
+					"\r\nAlt: "+ to_string(GPS::get_instance().get_altitude()) +
+					"\r\nFix: OK", SMS_PHONE) && ++count;
+
+				this_thread::sleep_for(30s);
 				state = (state == LANDED) ? LANDED : get_real_state();
 
 				main_while(logger, &state);

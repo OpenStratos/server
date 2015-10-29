@@ -1,5 +1,4 @@
 #include "gps/GPS.h"
-#include "constants.h"
 
 #include <functional>
 #include <vector>
@@ -11,8 +10,8 @@
 #include <sys/time.h>
 
 #include <wiringPi.h>
-
 #include "constants.h"
+
 #include "serial/Serial.h"
 #include "logger/Logger.h"
 
