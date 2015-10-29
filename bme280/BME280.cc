@@ -82,16 +82,67 @@ double BME280::get_temperature()
 
 	this->t_fine = var1 + var2;
 
-	float T = (t_fine * 5 + 128) >> 8;
+	double T = (t_fine * 5 + 128) >> 8;
 	return T/100;
-}
-
-double BME280::get_humidity() const
-{
-	// TODO
 }
 
 double BME280::get_pressure() const
 {
-	// TODO
+	int64_t var1, var2, p;
+
+	int32_t adc_P = wiringPiI2CReadReg16(this->filehandle,
+											BME280_REGISTER_PRESSUREDATA);
+	adc_P <<= 8;
+	adc_P |= wiringPiI2CReadReg8(this->filehandle,
+									BME280_REGISTER_PRESSUREDATA+2);
+	adc_P >>= 4;
+
+	var1 = ((int64_t) t_fine) - 128000;
+	var2 = var1 * var1 * (int64_t) this->bme280_calib.dig_P6;
+	var2 = var2 + ((var1*(int64_t) this->bme280_calib.dig_P5)<<17);
+	var2 = var2 + (((int64_t) this->bme280_calib.dig_P4)<<35);
+	var1 = ((var1 * var1 * (int64_t) this->bme280_calib.dig_P3)>>8) +
+			((var1 * (int64_t) this->bme280_calib.dig_P2)<<12);
+	var1 = (((((int64_t)1)<<47)+var1))*(
+				(int64_t) this->bme280_calib.dig_P1)>>33;
+
+	if (var1 == 0) {
+		return 0;  // avoid exception caused by division by zero
+	}
+	p = 1048576 - adc_P;
+	p = (((p<<31) - var2)*3125) / var1;
+	var1 = (((int64_t) this->bme280_calib.dig_P9) * (p>>13) * (p>>13)) >> 25;
+	var2 = (((int64_t) this->bme280_calib.dig_P8) * p) >> 19;
+
+	p = ((p + var1 + var2) >> 8) + (((int64_t) this->bme280_calib.dig_P7)<<4);
+	return (double) p/256;
+}
+
+double BME280::get_humidity() const
+{
+	int32_t adc_H = wiringPiI2CReadReg16(this->filehandle,
+											BME280_REGISTER_HUMIDDATA);
+
+	int32_t v_x1_u32r;
+
+	v_x1_u32r = (t_fine - ((int32_t)76800));
+
+	v_x1_u32r = (((((adc_H << 14) - (((int32_t) this->bme280_calib.dig_H4) <<
+					20) -
+					(((int32_t) this->bme280_calib.dig_H5) * v_x1_u32r)) +
+						((int32_t)16384)) >> 15) *
+						(((((((v_x1_u32r * ((int32_t)
+							this->bme280_calib.dig_H6)) >> 10) *
+					(((v_x1_u32r * ((int32_t) this->bme280_calib.dig_H3)) >> 11)
+						+ ((int32_t)32768))) >> 10) +
+						((int32_t)2097152)) * ((int32_t)
+							this->bme280_calib.dig_H2) + 8192) >> 14));
+
+	v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) *
+					((int32_t) this->bme280_calib.dig_H1)) >> 4));
+
+	v_x1_u32r = (v_x1_u32r < 0) ? 0 : v_x1_u32r;
+	v_x1_u32r = (v_x1_u32r > 419430400) ? 419430400 : v_x1_u32r;
+	double h = (v_x1_u32r>>12);
+	return  h / 1024;
 }
