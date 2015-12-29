@@ -150,6 +150,17 @@ void os::battery_thread_fn(State& state)
 			logger.log("Main: "+ to_string(main_battery));
 			logger.log("GSM: "+ to_string(gsm_battery));
 		}
+		else
+		{
+			this_thread::sleep_for(15min);
+			GSM::get_instance().turn_on();
+
+			GSM::get_instance().get_battery_status(main_battery, gsm_battery);
+			logger.log("Main: "+ to_string(main_battery));
+			logger.log("GSM: "+ to_string(gsm_battery));
+
+			GSM::get_instance().turn_off();
+		}
 
 		this_thread::sleep_for(3min);
 	}
