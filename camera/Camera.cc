@@ -219,4 +219,6 @@ const string os::generate_exif_data()
 	exif += " GPSSpeedRef=K GPSSpeed="+to_string(gps_velocity.speed*3.6);
 	exif += " GPSTrackRef=T GPSTrack="+to_string(gps_velocity.course);
 	exif += " GPSDifferential=0";
+
+	return exif;
 }
