@@ -60,7 +60,8 @@ namespace os {
 
 	inline bool has_launched(double launch_altitude)
 	{
-		for (int i = 0; ! GPS::get_instance().is_fixed() && i < 10; ++i);
+		for (int i = 0; ! GPS::get_instance().is_fixed() && i < 10; ++i)
+			this_thread::sleep_for(5s);
 		if ( ! GPS::get_instance().is_fixed()) return false;
 
 		double first_altitude = GPS::get_instance().get_altitude();
@@ -78,7 +79,8 @@ namespace os {
 
 	inline bool has_bursted(double maximum_altitude)
 	{
-		for (int i = 0; ! GPS::get_instance().is_fixed() && i < 10; ++i);
+		for (int i = 0; ! GPS::get_instance().is_fixed() && i < 10; ++i)
+			this_thread::sleep_for(5s);
 		if ( ! GPS::get_instance().is_fixed()) return false;
 
 		double first_altitude = GPS::get_instance().get_altitude();
@@ -96,7 +98,8 @@ namespace os {
 
 	inline bool has_landed()
 	{
-		for (int i = 0; ! GPS::get_instance().is_fixed() && i < 10; ++i);
+		for (int i = 0; ! GPS::get_instance().is_fixed() && i < 10; ++i)
+			this_thread::sleep_for(5s);
 		if ( ! GPS::get_instance().is_fixed()) return false;
 
 		double first_altitude = GPS::get_instance().get_altitude();
