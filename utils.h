@@ -105,6 +105,26 @@ namespace os {
 
 		return abs(first_altitude-second_altitude) < 5;
 	}
+
+	inline bool wait_up_for(double altitude, double& maximum_altitude) {
+		#if defined SIM && !defined REAL_SIM
+			this_thread::sleep_for(2min);
+			maximum_altitude = altitude;
+			return altitude < 35000;
+		#elif defined REAL_SIM && !defined SIM
+			this_thread::sleep_for(333ms * (altitude - maximum_altitude));
+			maximum_altitude = altitude;
+			return altitude < 35000;
+		#else
+			while ( ! (bursted = has_bursted(maximum_altitude)) &&
+				(current_altitude = GPS::get_instance().get_altitude()) < 5000)
+			{
+				if (current_altitude > maximum_altitude)
+					maximum_altitude = current_altitude;
+			}
+			return bursted;
+		#endif
+	}
 }
 
 #endif // UTILS_H_
