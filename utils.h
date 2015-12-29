@@ -65,7 +65,7 @@ namespace os {
 		if ( ! GPS::get_instance().is_fixed()) return false;
 
 		double first_altitude = GPS::get_instance().get_altitude();
-		if (first_altitude > launch_altitude + 100) return true;
+		if (first_altitude > launch_altitude + 25) return true;
 
 		this_thread::sleep_for(5s);
 		double second_altitude = GPS::get_instance().get_altitude();
@@ -73,7 +73,7 @@ namespace os {
 		#if defined SIM || defined REAL_SIM
 			return true;
 		#else
-			return second_altitude > first_altitude + 10;
+			return second_altitude > first_altitude + 8;
 		#endif
 	}
 
