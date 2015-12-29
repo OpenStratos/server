@@ -42,6 +42,9 @@ void os::system_thread_fn(State& state)
 
 	while (state != SHUT_DOWN)
 	{
+		if (get_available_disk_space() < 2000000000)
+			Camera::get_instance().stop();
+
 		ifstream cpu_temp_file("/sys/class/thermal/thermal_zone0/temp");
 		string cpu_temp_str((istreambuf_iterator<char>(cpu_temp_file)),
 			istreambuf_iterator<char>());

@@ -663,18 +663,9 @@ void os::go_up(Logger* logger, double launch_altitude)
 		logger->log("Launch confirmation SMS sent.");
 	}
 
-	double maximum_altitude = 0;
-	double current_altitude = GPS::get_instance().get_altitude();
+	double maximum_altitude = GPS::get_instance().get_altitude();
 
-	#if !defined SIM && !defined REAL_SIM
-		while (current_altitude = GPS::get_instance().get_altitude() < 1200)
-		{
-			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
-			this_thread::sleep_for(2s);
-		}
-	#else
-		this_thread::sleep_for(124s);
-	#endif
+	wait_up_for(1200, maximum_altitude);
 	logger->log("1.2 km mark.");
 
 	logger->log("Getting battery values...");
@@ -715,162 +706,74 @@ void os::go_up(Logger* logger, double launch_altitude)
 
 	bool bursted = false;
 
-	#if defined SIM && !defined REAL_SIM
-		this_thread::sleep_for(2min);
-		logger->log("5 km mark passed going up.");
-	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1357s);
+	bursted = wait_up_for(5000, maximum_altitude);
+	#if defined SIM || defined REAL_SIM
 		logger->log("5 km mark passed going up.");
 	#else
-		while ( ! (bursted = has_bursted(maximum_altitude)) &&
-			(current_altitude = GPS::get_instance().get_altitude()) < 5000)
-		{
-			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
-		}
-		if ( ! bursted) logger->log("5 km mark passed going up.");
+		if ( ! bursted)
+			logger->log("5 km mark passed going up.");
 		else return;
 	#endif
 
-	if (get_available_disk_space() < 2000000000)
-	{
-		logger->log("Not enough disk space. Stopping video...");
-		Camera::get_instance().stop();
-	}
-
-	#if defined SIM && !defined REAL_SIM
-		this_thread::sleep_for(2min);
-		logger->log("10 km mark passed going up.");
-	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1786s);
+	bursted = wait_up_for(10000, maximum_altitude);
+	#if defined SIM || defined REAL_SIM
 		logger->log("10 km mark passed going up.");
 	#else
-		while ( ! (bursted = has_bursted(maximum_altitude)) &&
-			(current_altitude = GPS::get_instance().get_altitude()) < 10000)
-		{
-			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
-		}
-		if ( ! bursted) logger->log("10 km mark passed going up.");
+		if ( ! bursted)
+			logger->log("10 km mark passed going up.");
 		else return;
 	#endif
 
-	if (get_available_disk_space() < 2000000000)
-	{
-		logger->log("Not enough disk space. Stopping video...");
-		Camera::get_instance().stop();
-	}
-
-	#if defined SIM && !defined REAL_SIM
-		this_thread::sleep_for(2min);
-		logger->log("15 km mark passed going up.");
-	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1786s);
+	bursted = wait_up_for(15000, maximum_altitude);
+	#if defined SIM || defined REAL_SIM
 		logger->log("15 km mark passed going up.");
 	#else
-		while ( ! (bursted = has_bursted(maximum_altitude)) &&
-			(current_altitude = GPS::get_instance().get_altitude()) < 15000)
-		{
-			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
-		}
-		if ( ! bursted) logger->log("15 km mark passed going up.");
+		if ( ! bursted)
+			logger->log("15 km mark passed going up.");
 		else return;
 	#endif
 
-	if (get_available_disk_space() < 2000000000)
-	{
-		logger->log("Not enough disk space. Stopping video...");
-		Camera::get_instance().stop();
-	}
-
-	#if defined SIM && !defined REAL_SIM
-		this_thread::sleep_for(2min);
-		logger->log("20 km mark passed going up.");
-	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1786s);
+	bursted = wait_up_for(20000, maximum_altitude);
+	#if defined SIM || defined REAL_SIM
 		logger->log("20 km mark passed going up.");
 	#else
-		while ( ! (bursted = has_bursted(maximum_altitude)) &&
-			(current_altitude = GPS::get_instance().get_altitude()) < 20000)
-		{
-			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
-		}
-		if ( ! bursted) logger->log("20 km mark passed going up.");
+		if ( ! bursted)
+			logger->log("20 km mark passed going up.");
 		else return;
 	#endif
 
-	if (get_available_disk_space() < 2000000000)
-	{
-		logger->log("Not enough disk space. Stopping video...");
-		Camera::get_instance().stop();
-	}
-
-	#if defined SIM && !defined REAL_SIM
-		this_thread::sleep_for(2min);
-		logger->log("25 km mark passed going up.");
-	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1786s);
+	bursted = wait_up_for(25000, maximum_altitude);
+	#if defined SIM || defined REAL_SIM
 		logger->log("25 km mark passed going up.");
 	#else
-		while ( ! (bursted = has_bursted(maximum_altitude)) &&
-			(current_altitude = GPS::get_instance().get_altitude()) < 25000)
-		{
-			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
-		}
-		if ( ! bursted) logger->log("25 km mark passed going up.");
+		if ( ! bursted)
+			logger->log("25 km mark passed going up.");
 		else return;
 	#endif
 
-	if (get_available_disk_space() < 2000000000)
-	{
-		logger->log("Not enough disk space. Stopping video...");
-		Camera::get_instance().stop();
-	}
-
-	#if defined SIM && !defined REAL_SIM
-		this_thread::sleep_for(2min);
-		logger->log("30 km mark passed going up.");
-	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1786s);
+	bursted = wait_up_for(30000, maximum_altitude);
+	#if defined SIM || defined REAL_SIM
 		logger->log("30 km mark passed going up.");
 	#else
-		while ( ! (bursted = has_bursted(maximum_altitude)) &&
-			(current_altitude = GPS::get_instance().get_altitude()) < 30000)
-		{
-			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
-		}
-		if ( ! bursted) logger->log("30 km mark passed going up.");
+		if ( ! bursted)
+			logger->log("30 km mark passed going up.");
 		else return;
 	#endif
 
-	if (get_available_disk_space() < 2000000000)
-	{
-		logger->log("Not enough disk space. Stopping video...");
-		Camera::get_instance().stop();
-	}
-
-	#if defined SIM && !defined REAL_SIM
-		this_thread::sleep_for(2min);
-	#elif defined REAL_SIM && !defined SIM
-		this_thread::sleep_for(1740s);
+	bursted = wait_up_for(35000, maximum_altitude);
+	#if defined SIM || defined REAL_SIM
+		logger->log("35 km mark passed going up.");
 	#else
-		while ( ! (bursted = has_bursted(maximum_altitude)) &&
-			(current_altitude = GPS::get_instance().get_altitude()) < 35000)
-		{
-			if (current_altitude > maximum_altitude) maximum_altitude = current_altitude;
-		}
-		if ( ! bursted) logger->log("35 km mark passed going up.");
+		if ( ! bursted)
+			logger->log("35 km mark passed going up.");
 		else return;
 	#endif
 
 	while ( ! has_bursted(maximum_altitude))
 	{
+		double current_altitude;
 		if ((current_altitude = GPS::get_instance().get_altitude()) > maximum_altitude)
 			maximum_altitude = current_altitude;
-
-		if (get_available_disk_space() < 2000000000)
-		{
-			logger->log("Not enough disk space. Stopping video...");
-			Camera::get_instance().stop();
-		}
 	}
 
 	logger->log("Balloon burst at about "+ to_string((int) maximum_altitude) +" m.");
@@ -887,16 +790,8 @@ void os::go_down(Logger* logger)
 		this_thread::sleep_for(317s);
 	#else
 		while (GPS::get_instance().get_altitude() > 25000)
-		{
 			this_thread::sleep_for(5s);
-			if (get_available_disk_space() < 2000000000)
-			{
-				logger->log("Not enough disk space. Stopping video...");
-				Camera::get_instance().stop();
-			}
-		}
 	#endif
-
 	logger->log("25 km mark passed going down.");
 
 	#if defined SIM && !defined REAL_SIM
@@ -905,17 +800,8 @@ void os::go_down(Logger* logger)
 		this_thread::sleep_for(684s);
 	#else
 		while (GPS::get_instance().get_altitude() > 15000)
-		{
 			this_thread::sleep_for(5s);
-
-			if (get_available_disk_space() < 2000000000)
-			{
-				logger->log("Not enough disk space. Stopping video...");
-				Camera::get_instance().stop();
-			}
-		}
 	#endif
-
 	logger->log("15 km mark passed going down.");
 
 	#if defined SIM && !defined REAL_SIM
@@ -924,17 +810,8 @@ void os::go_down(Logger* logger)
 		this_thread::sleep_for(1450s);
 	#else
 		while (GPS::get_instance().get_altitude() > 5000)
-		{
 			this_thread::sleep_for(5s);
-
-			if (get_available_disk_space() < 2000000000)
-			{
-				logger->log("Not enough disk space. Stopping video...");
-				Camera::get_instance().stop();
-			}
-		}
 	#endif
-
 	logger->log("5 km mark passed going down.");
 
 	#if defined SIM && !defined REAL_SIM
@@ -943,15 +820,7 @@ void os::go_down(Logger* logger)
 		this_thread::sleep_for(650s);
 	#else
 		while (GPS::get_instance().get_altitude() > 2000)
-		{
 			this_thread::sleep_for(5s);
-
-			if (get_available_disk_space() < 2000000000)
-			{
-				logger->log("Not enough disk space. Stopping video...");
-				Camera::get_instance().stop();
-			}
-		}
 	#endif
 	logger->log("2 km mark passed going down.");
 
@@ -1007,14 +876,8 @@ void os::go_down(Logger* logger)
 	#elif defined REAL_SIM && !defined SIM
 		this_thread::sleep_for(183s);
 	#else
-		while (GPS::get_instance().get_altitude() > 1200 && ! (landed = has_landed()))
-		{
-			if (get_available_disk_space() < 2000000000)
-			{
-				logger->log("Not enough disk space. Stopping video...");
-				Camera::get_instance().stop();
-			}
-		}
+		while (GPS::get_instance().get_altitude() > 1200 &&
+				! (landed = has_landed()));
 	#endif
 
 	if ( ! landed)
@@ -1068,14 +931,8 @@ void os::go_down(Logger* logger)
 	#elif defined REAL_SIM && !defined SIM
 		this_thread::sleep_for(117s);
 	#else
-		while (GPS::get_instance().get_altitude() > 500 && ! (landed = has_landed()))
-		{
-			if (get_available_disk_space() < 2000000000)
-			{
-				logger->log("Not enough disk space. Stopping video...");
-				Camera::get_instance().stop();
-			}
-		}
+		while (GPS::get_instance().get_altitude() > 500 &&
+				! (landed = has_landed()));
 	#endif
 
 	if ( ! landed)
@@ -1123,14 +980,7 @@ void os::go_down(Logger* logger)
 		}
 	}
 
-	while ( ! has_landed())
-	{
-		if (get_available_disk_space() < 2000000000)
-		{
-			logger->log("Not enough disk space. Stopping video...");
-			Camera::get_instance().stop();
-		}
-	}
+	while ( ! has_landed());
 	logger->log("Landed.");
 }
 
