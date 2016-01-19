@@ -48,20 +48,26 @@ namespace os {
 
 	inline State get_real_state()
 	{
+		for (int i = 0; ( ! GPS::get_instance().is_fixed() ||
+							GPS::get_instance().get_VDOP() > 5) && i < 10; ++i)
+			this_thread::sleep_for(1s);
+
 		double start_alt = GPS::get_instance().get_altitude();
 		this_thread::sleep_for(5s);
 		double end_alt = GPS::get_instance().get_altitude();
 
 		if (end_alt - start_alt < -10) return set_state(GOING_DOWN);
 		else if (end_alt - start_alt > 5) return set_state(GOING_UP);
-		else if (end_alt > 8000) return set_state(GOING_DOWN);
+		else if (end_alt > 1500) return set_state(GOING_DOWN);
 		else return set_state(LANDED);
 	}
 
 	inline bool has_launched(double launch_altitude)
 	{
-		for (int i = 0; ! GPS::get_instance().is_fixed() && i < 10; ++i)
-			this_thread::sleep_for(5s);
+		for (int i = 0; ( ! GPS::get_instance().is_fixed() ||
+							GPS::get_instance().get_VDOP() > 5) && i < 10; ++i)
+			this_thread::sleep_for(1s);
+
 		if ( ! GPS::get_instance().is_fixed()) return false;
 
 		double first_altitude = GPS::get_instance().get_altitude();
@@ -79,8 +85,10 @@ namespace os {
 
 	inline bool has_bursted(double maximum_altitude)
 	{
-		for (int i = 0; ! GPS::get_instance().is_fixed() && i < 10; ++i)
-			this_thread::sleep_for(5s);
+		for (int i = 0; ( ! GPS::get_instance().is_fixed() ||
+							GPS::get_instance().get_VDOP() > 5) && i < 10; ++i)
+			this_thread::sleep_for(1s);
+
 		if ( ! GPS::get_instance().is_fixed()) return false;
 
 		double first_altitude = GPS::get_instance().get_altitude();
@@ -98,8 +106,10 @@ namespace os {
 
 	inline bool has_landed()
 	{
-		for (int i = 0; ! GPS::get_instance().is_fixed() && i < 10; ++i)
-			this_thread::sleep_for(5s);
+		for (int i = 0; ( ! GPS::get_instance().is_fixed() ||
+							GPS::get_instance().get_VDOP() > 5) && i < 10; ++i)
+			this_thread::sleep_for(1s);
+
 		if ( ! GPS::get_instance().is_fixed()) return false;
 
 		double first_altitude = GPS::get_instance().get_altitude();
@@ -109,7 +119,8 @@ namespace os {
 		return abs(first_altitude-second_altitude) < 5;
 	}
 
-	inline bool wait_up_for(double altitude, double& maximum_altitude) {
+	inline bool wait_up_for(double altitude, double& maximum_altitude)
+	{
 		#if defined SIM && !defined REAL_SIM
 			this_thread::sleep_for(2min);
 			maximum_altitude = altitude;
@@ -119,13 +130,42 @@ namespace os {
 			maximum_altitude = altitude;
 			return altitude < 35000;
 		#else
-			while ( ! (bursted = has_bursted(maximum_altitude)) &&
-				(current_altitude = GPS::get_instance().get_altitude()) < 5000)
+			while ( ! (bursted = has_bursted(maximum_altitude))
 			{
+				for (int i = 0;
+					GPS::get_instance().get_VDOP() > 5 && i < 5;
+					i++)
+				{
+					this_thread::sleep_for(500ms);
+				}
+
+				current_altitude = GPS::get_instance().get_altitude();
 				if (current_altitude > maximum_altitude)
 					maximum_altitude = current_altitude;
+
+				if (current_altitude >= altitude) break;
 			}
 			return bursted;
+		#endif
+	}
+
+	inline bool wait_down_for(double altitude) {
+		#if defined SIM && !defined REAL_SIM
+			this_thread::sleep_for(1min);
+			return false;
+		#elif defined REAL_SIM && !defined SIM
+			this_thread::sleep_for(317s);
+			return false;
+		#else
+		for (int i = 0; ( ! GPS::get_instance().is_fixed() ||
+							GPS::get_instance().get_VDOP() > 5) && i < 10; ++i)
+			this_thread::sleep_for(500ms);
+
+			while (GPS::get_instance().get_altitude() > altitude &&
+					! has_landed())
+				this_thread::sleep_for(3s);
+
+			return has_landed();
 		#endif
 	}
 }
