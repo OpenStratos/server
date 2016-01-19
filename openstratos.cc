@@ -232,13 +232,14 @@ void os::safe_mode()
 				logger->log("GSM initialization error.");
 			logger->log("GSM initialized");
 			logger->log("Waiting for GSM connectivity...");
-			while ( ! GSM::get_instance().has_connectivity()) this_thread::sleep_for(5s);
+			while ( ! GSM::get_instance().has_connectivity())
+				this_thread::sleep_for(5s);
 			logger->log("GSM connected.");
 
 			logger->log("Sending mayday messages...");
 			for (count = 0; count < 2;)
 			{
-				this_thread::sleep_for(3min);
+				this_thread::sleep_for(5min);
 
 				GSM::get_instance().get_location(latitude, longitude);
 				GSM::get_instance().send_SMS("MAYDAY\r\nLat: "+ to_string(latitude) +"\r\n"+
@@ -274,11 +275,14 @@ void os::safe_mode()
 					this_thread::sleep_for(500ms);
 				}
 
-				GSM::get_instance().send_SMS("MAYDAY\r\nLat: " +
+				while ( ! GSM::get_instance().send_SMS("MAYDAY\r\nLat: " +
 					to_string(GPS::get_instance().get_latitude()) +
 					"\r\nLon: "+ to_string(GPS::get_instance().get_longitude()) +
 					"\r\nAlt: "+ to_string(GPS::get_instance().get_altitude()) +
-					"\r\nFix: OK", SMS_PHONE) && ++count;
+					"\r\nFix: OK", SMS_PHONE))
+				{
+					this_thread::sleep_for(1min);
+				}
 
 				this_thread::sleep_for(30s);
 				state = (state == LANDED) ? LANDED : get_real_state();
