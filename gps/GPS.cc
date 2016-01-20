@@ -230,16 +230,16 @@ void GPS::parse_GGA(const string& frame)
 	// Is the data valid?
 	bool active = s_data[6] > "0";
     
-    if (this->active && ! active)
-    {
-        this->logger->log("Fix lost.");
-        this->active = false;
-    }
-    else if ( ! this->active && active)
-    {
-        this->logger->log("Fix acquired.");
-        this->active = true;
-    }
+	if (this->active && ! active)
+	{
+		this->logger->log("Fix lost.");
+		this->active = false;
+	}
+	else if ( ! this->active && active)
+	{
+		this->logger->log("Fix acquired.");
+		this->active = true;
+	}
 
 	if (this->active)
 	{
@@ -277,16 +277,16 @@ void GPS::parse_GSA(const string& frame)
 	// Is the data valid?
 	bool active = s_data[2] != "1";
     
-    if (this->active && ! active)
-    {
-        this->logger->log("Fix lost.");
-        this->active = false;
-    }
-    else if ( ! this->active && active)
-    {
-        this->logger->log("Fix acquired.");
-        this->active = true;
-    }
+	if (this->active && ! active)
+	{
+		this->logger->log("Fix lost.");
+		this->active = false;
+	}
+	else if ( ! this->active && active)
+	{
+		this->logger->log("Fix acquired.");
+		this->active = true;
+	}
 
 	if (this->active)
 	{
@@ -308,17 +308,17 @@ void GPS::parse_RMC(const string& frame)
 
 	// Is the data valid?
 	bool active = s_data[2] == "A";
-    
-    if (this->active && ! active)
-    {
-        this->logger->log("Fix lost.");
-        this->active = false;
-    }
-    else if ( ! this->active && active)
-    {
-        this->logger->log("Fix acquired");
-        this->active = true;
-    }
+
+	if (this->active && ! active)
+	{
+		this->logger->log("Fix lost.");
+		this->active = false;
+	}
+	else if ( ! this->active && active)
+	{
+		this->logger->log("Fix acquired");
+		this->active = true;
+	}
 
 	if (this->active)
 	{
