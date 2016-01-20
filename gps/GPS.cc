@@ -43,11 +43,11 @@ GPS::~GPS()
 		this->logger->log("Serial interface closed.");
 		this->logger->log("Deallocating serial...");
 		delete this->serial;
-		this->logger->log("Serial deallocated");
+		this->logger->log("Serial deallocated.");
 
 		this->logger->log("Deallocating frame logger...");
 		delete this->frame_logger;
-		this->logger->log("Frame logger deallocated");
+		this->logger->log("Frame logger deallocated.");
 	}
 	this->logger->log("Turning off GPS...");
 	this->turn_off();
