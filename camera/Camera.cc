@@ -41,7 +41,7 @@ Camera::~Camera()
 	{
 		this->logger->log("Stopping video recording...");
 		if ( ! this->stop())
-			this->logger->log("Error soping video recording.");
+			this->logger->log("Error stoping video recording.");
 		else
 			this->logger->log("Video recording stopped.");
 	}
