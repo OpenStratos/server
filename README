@@ -110,6 +110,7 @@ It can be combined with the *NO_SMS* flag, the *DEBUG* flag or/and one of the si
 ./configure CPPFLAGS="-DREAL_SIM -DNO_SMS -DDEBUG -DNO_POWER_OFF"
 ./configure CPPFLAGS="-DSIM -DDEBUG -DNO_POWER_OFF"
 ./configure CPPFLAGS="-DNO_SMS -DDEBUG -DNO_POWER_OFF"
+```
 
 ## License ##
 

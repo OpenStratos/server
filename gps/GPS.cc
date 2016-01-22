@@ -42,11 +42,11 @@ GPS::~GPS()
 		this->logger->log("Serial interface closed.");
 		this->logger->log("Deallocating serial...");
 		delete this->serial;
-		this->logger->log("Serial deallocated");
+		this->logger->log("Serial deallocated.");
 
 		this->logger->log("Deallocating frame logger...");
 		delete this->frame_logger;
-		this->logger->log("Frame logger deallocated");
+		this->logger->log("Frame logger deallocated.");
 	}
 	this->logger->log("Turning off GPS...");
 	this->turn_off();
@@ -227,7 +227,18 @@ void GPS::parse_GGA(const string& frame)
 	while(getline(ss, data, ',')) s_data.push_back(data);
 
 	// Is the data valid?
-	this->active = s_data[6] > "0";
+	bool active = s_data[6] > "0";
+    
+	if (this->active && ! active)
+	{
+		this->logger->log("Fix lost.");
+		this->active = false;
+	}
+	else if ( ! this->active && active)
+	{
+		this->logger->log("Fix acquired.");
+		this->active = true;
+	}
 
 	if (this->active)
 	{
@@ -263,7 +274,18 @@ void GPS::parse_GSA(const string& frame)
 	while(getline(ss, data, ',')) s_data.push_back(data);
 
 	// Is the data valid?
-	this->active = s_data[2] != "1";
+	bool active = s_data[2] != "1";
+    
+	if (this->active && ! active)
+	{
+		this->logger->log("Fix lost.");
+		this->active = false;
+	}
+	else if ( ! this->active && active)
+	{
+		this->logger->log("Fix acquired.");
+		this->active = true;
+	}
 
 	if (this->active)
 	{
@@ -284,7 +306,18 @@ void GPS::parse_RMC(const string& frame)
 	while(getline(ss, data, ',')) s_data.push_back(data);
 
 	// Is the data valid?
-	this->active = s_data[2] == "A";
+	bool active = s_data[2] == "A";
+
+	if (this->active && ! active)
+	{
+		this->logger->log("Fix lost.");
+		this->active = false;
+	}
+	else if ( ! this->active && active)
+	{
+		this->logger->log("Fix acquired");
+		this->active = true;
+	}
 
 	if (this->active)
 	{

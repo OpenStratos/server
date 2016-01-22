@@ -42,6 +42,9 @@ void os::system_thread_fn(State& state)
 
 	while (state != SHUT_DOWN)
 	{
+		if (get_available_disk_space() < 2000000000)
+			Camera::get_instance().stop();
+
 		ifstream cpu_temp_file("/sys/class/thermal/thermal_zone0/temp");
 		string cpu_temp_str((istreambuf_iterator<char>(cpu_temp_file)),
 			istreambuf_iterator<char>());
@@ -146,6 +149,17 @@ void os::battery_thread_fn(State& state)
 			GSM::get_instance().get_battery_status(main_battery, gsm_battery);
 			logger.log("Main: "+ to_string(main_battery));
 			logger.log("GSM: "+ to_string(gsm_battery));
+		}
+		else
+		{
+			this_thread::sleep_for(15min);
+			GSM::get_instance().turn_on();
+
+			GSM::get_instance().get_battery_status(main_battery, gsm_battery);
+			logger.log("Main: "+ to_string(main_battery));
+			logger.log("GSM: "+ to_string(gsm_battery));
+
+			GSM::get_instance().turn_off();
 		}
 
 		this_thread::sleep_for(3min);
