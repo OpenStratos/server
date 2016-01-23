@@ -1,7 +1,6 @@
 #ifndef OPENSTRATOS_H_
 #define OPENSTRATOS_H_
 
-#include <iomanip>
 #include <thread>
 #ifdef DEBUG
 	#include <iostream>
@@ -13,33 +12,10 @@
 	#include <sys/reboot.h>
 #endif
 
-#include <wiringPi.h>
-
 #include "config.h"
 #include "constants.h"
 #include "utils.h"
-#include "threads.h"
-#include "logger/Logger.h"
-#include "gps/GPS.h"
-#include "camera/Camera.h"
-#include "gsm/GSM.h"
-
-namespace os
-{
-	void main_logic();
-	void safe_mode();
-	void main_while(Logger* logger, State* state);
-
-	void initialize(Logger* logger, tm* now);
-	void aquire_fix(Logger* logger);
-	void start_recording(Logger* logger);
-	void send_init_sms(Logger* logger);
-	void wait_launch(Logger* logger, double& launch_altitude);
-	void go_up(Logger* logger, double launch_altitude);
-	void go_down(Logger* logger);
-	void land(Logger* logger);
-	void shut_down(Logger* logger);
-}
+#include "logic/logic.h"
 
 using namespace std;
 using namespace os;

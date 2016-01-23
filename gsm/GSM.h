@@ -1,4 +1,4 @@
-#ifndef GSM_GMS_H_
+#ifndef GSM_GSM_H_
 #define GSM_GSM_H_
 
 #include <string>
@@ -41,4 +41,4 @@ namespace os {
 		bool turn_off() const;
 	};
 }
-#endif
+#endif // GSM_GSM_H_
