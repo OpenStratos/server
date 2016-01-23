@@ -61,12 +61,12 @@ bool GPS::initialize()
 	gettimeofday(&timer, NULL);
 	struct tm * now = gmtime(&timer.tv_sec);
 
-	this->logger = new Logger("data/logs/GPS/GPS."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+	this->logger = new Logger("data/logs/GPS/GPS."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon+1) +"-"+
 		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
 		to_string(now->tm_sec) +".log", "GPS");
 
 	this->frame_logger = new Logger("data/logs/GPS/GPSFrames."+ to_string(now->tm_year+1900) +"-"+
-		to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
+		to_string(now->tm_mon+1) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
 		to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "GPSFrame");
 
 	this->should_stop = false;
@@ -229,7 +229,7 @@ void GPS::parse_GGA(const string& frame)
 
 	// Is the data valid?
 	bool active = s_data[6] > "0";
-    
+
 	if (this->active && ! active)
 	{
 		this->logger->log("Fix lost.");
@@ -276,7 +276,7 @@ void GPS::parse_GSA(const string& frame)
 
 	// Is the data valid?
 	bool active = s_data[2] != "1";
-    
+
 	if (this->active && ! active)
 	{
 		this->logger->log("Fix lost.");
