@@ -4,6 +4,7 @@
 #include <thread>
 #ifdef DEBUG
 	#include <iostream>
+	#include <iomanip>
 #endif
 
 #include <sys/time.h>

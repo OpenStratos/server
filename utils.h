@@ -130,7 +130,8 @@ namespace os {
 			maximum_altitude = altitude;
 			return altitude < 35000;
 		#else
-			while ( ! (bursted = has_bursted(maximum_altitude))
+			bool bursted;
+			while ( ! (bursted = has_bursted(maximum_altitude)))
 			{
 				for (int i = 0;
 					GPS::get_instance().get_VDOP() > 5 && i < 5;
@@ -139,7 +140,7 @@ namespace os {
 					this_thread::sleep_for(500ms);
 				}
 
-				current_altitude = GPS::get_instance().get_altitude();
+				double current_altitude = GPS::get_instance().get_altitude();
 				if (current_altitude > maximum_altitude)
 					maximum_altitude = current_altitude;
 
