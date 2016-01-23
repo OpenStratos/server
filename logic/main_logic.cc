@@ -24,7 +24,7 @@ check_or_create("data/logs/GSM");
 #endif
 
 Logger logger("data/logs/main/OpenStratos."+ to_string(now->tm_year+1900) +"-"+
-	to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
+	to_string(now->tm_mon+1) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
 	to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "OpenStratos");
 
 #ifdef DEBUG

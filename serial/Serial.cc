@@ -29,7 +29,7 @@ Serial::Serial(const string& url, int baud_rate, const string& log_path)
 
 	#ifdef DEBUG
 		this->logger = new Logger("data/logs/"+log_path+"/Serial."+ to_string(now->tm_year+1900) +"-"+
-			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
+			to_string(now->tm_mon+1) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
 			to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "Serial");
 	#endif
 

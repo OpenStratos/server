@@ -23,15 +23,15 @@ void os::system_thread_fn(State& state)
 	gettimeofday(&timer, NULL);
 	struct tm * now = gmtime(&timer.tv_sec);
 
-	Logger cpu_logger("data/logs/system/CPU."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+	Logger cpu_logger("data/logs/system/CPU."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon+1) +"-"+
 		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
 		to_string(now->tm_sec) +".log", "CPU");
 
-	Logger ram_logger("data/logs/system/RAM."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+	Logger ram_logger("data/logs/system/RAM."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon+1) +"-"+
 		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
 		to_string(now->tm_sec) +".log", "RAM");
 
-	Logger temp_logger("data/logs/system/Temp."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+	Logger temp_logger("data/logs/system/Temp."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon+1) +"-"+
 		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
 		to_string(now->tm_sec) +".log", "Temp");
 
