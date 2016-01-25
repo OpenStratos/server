@@ -229,17 +229,9 @@ void GPS::parse_GGA(const string& frame)
 
 	// Is the data valid?
 	bool active = s_data[6] > "0";
-
-	if (this->active && ! active)
-	{
-		this->logger->log("Fix lost.");
-		this->active = false;
-	}
-	else if ( ! this->active && active)
-	{
-		this->logger->log("Fix acquired.");
-		this->active = true;
-	}
+	if (this->active && ! active) this->logger->log("Fix lost.");
+	else if ( ! this->active && active) this->logger->log("Fix acquired.");
+	this->active = active;
 
 	if (this->active)
 	{
