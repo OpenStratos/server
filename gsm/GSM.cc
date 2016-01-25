@@ -128,7 +128,7 @@ bool GSM::send_SMS(const string& message, const string& number)
 	this->logger->log("Sending SMS: \""+message+"\" ("+ to_string(message.length()) +" characters) to number "+number+".");
 	if (message.length() > 160)
 	{
-		this->logger->log("Error: SMS has more than 10 characters");
+		this->logger->log("Error: SMS has more than 160 characters");
 	}
 	else
 	{
