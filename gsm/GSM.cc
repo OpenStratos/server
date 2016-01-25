@@ -318,7 +318,7 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 		this->serial->read_line(); // Eat new line
 		this->serial->read_line(); // Eat OK
 		while (adc_response != "" && adc_response.substr(0, 6) != "+CADC:")
-			adc_response = this->serial->read_line();
+			adc_response = this->serial->read_line(); // TODO prevent hang
 
 		if (gsm_response.substr(0, 5) == "+CBC:" && adc_response.substr(0, 6) == "+CADC:")
 		{

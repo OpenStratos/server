@@ -86,7 +86,7 @@ if ( ! GSM::get_instance().get_battery_status(main_battery, gsm_battery) &&
 logger.log("Batteries checked => Main battery: "+ (main_battery > -1 ? to_string(main_battery*100)+"%" : "disconnected") +
 	" - GSM battery: "+ to_string(gsm_battery*100) +"%");
 
-if ((main_battery < 0.9  && main_battery > -1) || gsm_battery < 0.85)
+if ((main_battery < 0.95  && main_battery > -1) || gsm_battery < 0.95)
 {
 	logger.log("Error: Not enough battery.");
 
