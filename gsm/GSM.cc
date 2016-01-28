@@ -273,7 +273,7 @@ bool GSM::get_location(double& latitude, double& longitude)
 	this->serial->read_line(); // Eat new line
 	response = this->serial->read_line();
 	this->command_logger->log("Received: '"+ response +"'");
-	if (response == "ERROR" || response != "OK")
+	if (response != "OK")
 	{
 		this->logger->log("Error getting location on 'AT+CIPGSMLOC=1,1' response.");
 		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
