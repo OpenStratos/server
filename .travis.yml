@@ -14,6 +14,7 @@ addons:
       - g++-4.9
 
 before_install:
+  - git submodule update --init --recursive > /dev/null
   - export CXX="g++-4.9"
 
 install:
