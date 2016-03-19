@@ -5,16 +5,15 @@ sudo: required
 addons:
   apt:
     sources:
-    - ubuntu-toolchain-r-test
+      - ubuntu-toolchain-r-test
     packages:
-    - autoconf
-    - automake
-    - m4
-    - gcc-4.9
-    - g++-4.9
+      - autoconf
+      - automake
+      - m4
+      - gcc-4.9
+      - g++-4.9
 
 before_install:
-  - git submodule update --init --recursive > /dev/null
   - export CXX="g++-4.9"
 
 install:
@@ -34,8 +33,7 @@ branches:
 notifications:
   email:
     recipients:
-      - iban.eguia@opendeusto.es
-      - jordan.aranda@me.com
+      - razican@protonmail.ch
       - eneko.cruz@opendeusto.es
     on_success: change
     on_failure: always
