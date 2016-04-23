@@ -339,25 +339,95 @@ void GPS::parse_RMC(const string& frame)
 	}
 }
 
-void GPS::init_dynamic_gps_mode(void)
+void GPS::enter_airborne_1g_mode(void)
 {
 	int gps_dynamic_model_set_success = 0;
 	unsigned char setdm6[] = {
-		0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,
- 		0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
- 		0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C,
+		0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,	//Byte at offset 2
+ 		0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,	//determines new
+ 		0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C,	//operation mode.
  		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
  		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC 
 	};
 	uint8_t sz_setdm6 = 44;
 
-	while(!gps_dynamic_model_set_success)
-	{
-		send_ublox_packet(setdm6, sz_setdm6);
+	long time = 1000*clock()/CLOCKS_PER_SEC;
+
+	while(!gps_dynamic_model_set_success && ((1000*clock()/CLOCKS_PER_SEC)-time)<6000)	//Prevent lock and
+	{											//timeout if not set
+		send_ublox_packet(setdm6, sz_setdm6);						//after six seconds
 		gps_dynamic_model_set_success = receive_check_ublox_ack(setdm6);
 	}
-	this->logger->log("Set GPS dynamic module successfully");
+	if (gps_dynamic_model_set_sucecess)
+	{
+		this->logger->log("GPS entered airborne (<1g) mode successfully");
+	}
+	else
+	{
+		this->logger->log("GPS failed to enter airborne (<1g) mode");
+	}
 }
+
+void GPS::enter_stationary_mode(void)
+{
+        int gps_dynamic_model_set_success = 0;
+        unsigned char setdm2[] = {
+                0xB5, 0x62, 0x02, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,	//Byte at offset 2
+                0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,	//determines new
+                0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C,	//operation mode.
+                0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC 
+        };
+        uint8_t sz_setdm2 = 44;
+
+	long time = 1000*clock()/CLOCKS_PER_SEC;
+
+        while(!gps_dynamic_model_set_success && ((1000*clock()/CLOCKS_PER_SEC)-time)<6000)	//Prevent lock and
+        {											//timeout if not set
+                send_ublox_packet(setdm2, sz_setdm2);						//After six seconds
+                gps_dynamic_model_set_success = receive_check_ublox_ack(setdm2);
+        }
+
+	if (gps_dynamic_model_set_sucecess)
+        {
+                this->logger->log("GPS entered stationary mode successfully");
+        }
+        else
+        {
+                this->logger->log("GPS failed to enter stationary mode");
+        }
+}
+
+void GPS::enter_pedestrian_mode(void)
+{
+        int gps_dynamic_model_set_success = 0;
+        unsigned char setdm3[] = {
+                0xB5, 0x62, 0x03, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,   //Byte at offset 2
+                0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,   //determines new
+                0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C,   //operation mode.
+                0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC 
+        };
+        uint8_t sz_setdm3 = 44;
+
+        long time = 1000*clock()/CLOCKS_PER_SEC;
+
+        while(!gps_dynamic_model_set_success && ((1000*clock()/CLOCKS_PER_SEC)-time)<6000)      //Prevent lock and
+        {                                                                                       //timeout if not set
+                send_ublox_packet(setdm3, sz_setdm3);                                           //After six seconds
+                gps_dynamic_model_set_success = receive_check_ublox_ack(setdm3);
+        }
+
+        if (gps_dynamic_model_set_sucecess)
+        {
+                this->logger->log("GPS entered pedestrian mode successfully");
+        } 
+        else
+        {
+                this->logger->log("GPS failed to enter pedestrian mode");
+        }
+}
+
 
 void GPS::send_ublox_packet(unsigned char *message, uint8_t len)
 {
@@ -421,4 +491,14 @@ bool GPS::receive_check_ublox_ack(unsigned char *message)
 			}
 		}
 	}
+}
+
+void GPS::notify_takeoff(void){
+	this->logger->log("GPS notified takeoff. Switching to airborne mode");
+	this->enter_airborne_1g_mode();
+}
+
+void GPS::notify_landing(void){
+	this->logger->log("GPS notified landing. Switching to stationary mode");
+	this->enter_stationary_mode();
 }
