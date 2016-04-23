@@ -354,7 +354,7 @@ void GPS::init_dynamic_gps_mode(void)
 	while(!gps_dynamic_model_set_success)
 	{
 		send_ublox_packet(setdm6, sz_setdm6);
-		gps_dynamic_model_set_success = receive_ublox_ack(setdm6);
+		gps_dynamic_model_set_success = receive_check_ublox_ack(setdm6);
 	}
 	this->logger->log("Set GPS dynamic module successfully");
 }
@@ -399,7 +399,7 @@ bool GPS::receive_check_ublox_ack(unsigned char *message)
 	bytes_ordered = 0;
 	long millis = 1000*clock()/CLOCKS_PER_SEC;	//Time in milliseconds
 	while (1){
-		if (ackByteID > 9)
+		if (bytes_ordered > 9)
 		{
  			return true;
  		}
@@ -410,10 +410,10 @@ bool GPS::receive_check_ublox_ack(unsigned char *message)
 		}
 		if (this->serial->available())
 		{
-			byte = (unsigned char)this->serial->read();
+			byte = (unsigned char)this->serial->read_char();
 			if (byte == ack_packet[bytes_ordered])
 			{
-				bytes_ordered++:
+				bytes_ordered++;
 			}
 			else
 			{
