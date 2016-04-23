@@ -337,6 +337,7 @@ void GPS::parse_RMC(const string& frame)
 		this->velocity.speed = kt_to_mps(stof(s_data[7]));
 		this->velocity.course = stof(s_data[8]);
 	}
+}
 
 void GPS::init_gps_dynamic_mode(void)
 {
@@ -395,6 +396,7 @@ bool GPS::receive_ublox_ack(unsigned char *message)
 		ack_packet[8]+= ack_packet[i];
 		ack_packet[9]+= ack_packet[8];
 	}
+	bytes_ordered = 0;
 	long millis = 1000*clock()/CLOCKS_PER_SEC;	//Time in milliseconds
 	while (1){
 		if (ackByteID > 9)
@@ -419,7 +421,4 @@ bool GPS::receive_ublox_ack(unsigned char *message)
 			}
 		}
 	}
-}
-
-
 }
