@@ -1,6 +1,7 @@
 #ifndef GPS_GPS_H_
 #define GPS_GPS_H_
 
+#include <ctime>
 #include <cstdint>
 
 #include <string>
@@ -47,6 +48,10 @@ namespace os {
 		void parse_GGA(const string& frame);
 		void parse_GSA(const string& frame);
 		void parse_RMC(const string& frame);
+
+		void init_dynamic_gps_mode(void);
+		void send_ublox_packet(unsigned char *, uint8_t);
+		bool receive_check_ublox_ack(unsigned char*);
 
 	public:
 		GPS(GPS& copy) = delete;

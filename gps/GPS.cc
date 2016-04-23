@@ -337,4 +337,88 @@ void GPS::parse_RMC(const string& frame)
 		this->velocity.speed = kt_to_mps(stof(s_data[7]));
 		this->velocity.course = stof(s_data[8]);
 	}
+
+void GPS::init_gps_dynamic_mode(void)
+{
+	int gps_dynamic_model_set_success = 0;
+	unsigned char setdm6[] = {
+		0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,
+ 		0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
+ 		0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C,
+ 		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC 
+	};
+	uint8_t sz_setdm6 = 44;
+
+	while(!gps_dynamic_model_set_success)
+	{
+		send_ublox_packet(setdm6, sz_setdm6);
+		gps_dynamic_model_set_success = receive_ublox_ack(setdm6);
+	}
+	this->logger->log("Set GPS dynamic module successfully");
+}
+
+void GPS::send_ublox_packet(unsigned char *message, uint8_t len)
+{
+	if (this->serial->is_open())
+	{
+		this->serial->flush();
+		this->serial->write((unsigned char)0xFF);
+		this_thread::sleep_for(500ms);
+		for (unsigned int i = 0; i<len; i++){
+			this->serial->write(message[i]);
+		}
+	}else
+	{
+		this->logger->log("Tried to send a packet, but the serial is closed");
+	}
+}
+
+bool GPS::receive_ublox_ack(unsigned char *message)
+{
+	unsigned char ack_packet[10];
+	unsigned char byte;
+
+	ack_packet[0] = 0xB5;
+ 	ack_packet[1] = 0x62;
+ 	ack_packet[2] = 0x05;
+ 	ack_packet[3] = 0x01;
+ 	ack_packet[4] = 0x02;
+ 	ack_packet[5] = 0x00;
+	ack_packet[6] = message[2];
+	ack_packet[7] = message[3];
+	ack_packet[8] = 0x00;
+ 	ack_packet[9] = 0x00;
+
+	for (unsigned int i = 0; i<8; i++){
+		ack_packet[8]+= ack_packet[i];
+		ack_packet[9]+= ack_packet[8];
+	}
+	long millis = 1000*clock()/CLOCKS_PER_SEC;	//Time in milliseconds
+	while (1){
+		if (ackByteID > 9)
+		{
+ 			return true;
+ 		}
+
+		if (1000*clock()/CLOCKS_PER_SEC - millis > 3000)
+		{
+			return false;
+		}
+		if (this->serial->available())
+		{
+			byte = (unsigned char)this->serial->read();
+			if (byte == ack_packet[bytes_ordered])
+			{
+				bytes_ordered++:
+			}
+			else
+			{
+				bytes_ordered = 0;
+			}
+		}
+	}
+}
+
+
 }
