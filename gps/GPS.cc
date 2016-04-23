@@ -88,6 +88,9 @@ bool GPS::initialize()
 	}
 	this->logger->log("Serial connection started.");
 
+	this->logger->log("Setting GPS to pedestrian mode");
+	this->enter_pedestrian_mode();
+
 	this->logger->log("Starting GPS frame thread...");
 	thread t(&GPS::gps_thread, this);
 	t.detach();
@@ -358,7 +361,7 @@ void GPS::enter_airborne_1g_mode(void)
 		send_ublox_packet(setdm6, sz_setdm6);						//after six seconds
 		gps_dynamic_model_set_success = receive_check_ublox_ack(setdm6);
 	}
-	if (gps_dynamic_model_set_sucecess)
+	if (gps_dynamic_model_set_success)
 	{
 		this->logger->log("GPS entered airborne (<1g) mode successfully");
 	}
@@ -388,7 +391,7 @@ void GPS::enter_stationary_mode(void)
                 gps_dynamic_model_set_success = receive_check_ublox_ack(setdm2);
         }
 
-	if (gps_dynamic_model_set_sucecess)
+	if (gps_dynamic_model_set_success)
         {
                 this->logger->log("GPS entered stationary mode successfully");
         }
@@ -418,7 +421,7 @@ void GPS::enter_pedestrian_mode(void)
                 gps_dynamic_model_set_success = receive_check_ublox_ack(setdm3);
         }
 
-        if (gps_dynamic_model_set_sucecess)
+        if (gps_dynamic_model_set_success)
         {
                 this->logger->log("GPS entered pedestrian mode successfully");
         } 
