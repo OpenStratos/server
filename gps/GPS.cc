@@ -339,7 +339,7 @@ void GPS::parse_RMC(const string& frame)
 	}
 }
 
-void GPS::init_gps_dynamic_mode(void)
+void GPS::init_dynamic_gps_mode(void)
 {
 	int gps_dynamic_model_set_success = 0;
 	unsigned char setdm6[] = {
@@ -375,7 +375,7 @@ void GPS::send_ublox_packet(unsigned char *message, uint8_t len)
 	}
 }
 
-bool GPS::receive_ublox_ack(unsigned char *message)
+bool GPS::receive_check_ublox_ack(unsigned char *message)
 {
 	unsigned char ack_packet[10];
 	unsigned int bytes_ordered;
