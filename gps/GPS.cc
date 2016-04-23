@@ -377,6 +377,7 @@ void GPS::send_ublox_packet(unsigned char *message, uint8_t len)
 bool GPS::receive_ublox_ack(unsigned char *message)
 {
 	unsigned char ack_packet[10];
+	unsigned int bytes_ordered;
 	unsigned char byte;
 
 	ack_packet[0] = 0xB5;
