@@ -11,3 +11,6 @@ while ( ! has_launched(launch_altitude))
 	this_thread::sleep_for(1s);
 
 logger->log("Balloon launched.");
+
+logger->log("Setting GPS to airborne mode...");
+GPS::get_instance().notify_takeoff();
