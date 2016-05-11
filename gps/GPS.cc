@@ -342,9 +342,12 @@ void GPS::parse_RMC(const string& frame)
 	}
 }
 
-void GPS::enter_airborne_1g_mode(void)
+void GPS::enter_airborne_1g_mode()
 {
 	int gps_dynamic_model_set_success = 0;
+	struct timeval time_now, time_start;
+	long ms_now, ms_start;
+
 	unsigned char setdm6[] = {
 		0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,	//Byte at offset 2
  		0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,	//determines new
@@ -354,12 +357,17 @@ void GPS::enter_airborne_1g_mode(void)
 	};
 	uint8_t sz_setdm6 = 44;
 
-	long time = 1000*clock()/CLOCKS_PER_SEC;
+	gettimeofday(&time_start, NULL);
+	ms_start = (long)((time_start.tv_sec)*1000 + (time_start.tv_usec)/1000);
+	ms_now = ms_start;
 
-	while(!gps_dynamic_model_set_success && ((1000*clock()/CLOCKS_PER_SEC)-time)<6000)	//Prevent lock and
+	while(!gps_dynamic_model_set_success && (ms_now - ms_start)<6000)			//Prevent lock and
 	{											//timeout if not set
-		send_ublox_packet(setdm6, sz_setdm6);						//after six seconds
-		gps_dynamic_model_set_success = receive_check_ublox_ack(setdm6);
+		gettimeofday(&time_now, NULL);							//after six seconds
+		ms_now = (long)((time_now.tv_sec)*1000 + (time_now.tv_usec)/1000);
+
+		this->send_ublox_packet(setdm6, sz_setdm6);
+		gps_dynamic_model_set_success = this->receive_check_ublox_ack(setdm6);
 	}
 	if (gps_dynamic_model_set_success)
 	{
@@ -371,10 +379,13 @@ void GPS::enter_airborne_1g_mode(void)
 	}
 }
 
-void GPS::enter_stationary_mode(void)
+void GPS::enter_stationary_mode()
 {
         int gps_dynamic_model_set_success = 0;
-        unsigned char setdm2[] = {
+        struct timeval time_now, time_start;
+        long ms_now, ms_start;
+
+	unsigned char setdm2[] = {
                 0xB5, 0x62, 0x02, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,	//Byte at offset 2
                 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,	//determines new
                 0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C,	//operation mode.
@@ -383,12 +394,17 @@ void GPS::enter_stationary_mode(void)
         };
         uint8_t sz_setdm2 = 44;
 
-	long time = 1000*clock()/CLOCKS_PER_SEC;
+	gettimeofday(&time_start, NULL);
+	ms_start = (long)((time_start.tv_sec)*1000 + (time_start.tv_usec)/1000);
+	ms_now = ms_start;
 
-        while(!gps_dynamic_model_set_success && ((1000*clock()/CLOCKS_PER_SEC)-time)<6000)	//Prevent lock and
-        {											//timeout if not set
-                send_ublox_packet(setdm2, sz_setdm2);						//After six seconds
-                gps_dynamic_model_set_success = receive_check_ublox_ack(setdm2);
+	while(!gps_dynamic_model_set_success && (ms_now - ms_start)<6000)			//Prevent lock and
+	{											//timeout if not set
+		gettimeofday(&time_now, NULL);							//after six seconds
+		ms_now = (long)((time_now.tv_sec)*1000 + (time_now.tv_usec)/1000);
+
+                this->send_ublox_packet(setdm2, sz_setdm2);
+                gps_dynamic_model_set_success = this->receive_check_ublox_ack(setdm2);
         }
 
 	if (gps_dynamic_model_set_success)
@@ -401,9 +417,12 @@ void GPS::enter_stationary_mode(void)
         }
 }
 
-void GPS::enter_pedestrian_mode(void)
+void GPS::enter_pedestrian_mode()
 {
         int gps_dynamic_model_set_success = 0;
+	struct timeval time_now, time_start;
+        long ms_now, ms_start;
+
         unsigned char setdm3[] = {
                 0xB5, 0x62, 0x03, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,   //Byte at offset 2
                 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,   //determines new
@@ -413,12 +432,17 @@ void GPS::enter_pedestrian_mode(void)
         };
         uint8_t sz_setdm3 = 44;
 
-        long time = 1000*clock()/CLOCKS_PER_SEC;
+        gettimeofday(&time_start, NULL);
+	ms_start = (long)((time_start.tv_sec)*1000 + (time_start.tv_usec)/1000);
+	ms_now = ms_start;
 
-        while(!gps_dynamic_model_set_success && ((1000*clock()/CLOCKS_PER_SEC)-time)<6000)      //Prevent lock and
-        {                                                                                       //timeout if not set
-                send_ublox_packet(setdm3, sz_setdm3);                                           //After six seconds
-                gps_dynamic_model_set_success = receive_check_ublox_ack(setdm3);
+	while(!gps_dynamic_model_set_success && (ms_now - ms_start)<6000)			//Prevent lock and
+	{											//timeout if not set
+		gettimeofday(&time_now, NULL);							//after six seconds
+		ms_now = (long)((time_now.tv_sec)*1000 + (time_now.tv_usec)/1000);
+
+                this->send_ublox_packet(setdm3, sz_setdm3);
+                gps_dynamic_model_set_success = this->receive_check_ublox_ack(setdm3);
         }
 
         if (gps_dynamic_model_set_success)
@@ -453,6 +477,8 @@ bool GPS::receive_check_ublox_ack(unsigned char *message)
 	unsigned char ack_packet[10];
 	unsigned int bytes_ordered;
 	unsigned char byte;
+	struct timeval time_now, time_start;
+        long ms_now, ms_start;
 
 	ack_packet[0] = 0xB5;
  	ack_packet[1] = 0x62;
@@ -470,17 +496,20 @@ bool GPS::receive_check_ublox_ack(unsigned char *message)
 		ack_packet[9]+= ack_packet[8];
 	}
 	bytes_ordered = 0;
-	long millis = 1000*clock()/CLOCKS_PER_SEC;	//Time in milliseconds
-	while (1){
-		if (bytes_ordered > 9)
+	
+	gettimeofday(&time_start, NULL);
+	ms_start = (long)((time_start.tv_sec)*1000 + (time_start.tv_usec)/1000);
+	ms_now = ms_start;
+
+	while (ms_now - ms_start <= 3000){						//Avoid lock by
+		gettimeofday(&time_now, NULL);						//timing out after
+		ms_now = (long)((time_now.tv_sec)*1000 + (time_now.tv_usec)/1000);	//3s
+
+		if (bytes_ordered > 9)				
 		{
  			return true;
  		}
 
-		if (1000*clock()/CLOCKS_PER_SEC - millis > 3000)
-		{
-			return false;
-		}
 		if (this->serial->available())
 		{
 			byte = (unsigned char)this->serial->read_char();
@@ -494,14 +523,17 @@ bool GPS::receive_check_ublox_ack(unsigned char *message)
 			}
 		}
 	}
+	return false;
 }
 
-void GPS::notify_takeoff(void){
+void GPS::notify_takeoff()
+{
 	this->logger->log("GPS notified takeoff. Switching to airborne mode");
 	this->enter_airborne_1g_mode();
 }
 
-void GPS::notify_landing(void){
+void GPS::notify_landing()
+{
 	this->logger->log("GPS notified landing. Switching to stationary mode");
 	this->enter_stationary_mode();
 }
