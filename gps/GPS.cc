@@ -353,7 +353,7 @@ void GPS::enter_airborne_1g_mode()
  		0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,	//determines new
  		0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C,	//operation mode.
  		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
- 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC 
+ 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC
 	};
 	uint8_t sz_setdm6 = 44;
 
@@ -496,7 +496,7 @@ bool GPS::receive_check_ublox_ack(unsigned char *message)
 		ack_packet[9]+= ack_packet[8];
 	}
 	bytes_ordered = 0;
-	
+
 	gettimeofday(&time_start, NULL);
 	ms_start = (long)((time_start.tv_sec)*1000 + (time_start.tv_usec)/1000);
 	ms_now = ms_start;
@@ -505,7 +505,7 @@ bool GPS::receive_check_ublox_ack(unsigned char *message)
 		gettimeofday(&time_now, NULL);						//timing out after
 		ms_now = (long)((time_now.tv_sec)*1000 + (time_now.tv_usec)/1000);	//3s
 
-		if (bytes_ordered > 9)				
+		if (bytes_ordered > 9)
 		{
  			return true;
  		}
@@ -526,14 +526,26 @@ bool GPS::receive_check_ublox_ack(unsigned char *message)
 	return false;
 }
 
+void GPS::notify_initialization()
+{
+	this->logger->log("Initialization notified. Switching to pedestrian mode");
+	this->enter_pedestrian_mode();
+}
+
 void GPS::notify_takeoff()
 {
-	this->logger->log("GPS notified takeoff. Switching to airborne mode");
+	this->logger->log("Takeoff notified. Switching to airborne mode");
+	this->enter_airborne_1g_mode();
+}
+
+void GPS::notify_safe_mode()
+{
+	this->logger->log("Safe mode entry notified. Switching to airborne mode");
 	this->enter_airborne_1g_mode();
 }
 
 void GPS::notify_landing()
 {
-	this->logger->log("GPS notified landing. Switching to stationary mode");
+	this->logger->log("Landing notified. Switching to stationary mode");
 	this->enter_stationary_mode();
 }

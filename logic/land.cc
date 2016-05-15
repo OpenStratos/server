@@ -4,7 +4,7 @@ if ( ! Camera::get_instance().stop())
 else
 	logger->log("Video stopped.");
 
-logger->log("Setting GPS to stationary mode...");
+logger->log("Notifying GPS about landing...");
 GPS::get_instance().notify_landing();
 
 logger->log("Waiting 1 minute before sending landed SMS...");
