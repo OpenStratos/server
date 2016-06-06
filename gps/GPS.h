@@ -48,6 +48,13 @@ namespace os {
 		void parse_GSA(const string& frame);
 		void parse_RMC(const string& frame);
 
+		void enter_pedestrian_mode();	/*Before launch*/
+		void enter_airborne_1g_mode();	/*While in flight*/
+		void enter_stationary_mode();	/*When landed*/
+
+		void send_ublox_packet(unsigned char *, uint8_t);
+		bool receive_check_ublox_ack(unsigned char*);
+
 	public:
 		GPS(GPS& copy) = delete;
 		~GPS();
@@ -69,6 +76,11 @@ namespace os {
 		bool turn_on() const;
 		bool turn_off() const;
 		void parse(const string& frame);
+
+		void notify_takeoff();
+		void notify_landing();
+		void notify_initialization();
+		void notify_safe_mode();
 	};
 }
 

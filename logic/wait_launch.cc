@@ -11,3 +11,6 @@ while ( ! has_launched(launch_altitude))
 	this_thread::sleep_for(1s);
 
 logger->log("Balloon launched.");
+
+logger->log("Notifying GPS about launch...");
+GPS::get_instance().notify_takeoff();

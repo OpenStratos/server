@@ -37,6 +37,11 @@ if ( ! GPS::get_instance().initialize())
 }
 logger.log("GPS initialized.");
 
+// Notify the GPS about its initialization, so that it sets itself to the
+// appropriate mode
+logger.log("Notifying GPS about initialization...");
+GPS::get_instance().notify_initialization();
+
 logger.log("Initializing GSM...");
 if ( ! GSM::get_instance().initialize())
 {
