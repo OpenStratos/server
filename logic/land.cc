@@ -21,7 +21,7 @@ else
 	logger->log("Error getting battery status.");
 
 logger->log("Sending landed SMS...");
-for (int i = 0; GPS::get_instance().get_PDOP() > 5 && i < 5; i++)
+for (int i = 0; GPS::get_instance().get_PDOP() > 5 && i < 10; i++)
 	this_thread::sleep_for(500ms);
 
 if ( ! GSM::get_instance().send_SMS(
@@ -50,7 +50,7 @@ else
 	logger->log("Error getting battery status.");
 
 logger->log("Sending second landed SMS...");
-while (GPS::get_instance().get_PDOP() > 5)
+for (int i = 0; GPS::get_instance().get_PDOP() > 5 && i < 60; i++)
 	this_thread::sleep_for(500ms);
 
 while (( ! GSM::get_instance().send_SMS(
