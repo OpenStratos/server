@@ -204,7 +204,7 @@ void GPS::parse(const string& frame)
 	if (frame.length() > 1 && is_valid(frame))
 	{
 		this->frame_logger->log(frame);
-		string frame_type = frame.substr(3, frame.find_first_of(',')-1);
+		string frame_type = frame.substr(3, frame.find_first_of(',')-3);
 
 		if (frame_type == "GGA")
 		{
