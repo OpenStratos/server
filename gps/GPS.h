@@ -81,6 +81,8 @@ namespace os {
 		void notify_landing();
 		void notify_initialization();
 		void notify_safe_mode();
+
+		void update_date();
 	};
 }
 

@@ -40,10 +40,6 @@ describe("GPS", [](){
 
 	it("GGA frame parser pass test", [&](){
 
-		int hour = GPS::get_instance().get_time().tm_hour;
-		int min = GPS::get_instance().get_time().tm_min;
-		int sec = GPS::get_instance().get_time().tm_sec;
-
 		int satellites = GPS::get_instance().get_satellites();
 		double latitude = GPS::get_instance().get_latitude();
 		double longitude = GPS::get_instance().get_longitude();
@@ -54,9 +50,9 @@ describe("GPS", [](){
 
 		AssertThat(GPS::get_instance().is_fixed(), Equals(false));
 
-		AssertThat(GPS::get_instance().get_time().tm_hour, Equals(hour));
-		AssertThat(GPS::get_instance().get_time().tm_min, Equals(min));
-		AssertThat(GPS::get_instance().get_time().tm_sec, Equals(sec));
+		AssertThat(GPS::get_instance().get_time().tm_hour, Equals(17));
+		AssertThat(GPS::get_instance().get_time().tm_min, Equals(8));
+		AssertThat(GPS::get_instance().get_time().tm_sec, Equals(10));
 
 		AssertThat(GPS::get_instance().get_satellites(), Equals(satellites));
 		AssertThat(GPS::get_instance().get_latitude(), Equals(latitude));
@@ -107,14 +103,6 @@ describe("GPS", [](){
 
 	it("RMC frame parser pass test", [&](){
 
-		tm gps_time = GPS::get_instance().get_time();
-		int hour = gps_time.tm_hour;
-		int min = gps_time.tm_min;
-		int sec = gps_time.tm_sec;
-		int mday = gps_time.tm_mday;
-		int mon = gps_time.tm_mon;
-		int year = gps_time.tm_year;
-
 		double latitude = GPS::get_instance().get_latitude();
 		double longitude = GPS::get_instance().get_longitude();
 		float speed = GPS::get_instance().get_velocity().speed;
@@ -126,12 +114,12 @@ describe("GPS", [](){
 
 		tm new_gps_time = GPS::get_instance().get_time();
 
-		AssertThat(new_gps_time.tm_hour, Equals(hour));
-		AssertThat(new_gps_time.tm_min, Equals(min));
-		AssertThat(new_gps_time.tm_sec, Equals(sec));
-		AssertThat(new_gps_time.tm_mday, Equals(mday));
-		AssertThat(new_gps_time.tm_mon, Equals(mon));
-		AssertThat(new_gps_time.tm_year, Equals(year));
+		AssertThat(new_gps_time.tm_hour, Equals(8));
+		AssertThat(new_gps_time.tm_min, Equals(18));
+		AssertThat(new_gps_time.tm_sec, Equals(36));
+		AssertThat(new_gps_time.tm_mday, Equals(13));
+		AssertThat(new_gps_time.tm_mon, Equals(8));
+		AssertThat(new_gps_time.tm_year, Equals(198));
 
 		AssertThat(GPS::get_instance().get_latitude(), Equals(latitude));
 		AssertThat(GPS::get_instance().get_longitude(), Equals(longitude));

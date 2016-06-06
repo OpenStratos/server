@@ -203,6 +203,10 @@ void GPS::parse(const string& frame)
 {
 	if (frame.length() > 1 && is_valid(frame))
 	{
+		struct timeval timer;
+		gettimeofday(&timer, NULL);
+		struct tm * os_clock = gmtime(&timer.tv_sec);
+
 		this->frame_logger->log(frame);
 		string frame_type = frame.substr(3, frame.find_first_of(',')-3);
 
@@ -217,6 +221,11 @@ void GPS::parse(const string& frame)
 		else if (frame_type == "RMC")
 		{
 			this->parse_RMC(frame);
+		}
+
+		if (this->time.tm_sec < os_clock->tm_sec - 1 ||
+			this->time.tm_sec > os_clock->tm_sec + 1) {
+			this->update_date();
 		}
 	}
 }
@@ -236,13 +245,15 @@ void GPS::parse_GGA(const string& frame)
 	else if ( ! this->active && active) this->logger->log("Fix acquired.");
 	this->active = active;
 
-	if (this->active)
-	{
+	if (s_data[1].length() == 6) {
 		// Update time
 		this->time.tm_hour = stoi(s_data[1].substr(0, 2));
 		this->time.tm_min = stoi(s_data[1].substr(2, 2));
 		this->time.tm_sec = stoi(s_data[1].substr(4, 2));
+	}
 
+	if (this->active)
+	{
 		// Update latitude
 		this->latitude = stoi(s_data[2].substr(0, 2));
 		this->latitude += stof(s_data[2].substr(2, s_data[2].length()-2))/60;
@@ -315,17 +326,22 @@ void GPS::parse_RMC(const string& frame)
 		this->active = true;
 	}
 
-	if (this->active)
-	{
-		// Update date and time
+	if (s_data[1].length() == 6) {
+		// Update time
 		this->time.tm_hour = stoi(s_data[1].substr(0, 2));
 		this->time.tm_min = stoi(s_data[1].substr(2, 2));
 		this->time.tm_sec = stoi(s_data[1].substr(4, 2));
+	}
 
+	if (s_data[9].length() == 6) {
+		// Update date
 		this->time.tm_mday = stoi(s_data[9].substr(0, 2));
 		this->time.tm_mon = stoi(s_data[9].substr(2, 2))-1;
 		this->time.tm_year = stoi(s_data[9].substr(4, 2))+100;
+	}
 
+	if (this->active)
+	{
 		// Update latitude
 		this->latitude = stoi(s_data[3].substr(0, 2));
 		this->latitude += stof(s_data[3].substr(2, s_data[3].length()-2))/60;
@@ -548,4 +564,13 @@ void GPS::notify_landing()
 {
 	this->logger->log("Landing notified. Switching to stationary mode");
 	this->enter_stationary_mode();
+}
+
+void GPS::update_date()
+{
+	struct timezone tz = {0, 0};
+	struct timeval tv = {timegm(&this->time), 0};
+	settimeofday(&tv, &tz);
+
+	this->logger->log("Date changed.");
 }
