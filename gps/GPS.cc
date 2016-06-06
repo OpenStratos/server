@@ -204,17 +204,17 @@ void GPS::parse(const string& frame)
 	if (frame.length() > 1 && is_valid(frame))
 	{
 		this->frame_logger->log(frame);
-		string frame_type = frame.substr(1, frame.find_first_of(',')-1);
+		string frame_type = frame.substr(3, frame.find_first_of(',')-1);
 
-		if (frame_type == "GPGGA")
+		if (frame_type == "GGA")
 		{
 			this->parse_GGA(frame);
 		}
-		else if (frame_type == "GPGSA")
+		else if (frame_type == "GSA")
 		{
 			this->parse_GSA(frame);
 		}
-		else if (frame_type == "GPRMC")
+		else if (frame_type == "RMC")
 		{
 			this->parse_RMC(frame);
 		}
