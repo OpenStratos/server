@@ -116,7 +116,7 @@ bool Camera::take_picture(const string& exif)
 		filename = "data/img/test.jpg";
 	#endif
 
-	string exif_command = exif != "" ? " -x "+ exif : "";
+	string exif_command = exif != "" ? " -x '"+ exif +"'" : "";
 
 	string command = "raspistill -n -o "+ filename +" " + (PHOTO_RAW ? "-r" : "") + " -w "+ to_string(PHOTO_WIDTH)
 				+" -h "+ to_string(PHOTO_HEIGHT) +" -q "+ to_string(PHOTO_QUALITY)
