@@ -164,9 +164,11 @@ namespace os {
 
 	inline bool wait_down_for(double altitude) {
 		#if defined SIM && !defined REAL_SIM
+			if (altitude > FLIGHT_MAX_HEIGHT) return false;
 			this_thread::sleep_for(1min);
 			return false;
 		#elif defined REAL_SIM && !defined SIM
+			if (altitude > FLIGHT_MAX_HEIGHT) return false;
 			this_thread::sleep_for(317s);
 			return false;
 		#else
