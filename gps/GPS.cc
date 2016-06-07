@@ -251,6 +251,8 @@ void GPS::parse_GGA(const string& frame)
 	string data;
 	vector<string> s_data;
 
+	string lat, lat_dec, lon, lon_dec;
+
 	// We put all fields in a vector
 	while(getline(ss, data, ',')) s_data.push_back(data);
 
@@ -269,20 +271,38 @@ void GPS::parse_GGA(const string& frame)
 
 	if (this->active)
 	{
-		// Update latitude
-		this->latitude = stoi(s_data[2].substr(0, 2));
-		this->latitude += stof(s_data[2].substr(2, s_data[2].length()-2))/60;
-		if (s_data[3] == "S") this->latitude *= -1;
+		lat = s_data[2].substr(0, 2);
+		lat_dec = s_data[2].substr(2, s_data[2].length()-2);
 
-		// Update longitude
-		this->longitude = stoi(s_data[4].substr(0, 3));
-		this->longitude += stof(s_data[4].substr(3, s_data[4].length()-3))/60;
-		if (s_data[5] == "W") this->longitude *= -1;
+		// Check if non empty. If so, update latitude
+		if(!lat.empty())
+		{
+			this->latitude = stoi(lat);
+			if(!lat_dec.empty())
+			{
+				this->latitude += stof(lat_dec)/60;
+			}
+			if (s_data[3] == "S") this->latitude *= -1;
+		}
 
-		// Update the rest of the GGA data
-		this->satellites = stoi(s_data[7]);
-		this->hdop = stof(s_data[8]);
-		this->altitude = stod(s_data[9]);
+		lon = s_data[4].substr(0, 3);
+		lon_dec = s_data[4].substr(3, s_data[4].length()-3);
+
+		// Check if non-empty. If so, update longitude
+		if(!lon.empty())
+		{
+			this->longitude = stoi(lon);
+			if(!lon_dec.empty())
+			{
+				this->longitude += stof(lon_dec)/60;
+			}
+			if (s_data[5] == "W") this->longitude *= -1;
+		}
+
+		// Validate and update the rest of the GGA data
+		if(!(s_data[7].empty()))this->satellites = stoi(s_data[7]);
+		if(!(s_data[8].empty()))this->hdop = stof(s_data[8]);
+		if(!(s_data[9].empty()))this->altitude = stod(s_data[9]);
 	}
 }
 
@@ -312,9 +332,12 @@ void GPS::parse_GSA(const string& frame)
 	if (this->active)
 	{
 		// Update DOP
-		this->pdop = stof(s_data[15]);
-		this->hdop = stof(s_data[16]);
-		this->vdop = stof(s_data[17].substr(0, s_data[17].find_first_of('*')));
+		if(!(s_data[15].empty()))this->pdop = stof(s_data[15]);
+		if(!(s_data[16].empty()))this->hdop = stof(s_data[16]);
+		if(!(s_data[17].substr(0, s_data[17].find_first_of('*')).empty()))
+		{
+			this->vdop = stof(s_data[17].substr(0, s_data[17].find_first_of('*')));
+		}
 	}
 }
 
@@ -323,6 +346,8 @@ void GPS::parse_RMC(const string& frame)
 	stringstream ss(frame);
 	string data;
 	vector<string> s_data;
+
+	string lat, lat_dec, lon, lon_dec;
 
 	// We put all fields in a vector
 	while(getline(ss, data, ',')) s_data.push_back(data);
@@ -357,19 +382,35 @@ void GPS::parse_RMC(const string& frame)
 
 	if (this->active)
 	{
-		// Update latitude
-		this->latitude = stoi(s_data[3].substr(0, 2));
-		this->latitude += stof(s_data[3].substr(2, s_data[3].length()-2))/60;
-		if (s_data[4] == "S") this->latitude *= -1;
+		lat = s_data[3].substr(0, 2);
+		lat_dec = s_data[3].substr(2, s_data[3].length()-2);
+		// Check if non-empty, and if so, update latitude
+		if(!lat.empty())
+		{
+			this->latitude = stoi(lat);
+			if(!lat_dec.empty())
+			{
+				this->latitude += stof(lat_dec)/60;
+			}
+			if (s_data[4] == "S") this->latitude *= -1;
+		}
 
-		// Update longitude
-		this->longitude = stoi(s_data[5].substr(0, 3));
-		this->longitude += stof(s_data[5].substr(3, s_data[5].length()-3))/60;
-		if (s_data[6] == "W") this->longitude *= -1;
+		lon = s_data[5].substr(0, 3);
+		lon_dec = s_data[5].substr(3, s_data[5].length()-3);
+		// Check if non-empty, and if so, update longitude
+		if(!lon.empty())
+		{
+			this->longitude = stoi(lon);
+			if(!lon_dec.empty())
+			{
+				this->longitude += stof(lon_dec)/60;
+			}
+			if (s_data[6] == "W") this->longitude *= -1;
+		}
 
-		// Update velocity
-		this->velocity.speed = kt_to_mps(stof(s_data[7]));
-		this->velocity.course = stof(s_data[8]);
+		// Check if non-empty, and if so, update velocity
+		if(!(s_data[7].empty()))this->velocity.speed = kt_to_mps(stof(s_data[7]));
+		if(!(s_data[8].empty()))this->velocity.course = stof(s_data[8]);
 	}
 }
 
