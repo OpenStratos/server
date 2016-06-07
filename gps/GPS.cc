@@ -98,10 +98,25 @@ bool GPS::initialize()
 
 	#ifndef OS_TESTING
 		this->logger->log("Sending configuration frames...");
-		this->serial->println("$PMTK220,100*2F");
-		this->frame_logger->log("Sent: $PMTK220,100*2F");
-		this->serial->println("$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
-		this->frame_logger->log("Sent: $PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29");
+
+		char set_refresh[] = "\xB5\x62\x06\x08\x06\x00\x64\x00\x01\x00\x01\x00\x7A\x12"; uint8_t sz_set_refresh = 14;
+		char disable_gsv[] = "\xB5\x62\x05\x01\x02\x00\x06\x01\x0F\x38"; uint8_t sz_disable_gsv = 10;
+		char disable_vtg[] = "\xB5\x62\x06\x01\x03\x00\xF0\x01\x00\xFB\x11"; uint8_t sz_disable_vtg = 11;
+		char disable_gll[] = "\xB5\x62\x06\x01\x03\x00\xF0\x03\x00\xFD\x15"; uint8_t sz_disable_gll = 11;
+		char disable_zda[] = "\xB5\x62\x06\x01\x03\x00\xF0\x05\x00\xFF\x19"; uint8_t sz_disable_zda = 11;
+		char* messages[]   = {set_refresh,disable_gsv,disable_vtg,disable_gll,disable_zda};
+		uint8_t sizes[]    = {sz_set_refresh,sz_disable_gsv,sz_disable_vtg,sz_disable_gll,sz_disable_zda};
+
+		for(uint8_t message = 0; message<5; message++)
+		{
+			for(uint8_t tries = 0; tries<100; tries++)
+			{
+				for(uint8_t i = 0; i<sizes[message]; i++)
+				{
+					this->serial->write(messages[message][i]);
+				}
+			}
+		}
 		this->logger->log("Configuration frames sent.");
 	#endif
 
