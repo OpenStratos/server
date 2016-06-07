@@ -116,12 +116,10 @@ bool Camera::take_picture(const string& exif)
 		filename = "data/img/test.jpg";
 	#endif
 
-	string exif_command = exif != "" ? " -x '"+ exif +"'" : "";
-
 	string command = "raspistill -n -o "+ filename +" " + (PHOTO_RAW ? "-r" : "") + " -w "+ to_string(PHOTO_WIDTH)
 				+" -h "+ to_string(PHOTO_HEIGHT) +" -q "+ to_string(PHOTO_QUALITY)
 				+" -co "+ to_string(PHOTO_CONTRAST) +" -br "+ to_string(PHOTO_BRIGHTNESS)
-				+" -ex "+ PHOTO_EXPOSURE + exif_command;
+				+" -ex "+ PHOTO_EXPOSURE + exif;
 
 	this->logger->log("Picture command: '"+command+"'");
 
@@ -200,7 +198,7 @@ const string os::generate_exif_data()
 {
 	string exif;
 	while (GPS::get_instance().get_PDOP() > 5)
-		this_thread::sleep_for(1s);
+		this_thread::sleep_for(500ms);
 
 	double gps_lat = GPS::get_instance().get_latitude();
 	double gps_lon = GPS::get_instance().get_longitude();
@@ -209,16 +207,16 @@ const string os::generate_exif_data()
 	float gps_pdop = GPS::get_instance().get_PDOP();
 	euc_vec gps_velocity = GPS::get_instance().get_velocity();
 
-	exif += "GPSLatitudeRef="+to_string(gps_lat > 0 ? 'N' : 'S');
-	exif += " GPSLatitude="+to_string(abs((int) gps_lat*1000000))+"/1000000,0/1,0/1";
-	exif += " GPSLongitudeRef="+to_string(gps_lon > 0 ? 'E' : 'W');
-	exif += " GPSLongitude="+to_string(abs((int) gps_lon*1000000))+"/1000000,0/1,0/1";
-	exif += " GPSAltitudeRef=0 GPSAltitude="+to_string(gps_alt);
-	exif += " GPSSatellites="+to_string(gps_sat);
-	exif += " GPSDOP="+to_string(gps_pdop);
-	exif += " GPSSpeedRef=K GPSSpeed="+to_string(gps_velocity.speed*3.6);
-	exif += " GPSTrackRef=T GPSTrack="+to_string(gps_velocity.course);
-	exif += " GPSDifferential=0";
+	exif += " -x GPSLatitudeRef="+to_string(gps_lat > 0 ? 'N' : 'S');
+	exif += " -x GPSLatitude="+to_string(abs((int) gps_lat*1000000))+"/1000000,0/1,0/1";
+	exif += " -x GPSLongitudeRef="+to_string(gps_lon > 0 ? 'E' : 'W');
+	exif += " -x GPSLongitude="+to_string(abs((int) gps_lon*1000000))+"/1000000,0/1,0/1";
+	exif += " -x GPSAltitudeRef=0 GPSAltitude="+to_string(gps_alt);
+	exif += " -x GPSSatellites="+to_string(gps_sat);
+	exif += " -x GPSDOP="+to_string(gps_pdop);
+	exif += " -x GPSSpeedRef=K GPSSpeed="+to_string(gps_velocity.speed*3.6);
+	exif += " -x GPSTrackRef=T GPSTrack="+to_string(gps_velocity.course);
+	exif += " -x GPSDifferential=0";
 
 	return exif;
 }
