@@ -3,3 +3,6 @@ while ( ! GPS::get_instance().is_fixed())
 
 logger->log("GPS fix acquired, waiting 2 seconds for stabilization.");
 this_thread::sleep_for(2s);
+
+logger->log("Forced date change.");
+GPS::get_instance().update_date();

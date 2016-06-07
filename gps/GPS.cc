@@ -245,7 +245,7 @@ void GPS::parse_GGA(const string& frame)
 	else if ( ! this->active && active) this->logger->log("Fix acquired.");
 	this->active = active;
 
-	if (s_data[1].length() == 6) {
+	if (s_data[1].length() >= 6) {
 		// Update time
 		this->time.tm_hour = stoi(s_data[1].substr(0, 2));
 		this->time.tm_min = stoi(s_data[1].substr(2, 2));
@@ -326,7 +326,7 @@ void GPS::parse_RMC(const string& frame)
 		this->active = true;
 	}
 
-	if (s_data[1].length() == 6) {
+	if (s_data[1].length() >= 6) {
 		// Update time
 		this->time.tm_hour = stoi(s_data[1].substr(0, 2));
 		this->time.tm_min = stoi(s_data[1].substr(2, 2));
@@ -570,7 +570,9 @@ void GPS::update_date()
 {
 	struct timezone tz = {0, 0};
 	struct timeval tv = {timegm(&this->time), 0};
-	settimeofday(&tv, &tz);
+	#ifndef OS_TESTING
+		settimeofday(&tv, &tz);
+	#endif
 
 	this->logger->log("Date changed.");
 }
