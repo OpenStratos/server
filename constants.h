@@ -1,7 +1,10 @@
 #ifndef CONSTANTS_H_
 	#define CONSTANTS_H_
 
-	#define FLIGHT_LENGTH 5 // Hours
+	#define FLIGHT_LENGTH 1.1 // Hours
+	#define FLIGHT_MAX_HEIGHT 12000 // Meters
+	#define DESCENT_TIME FLIGHT_MAX_HEIGHT/5 // Seconds
+	#define ASCENT_VELOCITY FLIGHT_MAX_HEIGHT/(FLIGHT_LENGTH-DESCENT_TIME) // m/s
 
 	#define BAT_GSM_MAX 4.2
 	#define BAT_GSM_MIN 3.7
@@ -16,9 +19,9 @@
 	#define VIDEO_BRIGHTNESS 50
 	#define VIDEO_EXPOSURE "antishake"
 
-	#define PHOTO_WIDTH 2592
-	#define PHOTO_HEIGHT 1944
-	#define PHOTO_QUALITY 90
+	#define PHOTO_WIDTH 3280
+	#define PHOTO_HEIGHT 2464
+	#define PHOTO_QUALITY 98
 	#define PHOTO_RAW true
 	#define PHOTO_CONTRAST 50
 	#define PHOTO_BRIGHTNESS 50
