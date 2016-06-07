@@ -123,12 +123,24 @@ namespace os {
 	{
 		#if defined SIM && !defined REAL_SIM
 			this_thread::sleep_for(2min);
-			maximum_altitude = altitude;
-			return altitude < 35000;
+
+			if (altitude > FLIGHT_MAX_HEIGHT) {
+				maximum_altitude = FLIGHT_MAX_HEIGHT;
+				return true;
+			} else {
+				maximum_altitude = altitude;
+				return false;
+			}
 		#elif defined REAL_SIM && !defined SIM
-			this_thread::sleep_for(333ms * (altitude - maximum_altitude));
-			maximum_altitude = altitude;
-			return altitude < 35000;
+			if (altitude > FLIGHT_MAX_HEIGHT) {
+				this_thread::sleep_for(1/ASCENT_VELOCITY * (FLIGHT_MAX_HEIGHT - maximum_altitude));
+				maximum_altitude = FLIGHT_MAX_HEIGHT;
+				return true;
+			} else {
+				this_thread::sleep_for(1/ASCENT_VELOCITY * (altitude - maximum_altitude));
+				maximum_altitude = altitude;
+				return false;
+			}
 		#else
 			bool bursted;
 			while ( ! (bursted = has_bursted(maximum_altitude)))
