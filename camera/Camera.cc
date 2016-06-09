@@ -136,7 +136,7 @@ bool Camera::take_picture(const string& exif)
 		filename = "data/img/test.jpg";
 	#endif
 
-	string command = "raspistill -n -o "+ filename +" " + (PHOTO_RAW ? "-r" : "") + " -w "+ to_string(PHOTO_WIDTH)
+	string command = "raspistill -n -t 1 -o "+ filename +" " + (PHOTO_RAW ? "-r" : "") + " -w "+ to_string(PHOTO_WIDTH)
 				+" -h "+ to_string(PHOTO_HEIGHT) +" -q "+ to_string(PHOTO_QUALITY)
 				+" -co "+ to_string(PHOTO_CONTRAST) +" -br "+ to_string(PHOTO_BRIGHTNESS)
 				+" -ex "+ PHOTO_EXPOSURE + exif;
@@ -243,13 +243,13 @@ const string os::generate_exif_data()
 	float gps_pdop = GPS::get_instance().get_PDOP();
 	euc_vec gps_velocity = GPS::get_instance().get_velocity();
 
-	exif += " -x GPSLatitudeRef="+to_string(gps_lat > 0 ? 'N' : 'S');
+	exif += " -x GPSLatitudeRef="+(gps_lat > 0 ? 'N' : 'S');
 	exif += " -x GPSLatitude="+to_string(
-			abs((int) gps_lat*1000000)
+			abs((int) (gps_lat*1000000))
 		)+"/1000000,0/1,0/1";
-	exif += " -x GPSLongitudeRef="+to_string(gps_lon > 0 ? 'E' : 'W');
+	exif += " -x GPSLongitudeRef="+(gps_lon > 0 ? 'E' : 'W');
 	exif += " -x GPSLongitude="+to_string(
-			abs((int) gps_lon*1000000)
+			abs((int) (gps_lon*1000000))
 		)+"/1000000,0/1,0/1";
 	exif += " -x GPSAltitudeRef=0 -x GPSAltitude="+to_string(gps_alt);
 	exif += " -x GPSSatellites="+to_string(gps_sat);
