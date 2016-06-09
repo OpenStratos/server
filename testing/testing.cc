@@ -1,6 +1,9 @@
+#include <ctime>
 #include <thread>
+#include <iostream>
 
 #include <sys/stat.h>
+#include <sys/time.h>
 
 #include <bandit/bandit.h>
 
@@ -21,7 +24,8 @@ int main(int argc, char* argv[])
 	return run(argc, argv);
 }
 
-go_bandit([](){
+go_bandit([]()
+{
 	if ( ! file_exists("data"))
 		mkdir("data", 0755);
 

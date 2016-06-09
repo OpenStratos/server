@@ -24,7 +24,11 @@ namespace os {
 
 		void gps_thread();
 	public:
-		Serial(const string& url, int baud_rate, const string& log_path);
+		#ifdef DEBUG
+			Serial(const string& url, int baud_rate, const string& log_path);
+		#else
+			Serial(const string& url, int baud_rate);
+		#endif
 		Serial(Serial& copy) = delete;
 		~Serial();
 

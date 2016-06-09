@@ -86,7 +86,11 @@ bool GSM::initialize()
 
 	this->occupied = true;
 	this->logger->log("Starting serial connection...");
-	this->serial = new Serial(GSM_UART, GSM_BAUDRATE, "GSM");
+	#ifdef DEBUG
+		this->serial = new Serial(GSM_UART, GSM_BAUDRATE, "GSM");
+	#else
+		this->serial = new Serial(GSM_UART, GSM_BAUDRATE);
+	#endif
 	if ( ! this->serial->is_open())
 	{
 		this->logger->log("GSM serial error.");
@@ -100,11 +104,15 @@ bool GSM::initialize()
 
 	this->logger->log("Checking OK initialization (3 times)...");
 	if (this->send_command_read("AT") != "OK")
+	{
 		this->logger->log("Not initialized.");
+	}
 	this_thread::sleep_for(100ms);
 
 	if (this->send_command_read("AT") != "OK")
+	{
 		this->logger->log("Not initialized.");
+	}
 	this_thread::sleep_for(100ms);
 
 	if (this->send_command_read("AT") != "OK")
@@ -122,7 +130,10 @@ bool GSM::initialize()
 
 bool GSM::send_SMS(const string& message, const string& number)
 {
-	while (this->occupied) this_thread::sleep_for(10ms);
+	while (this->occupied)
+	{
+		this_thread::sleep_for(10ms);
+	}
 	this->occupied = true;
 
 	this->logger->log("Sending SMS: \""+message+"\" ("+ to_string(message.length()) +" characters) to number "+number+".");
@@ -150,8 +161,13 @@ bool GSM::send_SMS(const string& message, const string& number)
 		this->serial->println(message);
 		this->command_logger->log("Sent: '"+message+"'");
 
-		for (int i = 0; i <= std::count(message.begin(), message.end(), '\n'); i++)
-			this->command_logger->log("Received: '"+this->serial->read_line()+"'"); // Eat message echo
+		for (int i = 0; i <= count(message.begin(), message.end(), '\n'); i++)
+		{
+			// Eat message echo
+			this->command_logger->log(
+				"Received: '"+this->serial->read_line()+"'"
+			);
+		}
 
 		this->serial->println();
 		this->serial->read_line(); // Eat prompt
@@ -190,7 +206,10 @@ bool GSM::send_SMS(const string& message, const string& number)
 
 bool GSM::get_location(double& latitude, double& longitude)
 {
-	while (this->occupied) this_thread::sleep_for(10ms);
+	while (this->occupied)
+	{
+		this_thread::sleep_for(10ms);
+	}
 	this->occupied = true;
 
 	if (this->send_command_read("AT+CMGF=1") != "OK")
@@ -204,9 +223,13 @@ bool GSM::get_location(double& latitude, double& longitude)
 	{
 		this->logger->log("Error getting location on 'AT+CGATT=1' response.");
 		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
+		{
 			this->logger->log("Error turning GPRS down.");
+		}
 		else
+		{
 			this->logger->log("GPRS off.");
+		}
 
 		this->occupied = false;
 		return false;
@@ -216,9 +239,13 @@ bool GSM::get_location(double& latitude, double& longitude)
 	{
 		this->logger->log("Error getting location on 'AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"' response.");
 		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
+		{
 			this->logger->log("Error turning GPRS down.");
+		}
 		else
+		{
 			this->logger->log("GPRS off.");
+		}
 
 		this->occupied = false;
 		return false;
@@ -228,9 +255,13 @@ bool GSM::get_location(double& latitude, double& longitude)
 	{
 		this->logger->log("Error getting location on 'AT+SAPBR=3,1,\"APN\",\""+string(GSM_LOC_SERV)+"\"' response.");
 		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
+		{
 			this->logger->log("Error turning GPRS down.");
+		}
 		else
+		{
 			this->logger->log("GPRS off.");
+		}
 
 		this->occupied = false;
 		return false;
@@ -247,9 +278,13 @@ bool GSM::get_location(double& latitude, double& longitude)
 	{
 		this->logger->log("Error getting location on 'AT+SAPBR=1,1' response.");
 		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
+		{
 			this->logger->log("Error turning GPRS down.");
+		}
 		else
+		{
 			this->logger->log("GPRS off.");
+		}
 
 		this->occupied = false;
 		return false;
@@ -265,7 +300,10 @@ bool GSM::get_location(double& latitude, double& longitude)
 	vector<string> s_data;
 
 	// We put all fields in a vector
-	while(getline(ss, data, ',')) s_data.push_back(data);
+	while(getline(ss, data, ','))
+	{
+		s_data.push_back(data);
+	}
 
 	latitude = stod(s_data[2]);
 	longitude = stod(s_data[1]);
@@ -277,9 +315,13 @@ bool GSM::get_location(double& latitude, double& longitude)
 	{
 		this->logger->log("Error getting location on 'AT+CIPGSMLOC=1,1' response.");
 		if (this->send_command_read("AT+SAPBR=0,1") != "OK")
+		{
 			this->logger->log("Error turning GPRS down.");
+		}
 		else
+		{
 			this->logger->log("GPRS off.");
+		}
 
 		this->occupied = false;
 		return false;
@@ -290,9 +332,13 @@ bool GSM::get_location(double& latitude, double& longitude)
 	response = this->serial->read_line();
 	this->command_logger->log("Received: '"+ response +"'");
 	if (response != "OK")
+	{
 		this->logger->log("Error turning GPRS down.");
+	}
 	else
+	{
 		this->logger->log("GPRS off.");
+	}
 
 	this->occupied = false;
 	return true;
@@ -305,7 +351,10 @@ bool GSM::get_status() const
 
 bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percentage)
 {
-	while (this->occupied) this_thread::sleep_for(10ms);
+	while (this->occupied)
+	{
+		this_thread::sleep_for(10ms);
+	}
 	this->occupied = true;
 
 	this->logger->log("Checking Battery status.");
@@ -318,7 +367,9 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 		this->serial->read_line(); // Eat new line
 		this->serial->read_line(); // Eat OK
 		while (adc_response != "" && adc_response.substr(0, 6) != "+CADC:")
+		{
 			adc_response = this->serial->read_line(); // TODO prevent hang
+		}
 
 		if (gsm_response.substr(0, 5) == "+CBC:" && adc_response.substr(0, 6) == "+CADC:")
 		{
@@ -326,7 +377,10 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 			string data;
 			vector<string> gsm_data;
 
-			while(getline(gsm_ss, data, ',')) gsm_data.push_back(data);
+			while(getline(gsm_ss, data, ','))
+			{
+				gsm_data.push_back(data);
+			}
 
 			int gsm_bat_voltage = stoi(gsm_data[2]);
 			int main_bat_voltage = stoi(adc_response.substr(9, 4));
@@ -347,8 +401,12 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 
 bool GSM::has_connectivity()
 {
-	while (this->occupied) this_thread::sleep_for(10ms);
+	while (this->occupied)
+	{
+		this_thread::sleep_for(10ms);
+	}
 	this->occupied = true;
+
 	string response = this->send_command_read("AT+CREG?");
 	this->serial->read_line(); // Eat new line
 	this->serial->read_line(); // Eat OK

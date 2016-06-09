@@ -2,14 +2,20 @@ double main_battery = 0, gsm_battery = 0;
 bool bat_status = false;
 
 logger->log("Getting battery values...");
-if (bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery))
+if ((bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery)))
+{
 	logger->log("Battery status received.");
+}
 else
+{
 	logger->log("Error getting battery status.");
+}
 
 logger->log("Sending initialization SMS...");
 while (GPS::get_instance().get_PDOP() > 5)
+{
 	this_thread::sleep_for(1s);
+}
 
 if ( ! GSM::get_instance().send_SMS(
 	"Init: OK\r\nAlt: "+ to_string((int) GPS::get_instance().get_altitude()) +
@@ -35,15 +41,23 @@ if ( ! GSM::get_instance().send_SMS(
 
 	logger->log("Turning GSM off...");
 	if (GSM::get_instance().turn_off())
+	{
 		logger->log("GSM off.");
+	}
 	else
+	{
 		logger->log("Error turning GSM off.");
+	}
 
 	logger->log("Turning GPS off...");
 	if (GPS::get_instance().turn_off())
+	{
 		logger->log("GPS off.");
+	}
 	else
+	{
 		logger->log("Error turning GPS off.");
+	}
 
 	#ifndef NO_POWER_OFF
 		sync();

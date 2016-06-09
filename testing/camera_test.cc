@@ -1,6 +1,7 @@
-describe("Camera", [](){
-
-	it("recording test", [&](){
+describe("Camera", []()
+{
+	it("recording test", [&]()
+	{
 		AssertThat(Camera::get_instance().record(2000), Equals(true));
 		AssertThat(Camera::get_instance().is_recording(), Equals(true));
 
@@ -12,7 +13,8 @@ describe("Camera", [](){
 		#endif
 	});
 
-	it("recording and stopping test", [&](){
+	it("recording and stopping test", [&]()
+	{
 		AssertThat(Camera::get_instance().record(), Equals(true));
 		AssertThat(Camera::get_instance().is_recording(), Equals(true));
 
@@ -25,7 +27,8 @@ describe("Camera", [](){
 		#endif
 	});
 
-	it("picture taking test", [&](){
+	it("picture taking test", [&]()
+	{
 		AssertThat(Camera::get_instance().take_picture(), Equals(true));
 
 		#ifdef RASPICAM
@@ -34,7 +37,8 @@ describe("Camera", [](){
 	});
 
 	#ifdef RASPICAM
-		it("video file creation test", [&](){
+		it("video file creation test", [&]()
+		{
 			AssertThat(Camera::get_instance().record(10000), Equals(true));
 			this_thread::sleep_for(chrono::seconds(11));
 
@@ -49,7 +53,8 @@ describe("Camera", [](){
 	#endif
 
 	#ifdef RASPICAM
-		it("picture file creation test", [&](){
+		it("picture file creation test", [&]()
+		{
 			int start_file_count = get_file_count("data/img/");
 			AssertThat(Camera::get_instance().take_picture(), Equals(true));
 			int end_file_count = get_file_count("data/img/");

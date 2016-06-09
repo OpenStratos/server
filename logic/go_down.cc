@@ -20,10 +20,15 @@ logger->log("Waiting for GSM connectivity...");
 int count = 0;
 while ( ! GSM::get_instance().has_connectivity())
 {
-	if (count == 20) break;
+	if (count == 20)
+	{
+		break;
+	}
+
 	this_thread::sleep_for(1s);
 	++count;
 }
+
 if (count == 20)
 {
 	logger->log("No connectivity, waiting for 1.2 km mark or landing.");
@@ -33,14 +38,21 @@ else
 	logger->log("GSM connected.");
 
 	logger->log("Getting battery values...");
-		if (bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery))
-			logger->log("Battery status received.");
-		else
-			logger->log("Error getting battery status.");
+	if ((bat_status =
+			GSM::get_instance().get_battery_status(main_battery, gsm_battery)))
+	{
+		logger->log("Battery status received.");
+	}
+	else
+	{
+		logger->log("Error getting battery status.");
+	}
 
 	logger->log("Trying to send first SMS...");
 	for (int i = 0; GPS::get_instance().get_PDOP() > 5 && i < 5; i++)
+	{
 		this_thread::sleep_for(500ms);
+	}
 
 	if ( ! GSM::get_instance().send_SMS(
 		"Alt: "+ to_string((int) GPS::get_instance().get_altitude()) +
@@ -68,7 +80,11 @@ if ( ! wait_down_for(1200))
 	count = 0;
 	while ( ! GSM::get_instance().has_connectivity())
 	{
-		if (count == 20) break;
+		if (count == 20)
+		{
+			break;
+		}
+
 		this_thread::sleep_for(1s);
 		++count;
 	}
@@ -81,14 +97,20 @@ if ( ! wait_down_for(1200))
 		logger->log("GSM connected.");
 
 		logger->log("Getting battery values...");
-		if (bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery))
+		if ((bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery)))
+		{
 			logger->log("Battery status received.");
+		}
 		else
+		{
 			logger->log("Error getting battery status.");
+		}
 
 		logger->log("Trying to send second SMS...");
 		for (int i = 0; GPS::get_instance().get_PDOP() > 5 && i < 5; i++)
+		{
 			this_thread::sleep_for(500ms);
+		}
 
 		if ( ! GSM::get_instance().send_SMS(
 			"Alt: "+ to_string((int) GPS::get_instance().get_altitude()) +
@@ -117,10 +139,15 @@ if ( ! wait_down_for(500))
 	count = 0;
 	while ( ! GSM::get_instance().has_connectivity())
 	{
-		if (count > 15) break;
+		if (count > 15)
+		{
+			break;
+		}
+
 		this_thread::sleep_for(1s);
 		++count;
 	}
+
 	if ( ! GSM::get_instance().has_connectivity())
 	{
 		logger->log("No connectivity, waiting for landing.");
@@ -130,14 +157,20 @@ if ( ! wait_down_for(500))
 		logger->log("GSM connected.");
 
 		logger->log("Getting battery values...");
-		if (bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery))
+		if ((bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery)))
+		{
 			logger->log("Battery status received.");
+		}
 		else
+		{
 			logger->log("Error getting battery status.");
+		}
 
 		logger->log("Trying to send third SMS...");
 		for (int i = 0; GPS::get_instance().get_PDOP() > 5 && i < 5; i++)
+		{
 			this_thread::sleep_for(500ms);
+		}
 
 		if ( ! GSM::get_instance().send_SMS(
 			"Alt: "+ to_string((int) GPS::get_instance().get_altitude()) +

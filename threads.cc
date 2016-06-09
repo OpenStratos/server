@@ -43,7 +43,9 @@ void os::system_thread_fn(State& state)
 	while (state != SHUT_DOWN)
 	{
 		if (get_available_disk_space() < 2000000000)
+		{
 			Camera::get_instance().stop();
+		}
 
 		ifstream cpu_temp_file("/sys/class/thermal/thermal_zone0/temp");
 		string cpu_temp_str((istreambuf_iterator<char>(cpu_temp_file)),
@@ -51,27 +53,31 @@ void os::system_thread_fn(State& state)
 		cpu_temp_file.close();
 
 		gpu_temp_process = popen("/opt/vc/bin/vcgencmd measure_temp", "r");
-		fgets(gpu_response, 11, gpu_temp_process);
+		if (fgets(gpu_response, 11, gpu_temp_process) != NULL) {
+			temp_logger.log("CPU: "+to_string(stoi(cpu_temp_str)/1000.0)+
+			" GPU: "+string(gpu_response).substr(5, 4));
+		}
 		pclose(gpu_temp_process);
 
-		temp_logger.log("CPU: "+to_string(stoi(cpu_temp_str)/1000.0)+" GPU: "+
-			string(gpu_response).substr(5, 4));
-
 		cpu_command_process = popen("grep 'cpu ' /proc/stat", "r");
-		fgets(cpu_command, 100, cpu_command_process);
+		if (fgets(cpu_command, 100, cpu_command_process) != NULL)
+		{
+			const string cpu_command_str = string(cpu_command);
+			stringstream ss(cpu_command_str);
+			string data;
+			vector<string> s_data;
+
+			// We put all fields in a vector
+			while(getline(ss, data, ' '))
+			{
+				s_data.push_back(data);
+			}
+
+			// Note that s_data[1] is ""
+			cpu_logger.log(to_string((stof(s_data[2])+stof(s_data[4]))/
+				(stof(s_data[2])+stof(s_data[4])+stof(s_data[5]))));
+		}
 		pclose(cpu_command_process);
-
-		const string cpu_command_str = string(cpu_command);
-		stringstream ss(cpu_command_str);
-		string data;
-		vector<string> s_data;
-
-		// We put all fields in a vector
-		while(getline(ss, data, ' ')) s_data.push_back(data);
-
-		// Note that s_data[1] is ""
-		cpu_logger.log(to_string((stof(s_data[2])+stof(s_data[4]))/
-			(stof(s_data[2])+stof(s_data[4])+stof(s_data[5]))));
 
 		sysinfo(&info);
 		ram_logger.log(to_string(((double) info.freeram)/info.totalram));

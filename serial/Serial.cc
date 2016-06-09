@@ -19,15 +19,19 @@
 using namespace std;
 using namespace os;
 
-Serial::Serial(const string& url, int baud_rate, const string& log_path)
+#ifdef DEBUG
+	Serial::Serial(const string& url, int baud_rate, const string& log_path)
+#else
+	Serial::Serial(const string& url, int baud_rate)
+#endif
 {
 	this->open = false;
 
-	struct timeval timer;
-	gettimeofday(&timer, NULL);
-	struct tm * now = gmtime(&timer.tv_sec);
-
 	#ifdef DEBUG
+		struct timeval timer;
+		gettimeofday(&timer, NULL);
+		struct tm * now = gmtime(&timer.tv_sec);
+
 		this->logger = new Logger("data/logs/"+log_path+"/Serial."+ to_string(now->tm_year+1900) +"-"+
 			to_string(now->tm_mon+1) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+
 			to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "Serial");
@@ -37,10 +41,19 @@ Serial::Serial(const string& url, int baud_rate, const string& log_path)
 		this->fd = serialOpen(url.c_str(), baud_rate);
 
 		#ifdef DEBUG
-			if (this->fd == -1) this->logger->log("Error: connection fd is -1.");
-			else this->open = true;
+			if (this->fd == -1)
+			{
+				this->logger->log("Error: connection fd is -1.");
+			}
+			else
+			{
+				this->open = true;
+			}
 		#else
-			if (this->fd != -1) this->open = true;
+			if (this->fd != -1)
+			{
+				this->open = true;
+			}
 		#endif
 	#endif
 }
@@ -48,7 +61,9 @@ Serial::Serial(const string& url, int baud_rate, const string& log_path)
 Serial::~Serial()
 {
 	if (this->open)
+	{
 		this->close();
+	}
 
 	#ifdef DEBUG
 		delete this->logger;
@@ -85,7 +100,8 @@ void Serial::write(unsigned char c) const
 void Serial::close()
 {
 	#ifndef OS_TESTING
-		if (this->open) {
+		if (this->open)
+		{
 			serialClose(this->fd);
 			this->open = false;
 		}
@@ -116,10 +132,11 @@ const string Serial::read_line(double timeout) const
 {
 	string response = "";
 	string logstr = "";
-	bool rfound = false, endl_found = false;
-	int available = 0;
 
 	#ifndef OS_TESTING
+		bool rfound = false, endl_found = false;
+		int available = 0;
+
 		struct timeval t1, t2;
 		double elapsed_time = 0;
 		gettimeofday(&t1, NULL);
@@ -139,13 +156,22 @@ const string Serial::read_line(double timeout) const
 				break;
 			}
 
-			while (available = serialDataAvail(this->fd) > 0)
+			while ((available = serialDataAvail(this->fd)) > 0)
 			{
 				char c = serialGetchar(this->fd);
 
-				if (c == '\r') logstr += "\\r";
-				else if (c == '\n') logstr += "\\n";
-				else logstr += c;
+				if (c == '\r')
+				{
+					logstr += "\\r";
+				}
+				else if (c == '\n')
+				{
+					logstr += "\\n";
+				}
+				else
+				{
+					logstr += c;
+				}
 
 				if (c == '\r')
 				{
