@@ -251,11 +251,11 @@ const string os::generate_exif_data()
 	exif += " -x GPSLongitude="+to_string(
 			abs((int) gps_lon*1000000)
 		)+"/1000000,0/1,0/1";
-	exif += " -x GPSAltitudeRef=0 GPSAltitude="+to_string(gps_alt);
+	exif += " -x GPSAltitudeRef=0 -x GPSAltitude="+to_string(gps_alt);
 	exif += " -x GPSSatellites="+to_string(gps_sat);
 	exif += " -x GPSDOP="+to_string(gps_pdop);
-	exif += " -x GPSSpeedRef=K GPSSpeed="+to_string(gps_velocity.speed*3.6);
-	exif += " -x GPSTrackRef=T GPSTrack="+to_string(gps_velocity.course);
+	exif += " -x GPSSpeedRef=K -x GPSSpeed="+to_string(gps_velocity.speed*3.6);
+	exif += " -x GPSTrackRef=T -x GPSTrack="+to_string(gps_velocity.course);
 	exif += " -x GPSDifferential=0";
 
 	return exif;
