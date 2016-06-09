@@ -6,6 +6,8 @@
 #include <string>
 #include <atomic>
 
+#include <sys/time.h>
+
 #include "serial/Serial.h"
 #include "logger/Logger.h"
 
@@ -13,11 +15,11 @@ using namespace std;
 
 namespace os {
 
-	struct euc_vec
+	typedef struct
 	{
 		float speed;
 		float course;
-	};
+	} euc_vec;
 
 	class GPS
 	{
@@ -29,7 +31,7 @@ namespace os {
 		atomic_bool should_stop;
 		atomic_bool stopped;
 
-		tm time;
+		timeval time;
 		bool active;
 		uint_fast8_t satellites;
 		double latitude;
@@ -61,7 +63,7 @@ namespace os {
 		static GPS& get_instance();
 		static bool is_valid(string frame);
 
-		tm get_time() const {return this->time;}
+		timeval get_time() const {return this->time;}
 		bool is_fixed() const {return this->active;}
 		uint_fast8_t get_satellites() const {return this->satellites;}
 		double get_latitude() const {return this->latitude;}

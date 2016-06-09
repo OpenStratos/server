@@ -1,6 +1,10 @@
 #ifndef OPENSTRATOS_H_
 #define OPENSTRATOS_H_
 
+#if defined SIM && defined REAL_SIM
+	#error You cannot try to compile a real simulation and a normal simulation at the same time.
+#endif
+
 #ifdef DEBUG
 	#include <iostream>
 #endif

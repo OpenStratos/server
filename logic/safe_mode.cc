@@ -11,23 +11,12 @@ check_or_create("data/logs/camera");
 check_or_create("data/logs/GPS");
 check_or_create("data/logs/GSM");
 
-if (last_state > ACQUIRING_FIX)
-{
-	struct timeval timer;
-	gettimeofday(&timer, NULL);
-	struct tm* now = gmtime(&timer.tv_sec);
-
-	logger = new Logger("data/logs/main/OpenStratos."+ to_string(now->tm_year+1900) +"-"+
-		to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour)
-		+"-"+ to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "OpenStratos");
-
-	logger->log(PACKAGE_STRING);
-}
+struct timeval timer;
 
 switch (last_state)
 {
 	case INITIALIZING:
-	case ACQUIRING_FIX:
+	case ACQUIRING_FIX:{
 		remove(STATE_FILE);
 		#ifndef NO_POWER_OFF
 			sync();
@@ -35,19 +24,31 @@ switch (last_state)
 		#else
 			exit(0);
 		#endif
-	break;
-	case FIX_ACQUIRED: // It could be that the SMS was sent but the state didn't change
+	break;}
+	case FIX_ACQUIRED:
+	// It could be that the SMS was sent but the state didn't change
 	case WAITING_LAUNCH:
 	case GOING_UP:
 	case GOING_DOWN:
-	case LANDED:
+	case LANDED:{
+		gettimeofday(&timer, NULL);
+		struct tm* now = gmtime(&timer.tv_sec);
+
+		logger = new Logger("data/logs/main/OpenStratos."+ to_string(now->tm_year+1900) +"-"+
+			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour)
+			+"-"+ to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "OpenStratos");
+
+		logger->log(PACKAGE_STRING);
+
 		logger->log("Initializing WiringPi...");
 		wiringPiSetup();
 		logger->log("WiringPi initialized.");
 
 		logger->log("Initializing GPS...");
 		while ( ! GPS::get_instance().initialize() && ++count < 5)
+		{
 			logger->log("GPS initialization error.");
+		}
 
 		if (count < 5)
 		{
@@ -55,7 +56,9 @@ switch (last_state)
 			count = 0;
 			logger->log("Waiting for GPS fix...");
 			while ( ! GPS::get_instance().is_fixed() && ++count < 100)
+			{
 				this_thread::sleep_for(10s);
+			}
 
 			if (count == 100)
 			{
@@ -91,13 +94,19 @@ switch (last_state)
 			{
 				logger->log("Trying to start recording...");
 				if (Camera::get_instance().record())
+				{
 					logger->log("Recording.");
+				}
 				else
+				{
 					logger->log("Error starting recording");
+				}
 			}
 
 			main_while(logger, &state);
 			shut_down(logger);
+
+			delete logger;
 		}
 		else
 		{
@@ -110,11 +119,31 @@ switch (last_state)
 				exit(1);
 			#endif
 		}
-	break;
-	case SHUT_DOWN:
+	break;}
+	case SHUT_DOWN:{
+		gettimeofday(&timer, NULL);
+		struct tm* now = gmtime(&timer.tv_sec);
+
+		logger = new Logger("data/logs/main/OpenStratos."+ to_string(now->tm_year+1900) +"-"+
+			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour)
+			+"-"+ to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "OpenStratos");
+
+		logger->log(PACKAGE_STRING);
+
 		shut_down(logger);
-	break;
-	case SAFE_MODE:
+
+		delete logger;
+	break;}
+	case SAFE_MODE:{
+		gettimeofday(&timer, NULL);
+		struct tm* now = gmtime(&timer.tv_sec);
+
+		logger = new Logger("data/logs/main/OpenStratos."+ to_string(now->tm_year+1900) +"-"+
+			to_string(now->tm_mon) +"-"+ to_string(now->tm_mday) +"."+ to_string(now->tm_hour)
+			+"-"+ to_string(now->tm_min) +"-"+ to_string(now->tm_sec) +".log", "OpenStratos");
+
+		logger->log(PACKAGE_STRING);
+
 		logger->log("Recovery mode");
 
 		logger->log("Initializing WiringPi...");
@@ -123,11 +152,15 @@ switch (last_state)
 
 		logger->log("Initializing GSM...");
 		while ( ! GSM::get_instance().initialize())
+		{
 			logger->log("GSM initialization error.");
+		}
 		logger->log("GSM initialized");
 		logger->log("Waiting for GSM connectivity...");
 		while ( ! GSM::get_instance().has_connectivity())
+		{
 			this_thread::sleep_for(5s);
+		}
 		logger->log("GSM connected.");
 
 		logger->log("Sending mayday messages...");
@@ -144,7 +177,9 @@ switch (last_state)
 		logger->log("Initializing GPS...");
 		count = 0;
 		while ( ! GPS::get_instance().initialize() && ++count < 5)
+		{
 			logger->log("GPS initialization error.");
+		}
 
 		if (count < 5)
 		{
@@ -152,7 +187,9 @@ switch (last_state)
 			count = 0;
 			logger->log("Waiting for GPS fix...");
 			while ( ! GPS::get_instance().is_fixed() && ++count < 100)
+			{
 				this_thread::sleep_for(10s);
+			}
 
 			if (count == 100)
 			{
@@ -192,6 +229,6 @@ switch (last_state)
 		{
 			shut_down(logger);
 		}
+		delete logger;
+	}
 }
-
-if (logger) delete logger;

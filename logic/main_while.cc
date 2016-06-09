@@ -2,7 +2,7 @@
 
 void os::main_while(Logger* logger, State* state)
 {
-	double launch_altitude;
+	double launch_altitude = 0;
 
 	while (*state != SHUT_DOWN)
 	{

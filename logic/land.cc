@@ -14,15 +14,22 @@ double main_battery = 0, gsm_battery = 0;
 bool bat_status = false;
 
 logger->log("Getting battery values...");
-if (bat_status = (GSM::get_instance().get_battery_status(main_battery, gsm_battery) ||
-					GSM::get_instance().get_battery_status(main_battery, gsm_battery)))
+if ((bat_status =
+		GSM::get_instance().get_battery_status(main_battery, gsm_battery) ||
+		GSM::get_instance().get_battery_status(main_battery, gsm_battery)))
+{
 	logger->log("Battery status received.");
+}
 else
+{
 	logger->log("Error getting battery status.");
+}
 
 logger->log("Sending landed SMS...");
 for (int i = 0; GPS::get_instance().get_PDOP() > 5 && i < 10; i++)
+{
 	this_thread::sleep_for(500ms);
+}
 
 if ( ! GSM::get_instance().send_SMS(
 	"Landed\r\nAlt: "+ to_string((int) GPS::get_instance().get_altitude()) +
@@ -43,15 +50,22 @@ else
 this_thread::sleep_for(10min);
 
 logger->log("Getting battery values...");
-if (bat_status = (GSM::get_instance().get_battery_status(main_battery, gsm_battery) ||
-					GSM::get_instance().get_battery_status(main_battery, gsm_battery)))
+if ((bat_status =
+		GSM::get_instance().get_battery_status(main_battery, gsm_battery) ||
+		GSM::get_instance().get_battery_status(main_battery, gsm_battery)))
+{
 	logger->log("Battery status received.");
+}
 else
+{
 	logger->log("Error getting battery status.");
+}
 
 logger->log("Sending second landed SMS...");
 for (int i = 0; GPS::get_instance().get_PDOP() > 5 && i < 60; i++)
+{
 	this_thread::sleep_for(500ms);
+}
 
 while (( ! GSM::get_instance().send_SMS(
 	"Landed\r\nAlt: "+ to_string((int) GPS::get_instance().get_altitude()) +
