@@ -246,16 +246,18 @@ const string os::generate_exif_data()
 	exif += " -x GPS.GPSLatitudeRef="+string(gps_lat > 0 ? "N" : "S");
 	exif += " -x GPS.GPSLatitude="+to_string(
 			abs((int) (gps_lat*1000000))
-		)+"/1000000,0/1,0/1";
+		)+"/1000000";
 	exif += " -x GPS.GPSLongitudeRef="+string(gps_lat > 0 ? "E" : "W");
 	exif += " -x GPS.GPSLongitude="+to_string(
 			abs((int) (gps_lon*1000000))
-		)+"/1000000,0/1,0/1";
-	exif += " -x GPS.GPSAltitudeRef=0 -x GPS.GPSAltitude="+to_string(gps_alt);
+		)+"/1000000";
+	exif += " -x GPS.GPSAltitudeRef=0 -x GPS.GPSAltitude="+to_string((int) (gps_alt*100))+"/100";
 	exif += " -x GPS.GPSSatellites="+to_string(gps_sat);
-	exif += " -x GPS.GPSDOP="+to_string(gps_pdop);
-	exif += " -x GPS.GPSSpeedRef=K -x GPS.GPSSpeed="+to_string(gps_velocity.speed*3.6);
-	exif += " -x GPS.GPSTrackRef=T -x GPS.GPSTrack="+to_string(gps_velocity.course);
+	exif += " -x GPS.GPSDOP="+to_string((int) (gps_pdop*1000))+"/1000";
+	exif += " -x GPS.GPSSpeedRef=K -x GPS.GPSSpeed="+
+			to_string((int) (gps_velocity.speed*3.6*1000))+"/1000";
+	exif += " -x GPS.GPSTrackRef=T -x GPS.GPSTrack="+
+			to_string((int) (gps_velocity.course*1000))+"/1000";
 	exif += " -x GPS.GPSDifferential=0";
 
 	return exif;
