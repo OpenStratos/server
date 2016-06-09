@@ -2,6 +2,6 @@
 
 printf "Installing WiringPi\n"
 git clone git://git.drogon.net/wiringPi > /dev/null
-cd WiringPi
+cd wiringPi
 sudo ./build > /dev/null
 cd ..
