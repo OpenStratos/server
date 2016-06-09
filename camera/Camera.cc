@@ -243,11 +243,13 @@ const string os::generate_exif_data()
 	float gps_pdop = GPS::get_instance().get_PDOP();
 	euc_vec gps_velocity = GPS::get_instance().get_velocity();
 
-	exif += " -x GPSLatitudeRef="+(gps_lat > 0 ? 'N' : 'S');
+	exif += " -x GPSLatitudeRef=";
+	exif.push_back(gps_lat > 0 ? 'N' : 'S');
 	exif += " -x GPSLatitude="+to_string(
 			abs((int) (gps_lat*1000000))
 		)+"/1000000,0/1,0/1";
-	exif += " -x GPSLongitudeRef="+(gps_lon > 0 ? 'E' : 'W');
+	exif += " -x GPSLongitudeRef=";
+	exif.push_back(gps_lon > 0 ? 'E' : 'W');
 	exif += " -x GPSLongitude="+to_string(
 			abs((int) (gps_lon*1000000))
 		)+"/1000000,0/1,0/1";
