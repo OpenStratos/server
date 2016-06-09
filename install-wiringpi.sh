@@ -1,7 +1,7 @@
 #!/bin/bash
 
 printf "Installing WiringPi\n"
-git clone https://github.com/OpenStratos/WiringPi.git > /dev/null
+git clone git://git.drogon.net/wiringPi > /dev/null
 cd WiringPi
 sudo ./build > /dev/null
 cd ..
