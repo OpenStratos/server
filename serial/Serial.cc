@@ -91,10 +91,6 @@ void Serial::println() const
 void Serial::write(unsigned char c) const
 {
 	serialPutchar(this->fd, c);
-
-	#ifdef DEBUG
-		this->logger->log("Sent char: '"+string(1, c)+"'");
-	#endif
 }
 
 void Serial::close()
