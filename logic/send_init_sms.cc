@@ -11,12 +11,13 @@ else
 	logger->log("Error getting battery status.");
 }
 
-logger->log("Sending initialization SMS...");
+logger->log("Checking GPS PDOP < 5...");
 while (GPS::get_instance().get_PDOP() > 5)
 {
 	this_thread::sleep_for(1s);
 }
 
+logger->log("Sending initialization SMS...");
 if ( ! GSM::get_instance().send_SMS(
 	"Init: OK\r\nAlt: "+ to_string((int) GPS::get_instance().get_altitude()) +
 	" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +"\r\n"+
