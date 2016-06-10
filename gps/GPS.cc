@@ -281,7 +281,7 @@ void GPS::parse(const string& frame)
 		}
 
 		double gps_time = (double) this->time.tv_sec + this->time.tv_usec * 0.000001;
-		if (gps_time > os_time + 1 || gps_time < os_time - 1)
+		if (gps_time > os_time + 5 || gps_time < os_time - 5)
 		{
 			this->update_date();
 		}
@@ -753,10 +753,6 @@ void GPS::notify_landing()
 
 void GPS::update_date()
 {
-	struct timeval now;
-	gettimeofday(&now, NULL);
-	this->logger->log("Current date - tv_sec: "+to_string(now.tv_sec)+" tv_usec: "+to_string(now.tv_usec));
-	this->logger->log("New date - tv_sec: "+to_string(this->time.tv_sec)+" tv_usec: "+to_string(this->time.tv_usec));
 	#ifndef OS_TESTING
 		settimeofday(&this->time, NULL);
 	#endif
