@@ -755,7 +755,7 @@ void GPS::notify_landing()
 void GPS::update_date()
 {
 	struct timeval now;
-	gettimeofday(&now);
+	gettimeofday(&now, NULL);
 	this->logger->log("Current date - tv_sec: "+to_string(now.tv_sec)+" tv_usec: "+to_string(now.tv_usec));
 	this->logger->log("New date - tv_sec: "+to_string(this->time.tv_sec)+" tv_usec: "+to_string(this->time.tv_usec));
 	#ifndef OS_TESTING
