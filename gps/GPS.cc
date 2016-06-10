@@ -262,6 +262,7 @@ void GPS::parse(const string& frame)
 	{
 		struct timeval os_clock;
 		gettimeofday(&os_clock, NULL);
+		double os_time = (double) os_clock.tv_sec + os_clock.tv_usec * 0.000001;
 
 		this->frame_logger->log(frame);
 		string frame_type = frame.substr(3, frame.find_first_of(',')-3);
@@ -279,10 +280,8 @@ void GPS::parse(const string& frame)
 			this->parse_RMC(frame);
 		}
 
-		if (this->time.tv_sec < os_clock.tv_sec - 1 ||
-			this->time.tv_sec > os_clock.tv_sec + 1 ||
-			this->time.tv_usec < os_clock.tv_usec - 500000 ||
-			this->time.tv_usec > os_clock.tv_usec + 500000)
+		double gps_time = (double) this->time.tv_sec + this->time.tv_usec * 0.000001;
+		if (gps_time > os_time + 1 || gps_time < os_time - 1)
 		{
 			this->update_date();
 		}
