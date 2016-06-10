@@ -6,6 +6,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <chrono>
 
 #include <sys/time.h>
 
@@ -366,12 +367,19 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 		string adc_response = this->send_command_read("AT+CADC?");
 		this->serial->read_line(); // Eat new line
 		this->serial->read_line(); // Eat OK
-		while (adc_response != "" && adc_response.substr(0, 6) != "+CADC:")
+
+		chrono::high_resolution_clock::time_point start = chrono::high_resolution_clock::now();
+		while (adc_response != "" &&
+				adc_response.substr(0, 6) != "+CADC:" &&
+				(chrono::high_resolution_clock::now() - start) < 1s)
 		{
-			adc_response = this->serial->read_line(); // TODO prevent hang
+			adc_response = this->serial->read_line();
 		}
 
-		if (gsm_response.substr(0, 5) == "+CBC:" && adc_response.substr(0, 6) == "+CADC:")
+		if (gsm_response.length() >= 5 &&
+			gsm_response.substr(0, 5) == "+CBC:" &&
+			adc_response.length() >= 6 &&
+			adc_response.substr(0, 6) == "+CADC:")
 		{
 			stringstream gsm_ss(gsm_response);
 			string data;
@@ -465,16 +473,19 @@ const string GSM::send_command_read(const string& command) const
 	this->serial->flush();
 	this->serial->println(command);
 	string response = this->serial->read_line();
-	// Trimming
-	string ltrim = response.erase(0, response.find_first_not_of("\r\n\t"));
-	response = ltrim.erase(ltrim.find_last_not_of("\r\n\t")+1);
-
-	if (response == command) // Sent command
+	if ( ! response.empty())
 	{
-		response = this->serial->read_line();
 		// Trimming
 		string ltrim = response.erase(0, response.find_first_not_of("\r\n\t"));
 		response = ltrim.erase(ltrim.find_last_not_of("\r\n\t")+1);
+
+		if (response == command) // Sent command
+		{
+			response = this->serial->read_line();
+			// Trimming
+			string ltrim = response.erase(0, response.find_first_not_of("\r\n\t"));
+			response = ltrim.erase(ltrim.find_last_not_of("\r\n\t")+1);
+		}
 	}
 
 	this->command_logger->log("Received: '"+response+"'");
