@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include <string>
+#include <vector>
 
 #include "constants.h"
 #ifdef DEBUG
@@ -35,6 +36,7 @@ namespace os {
 		void println(const string& str) const;
 		void println() const;
 		void write(unsigned char c) const;
+		void write_vec(vector<unsigned char> chars) const;
 		void close();
 		bool is_open() const;
 		char read_char() const;

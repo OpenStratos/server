@@ -5,6 +5,7 @@
 #include <thread>
 #include <functional>
 #include <string>
+#include <vector>
 
 #include <sys/time.h>
 
@@ -91,6 +92,14 @@ void Serial::println() const
 void Serial::write(unsigned char c) const
 {
 	serialPutchar(this->fd, c);
+}
+
+void Serial::write_vec(vector<unsigned char> chars) const
+{
+	for (unsigned char c: chars)
+	{
+		this->write(c);
+	}
 }
 
 void Serial::close()
