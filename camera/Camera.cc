@@ -188,6 +188,7 @@ bool Camera::stop()
 		if (system("pkill raspivid") == 0)
 		{
 			this->logger->log("Video recording stopped correctly.");
+			this_thread::sleep_for(50ms);
 			this->recording = false;
 			return true;
 		}
@@ -202,6 +203,7 @@ bool Camera::stop()
 		return false;
 	#else
 		this->logger->log("Test mode. Video recording stop simulated.");
+		this_thread::sleep_for(50ms);
 		this->recording = false;
 		return true;
 	#endif
