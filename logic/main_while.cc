@@ -31,8 +31,6 @@ void os::main_while(Logger* logger, State* state)
 		else if (*state == GOING_UP)
 		{
 			#include "logic/go_up.cc"
-			*state = set_state(GOING_DOWN);
-			logger->log("State changed to "+ state_to_string(*state) +".");
 		}
 		else if (*state == GOING_DOWN)
 		{

@@ -94,7 +94,9 @@ if ( ! bursted)
 }
 else
 {
-	return;
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+	break;
 }
 
 bursted = wait_up_for(10000, maximum_altitude);
@@ -104,7 +106,9 @@ if ( ! bursted)
 }
 else
 {
-	return;
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+	break;
 }
 
 bursted = wait_up_for(15000, maximum_altitude);
@@ -114,7 +118,9 @@ if ( ! bursted)
 }
 else
 {
-	return;
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+	break;
 }
 
 bursted = wait_up_for(20000, maximum_altitude);
@@ -124,7 +130,9 @@ if ( ! bursted)
 }
 else
 {
-	return;
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+	break;
 }
 
 bursted = wait_up_for(25000, maximum_altitude);
@@ -134,7 +142,9 @@ if ( ! bursted)
 }
 else
 {
-	return;
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+	break;
 }
 
 bursted = wait_up_for(30000, maximum_altitude);
@@ -144,7 +154,9 @@ if ( ! bursted)
 }
 else
 {
-	return;
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+	break;
 }
 
 bursted = wait_up_for(35000, maximum_altitude);
@@ -154,7 +166,9 @@ if ( ! bursted)
 }
 else
 {
-	return;
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+	break;
 }
 
 while ( ! has_bursted(maximum_altitude))

@@ -1,20 +1,52 @@
-double main_battery = 0, gsm_battery = 0;
-bool bat_status = false;
+#if !defined SIM && !defined REAL_SIM
+	double start_alt = GPS::get_instance().get_altitude();
+#endif
 
-wait_down_for(25000);
-logger->log("25 km mark passed going down.");
+#if defined SIM || defined REAL_SIM
+	if (FLIGHT_MAX_HEIGHT > 25000)
+#else
+	if (start_alt > 25000)
+#endif
+{
+	wait_down_for(25000);
+	logger->log("25 km mark passed going down.");
+}
 
-wait_down_for(15000);
-logger->log("15 km mark passed going down.");
+#if defined SIM || defined REAL_SIM
+	if (FLIGHT_MAX_HEIGHT > 15000)
+#else
+	if (start_alt > 15000)
+#endif
+{
+	wait_down_for(15000);
+	logger->log("15 km mark passed going down.");
+}
 
-wait_down_for(5000);
-logger->log("5 km mark passed going down.");
+#if defined SIM || defined REAL_SIM
+	if (FLIGHT_MAX_HEIGHT > 5000)
+#else
+	if (start_alt > 5000)
+#endif
+{
+	wait_down_for(5000);
+	logger->log("5 km mark passed going down.");
+}
 
-wait_down_for(2000);
-logger->log("2 km mark passed going down.");
+#if defined SIM || defined REAL_SIM
+	if (FLIGHT_MAX_HEIGHT > 2000)
+#else
+	if (start_alt > 2000)
+#endif
+{
+	wait_down_for(2000);
+	logger->log("2 km mark passed going down.");
+}
 
 logger->log("Turning on GSM...");
 GSM::get_instance().turn_on();
+
+double main_battery = 0, gsm_battery = 0;
+bool bat_status = false;
 
 logger->log("Waiting for GSM connectivity...");
 int count = 0;
