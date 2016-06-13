@@ -37,7 +37,7 @@ GSM::~GSM()
 		delete this->command_logger;
 	}
 
-	if (this->get_status())
+	if (this->is_on())
 	{
 		this->logger->log("Shutting down...");
 		this->turn_off();
@@ -66,20 +66,19 @@ bool GSM::initialize()
 	digitalWrite(GSM_PWR_GPIO, HIGH);
 	pinMode(GSM_STATUS_GPIO, INPUT);
 
-	this->logger->log("Rebooting module for stability.");
-	this->turn_off();
-	this->logger->log("Module off. Sleeping 3 seconds before turning it on...");
-	this_thread::sleep_for(3s);
+	if (this->is_on())
+	{
+		this->logger->log("Module is on, rebooting for stability.");
+		this->turn_off();
+		this->logger->log("Module off. Sleeping 3 seconds before turning it on...");
+		this_thread::sleep_for(3s);
+	}
 
 	this->logger->log("Turning module on...");
 	this->turn_on();
-	if (this->get_status())
+	if ( ! this->is_on())
 	{
-		this->logger->log("Status checked. Module is on.");
-	}
-	else
-	{
-		this->logger->log("Error: Status checked. Module is off. Finishing initialization.");
+		this->logger->log("Error: The module is still off. Finishing initialization.");
 		return false;
 	}
 	this->logger->log("Sleeping 3 seconds to let it turn completely on...");
@@ -345,7 +344,7 @@ bool GSM::get_location(double& latitude, double& longitude)
 	return true;
 }
 
-bool GSM::get_status() const
+bool GSM::is_on() const
 {
 	return digitalRead(GSM_STATUS_GPIO) == HIGH;
 }
@@ -359,7 +358,7 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 	this->occupied = true;
 
 	this->logger->log("Checking Battery status.");
-	if (this->get_status())
+	if (this->is_on())
 	{
 		string gsm_response = this->send_command_read("AT+CBC");
 		this->serial->read_line(); // Eat new line
@@ -425,7 +424,7 @@ bool GSM::has_connectivity()
 
 bool GSM::turn_on() const
 {
-	if ( ! this->get_status())
+	if ( ! this->is_on())
 	{
 		this->logger->log("Turning GSM on...");
 
@@ -447,7 +446,7 @@ bool GSM::turn_on() const
 
 bool GSM::turn_off() const
 {
-	if (this->get_status())
+	if (this->is_on())
 	{
 		this->logger->log("Turning GSM off...");
 

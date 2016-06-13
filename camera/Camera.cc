@@ -121,15 +121,15 @@ bool Camera::record()
 bool Camera::take_picture(const string& exif)
 {
 	bool was_recording = this->recording;
+	this->logger->log("Taking picture...");
 	if (was_recording)
 	{
-		this->logger->log("Recording video, stopping...");
+		this->logger->log("The video is recording.");
 	}
 	if (was_recording && ! this->stop())
 	{
 		return false;
 	}
-	this->logger->log("Video recording stopped.");
 
 	string filename = "data/img/img-"+ to_string(get_file_count("data/img/")) +".jpg";
 	#ifdef OS_TESTING
@@ -162,9 +162,7 @@ bool Camera::take_picture(const string& exif)
 
 	if (was_recording)
 	{
-		this->logger->log(
-			"Video recording was active before taking picture. Resuming..."
-		);
+		this->logger->log("Video recording was active before taking picture. Resuming...");
 	}
 	if (was_recording && ! this->record())
 	{
@@ -196,7 +194,7 @@ bool Camera::stop()
 
 		if ( ! this->is_really_recording())
 		{
-			this->logger->log("Warning: video was already stopped.");
+			this->logger->log("Warning: video had already stopped.");
 			this->recording = false;
 			return true;
 		}

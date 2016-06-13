@@ -197,7 +197,7 @@ void GPS::gps_thread()
 				{
 					char c = this->serial->read_char();
 					response += c;
-					if (response.length() >= 2 &&
+					if (response.length() > 2 &&
 						response[response.length()-2] == '\r' &&
 						c == '\n')
 					{

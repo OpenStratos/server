@@ -150,7 +150,7 @@ void os::battery_thread_fn(State& state)
 
 	while (state != SHUT_DOWN)
 	{
-		if (GSM::get_instance().get_status())
+		if (GSM::get_instance().is_on())
 		{
 			GSM::get_instance().get_battery_status(main_battery, gsm_battery);
 			logger.log("Main: "+ to_string(main_battery));
