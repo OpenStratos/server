@@ -150,7 +150,7 @@ bool GPS::initialize()
 
 bool GPS::is_on() const
 {
-	return digitalRead(GPS_ENABLE_GPIO) == LOW;
+	return digitalRead(GPS_ENABLE_GPIO) == HIGH;
 }
 
 bool GPS::turn_on() const
