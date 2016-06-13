@@ -87,101 +87,87 @@ logger->log("Turning off GSM...");
 GSM::get_instance().turn_off();
 logger->log("GSM off.");
 
-bool bursted = wait_up_for(5000, maximum_altitude);
-if ( ! bursted)
+if (wait_up_for(5000, maximum_altitude))
+{
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+}
+else
 {
 	logger->log("5 km mark passed going up.");
-}
-else
-{
-	*state = set_state(GOING_DOWN);
-	logger->log("State changed to "+ state_to_string(*state) +".");
-	break;
-}
 
-bursted = wait_up_for(10000, maximum_altitude);
-if ( ! bursted)
-{
-	logger->log("10 km mark passed going up.");
-}
-else
-{
-	*state = set_state(GOING_DOWN);
-	logger->log("State changed to "+ state_to_string(*state) +".");
-	break;
-}
-
-bursted = wait_up_for(15000, maximum_altitude);
-if ( ! bursted)
-{
-	logger->log("15 km mark passed going up.");
-}
-else
-{
-	*state = set_state(GOING_DOWN);
-	logger->log("State changed to "+ state_to_string(*state) +".");
-	break;
-}
-
-bursted = wait_up_for(20000, maximum_altitude);
-if ( ! bursted)
-{
-	logger->log("20 km mark passed going up.");
-}
-else
-{
-	*state = set_state(GOING_DOWN);
-	logger->log("State changed to "+ state_to_string(*state) +".");
-	break;
-}
-
-bursted = wait_up_for(25000, maximum_altitude);
-if ( ! bursted)
-{
-	logger->log("25 km mark passed going up.");
-}
-else
-{
-	*state = set_state(GOING_DOWN);
-	logger->log("State changed to "+ state_to_string(*state) +".");
-	break;
-}
-
-bursted = wait_up_for(30000, maximum_altitude);
-if ( ! bursted)
-{
-	logger->log("30 km mark passed going up.");
-}
-else
-{
-	*state = set_state(GOING_DOWN);
-	logger->log("State changed to "+ state_to_string(*state) +".");
-	break;
-}
-
-bursted = wait_up_for(35000, maximum_altitude);
-if ( ! bursted)
-{
-	logger->log("35 km mark passed going up.");
-}
-else
-{
-	*state = set_state(GOING_DOWN);
-	logger->log("State changed to "+ state_to_string(*state) +".");
-	break;
-}
-
-while ( ! has_bursted(maximum_altitude))
-{
-	double current_altitude;
-	for (int i = 0; GPS::get_instance().get_VDOP() > 5 && i < 5; i++)
+	if (wait_up_for(10000, maximum_altitude))
 	{
-		this_thread::sleep_for(500ms);
+		*state = set_state(GOING_DOWN);
+		logger->log("State changed to "+ state_to_string(*state) +".");
 	}
-
-	if ((current_altitude = GPS::get_instance().get_altitude()) > maximum_altitude)
+	else
 	{
-		maximum_altitude = current_altitude;
+		logger->log("10 km mark passed going up.");
+
+		if (wait_up_for(15000, maximum_altitude))
+		{
+			*state = set_state(GOING_DOWN);
+			logger->log("State changed to "+ state_to_string(*state) +".");
+		}
+		else
+		{
+			logger->log("15 km mark passed going up.");
+
+			if (wait_up_for(20000, maximum_altitude))
+			{
+				*state = set_state(GOING_DOWN);
+				logger->log("State changed to "+ state_to_string(*state) +".");
+			}
+			else
+			{
+				logger->log("20 km mark passed going up.");
+
+				if (wait_up_for(25000, maximum_altitude))
+				{
+					*state = set_state(GOING_DOWN);
+					logger->log("State changed to "+ state_to_string(*state) +".");
+				}
+				else
+				{
+					logger->log("25 km mark passed going up.");
+
+					if (wait_up_for(30000, maximum_altitude))
+					{
+						*state = set_state(GOING_DOWN);
+						logger->log("State changed to "+ state_to_string(*state) +".");
+					}
+					else
+					{
+						logger->log("30 km mark passed going up.");
+
+						if (wait_up_for(35000, maximum_altitude))
+						{
+							*state = set_state(GOING_DOWN);
+							logger->log("State changed to "+ state_to_string(*state) +".");
+						}
+						else
+						{
+							logger->log("35 km mark passed going up.");
+
+							while ( ! has_bursted(maximum_altitude))
+							{
+								double current_altitude;
+								for (int i = 0; GPS::get_instance().get_VDOP() > 5 && i < 5; i++)
+								{
+									this_thread::sleep_for(500ms);
+								}
+
+								if ((current_altitude = GPS::get_instance().get_altitude()) > maximum_altitude)
+								{
+									maximum_altitude = current_altitude;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }
 

@@ -75,6 +75,7 @@ namespace os {
 		euc_vec get_velocity() const {return this->velocity;}
 
 		bool initialize();
+		bool is_on() const;
 		bool turn_on() const;
 		bool turn_off() const;
 		void parse(const string& frame);
