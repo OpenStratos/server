@@ -52,7 +52,7 @@ namespace os {
 	inline State get_real_state()
 	{
 		for (int i = 0; i < 10 && ( ! GPS::get_instance().is_fixed() ||
-						GPS::get_instance().get_VDOP() > MIN_DOP); ++i)
+						GPS::get_instance().get_VDOP() > MAX_DOP); ++i)
 		{
 			this_thread::sleep_for(1s);
 		}
@@ -82,7 +82,7 @@ namespace os {
 	inline bool has_launched(double launch_altitude)
 	{
 		for (int i = 0; i < 10 && ( ! GPS::get_instance().is_fixed() ||
-						GPS::get_instance().get_VDOP() > MIN_DOP); ++i)
+						GPS::get_instance().get_VDOP() > MAX_DOP); ++i)
 		{
 			this_thread::sleep_for(500ms);
 		}
@@ -108,7 +108,7 @@ namespace os {
 	inline bool has_bursted(double maximum_altitude)
 	{
 		for (int i = 0; i < 10 && ( ! GPS::get_instance().is_fixed() ||
-						GPS::get_instance().get_VDOP() > MIN_DOP); ++i)
+						GPS::get_instance().get_VDOP() > MAX_DOP); ++i)
 		{
 			this_thread::sleep_for(500ms);
 		}
@@ -134,7 +134,7 @@ namespace os {
 	inline bool has_landed()
 	{
 		for (int i = 0; i < 10 && ( ! GPS::get_instance().is_fixed() ||
-						GPS::get_instance().get_VDOP() > MIN_DOP); ++i)
+						GPS::get_instance().get_VDOP() > MAX_DOP); ++i)
 		{
 			this_thread::sleep_for(500ms);
 		}
@@ -185,7 +185,7 @@ namespace os {
 			while ( ! (bursted = has_bursted(maximum_altitude)))
 			{
 				for (int i = 0; i < 10 && ( ! GPS::get_instance().is_fixed() ||
-								GPS::get_instance().get_VDOP() > MIN_DOP); ++i)
+								GPS::get_instance().get_VDOP() > MAX_DOP); ++i)
 				{
 					this_thread::sleep_for(500ms);
 				}
@@ -230,7 +230,7 @@ namespace os {
 			return false;
 		#else
 		for (int i = 0; i < 10 && ( ! GPS::get_instance().is_fixed() ||
-						GPS::get_instance().get_VDOP() > MIN_DOP); ++i)
+						GPS::get_instance().get_VDOP() > MAX_DOP); ++i)
 			{
 				this_thread::sleep_for(500ms);
 			}

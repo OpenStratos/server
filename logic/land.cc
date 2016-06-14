@@ -27,7 +27,7 @@ else
 
 logger->log("Sending landed SMS...");
 for (int i = 0;
-	i < 10 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MIN_DOP);
+	i < 10 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MAX_DOP);
 	++i)
 {
 	this_thread::sleep_for(500ms);
@@ -66,7 +66,7 @@ else
 
 logger->log("Sending second landed SMS...");
 for (int i = 0;
-	i < 60 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MIN_DOP);
+	i < 60 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > GOOD_DOP);
 	++i)
 {
 	this_thread::sleep_for(500ms);

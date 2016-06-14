@@ -13,7 +13,7 @@ else
 
 logger->log("Trying to send launch confirmation SMS...");
 for (int i = 0;
-	i < 5 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MIN_DOP);
+	i < 5 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MAX_DOP);
 	++i)
 {
 	this_thread::sleep_for(500ms);
@@ -37,7 +37,7 @@ else
 }
 
 for (int i = 0;
-	i < 5 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MIN_DOP);
+	i < 5 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MAX_DOP);
 	++i)
 {
 	this_thread::sleep_for(500ms);
@@ -59,7 +59,7 @@ else
 
 logger->log("Trying to send \"going up\" SMS...");
 for (int i = 0;
-	i < 5 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MIN_DOP);
+	i < 5 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MAX_DOP);
 	++i)
 {
 	this_thread::sleep_for(500ms);
@@ -98,88 +98,97 @@ logger->log("GSM off.");
 
 if (wait_up_for(5000, maximum_altitude))
 {
+	logger->log("Balloon burst at about "+ to_string((int) maximum_altitude) +" m.");
+
 	*state = set_state(GOING_DOWN);
 	logger->log("State changed to "+ state_to_string(*state) +".");
+	continue;
 }
-else
+logger->log("5 km mark passed going up.");
+
+if (wait_up_for(10000, maximum_altitude))
 {
-	logger->log("5 km mark passed going up.");
+	logger->log("Balloon burst at about "+ to_string((int) maximum_altitude) +" m.");
 
-	if (wait_up_for(10000, maximum_altitude))
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+	continue;
+}
+logger->log("10 km mark passed going up.");
+
+if (wait_up_for(15000, maximum_altitude))
+{
+	logger->log("Balloon burst at about "+ to_string((int) maximum_altitude) +" m.");
+
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+	continue;
+}
+logger->log("15 km mark passed going up.");
+
+if (wait_up_for(20000, maximum_altitude))
+{
+	logger->log("Balloon burst at about "+ to_string((int) maximum_altitude) +" m.");
+
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+	continue;
+}
+logger->log("20 km mark passed going up.");
+
+if (wait_up_for(25000, maximum_altitude))
+{
+	logger->log("Balloon burst at about "+ to_string((int) maximum_altitude) +" m.");
+
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+	continue;
+}
+logger->log("25 km mark passed going up.");
+
+if (wait_up_for(30000, maximum_altitude))
+{
+	logger->log("Balloon burst at about "+ to_string((int) maximum_altitude) +" m.");
+
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+	continue;
+}
+logger->log("30 km mark passed going up.");
+
+if (wait_up_for(35000, maximum_altitude))
+{
+	logger->log("Balloon burst at about "+ to_string((int) maximum_altitude) +" m.");
+
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+	continue;
+}
+logger->log("35 km mark passed going up.");
+
+if (wait_up_for(40000, maximum_altitude))
+{
+	logger->log("Balloon burst at about "+ to_string((int) maximum_altitude) +" m.");
+
+	*state = set_state(GOING_DOWN);
+	logger->log("State changed to "+ state_to_string(*state) +".");
+	continue;
+}
+logger->log("40 km mark passed going up.");
+
+while ( ! has_bursted(maximum_altitude))
+{
+	double current_altitude;
+	for (int i = 0;
+		i < 10 && ( ! GPS::get_instance().is_fixed() ||
+		GPS::get_instance().get_VDOP() > MAX_DOP); ++i)
 	{
-		*state = set_state(GOING_DOWN);
-		logger->log("State changed to "+ state_to_string(*state) +".");
+		this_thread::sleep_for(500ms);
 	}
-	else
+
+	if ((current_altitude = GPS::get_instance().get_altitude()) > maximum_altitude)
 	{
-		logger->log("10 km mark passed going up.");
-
-		if (wait_up_for(15000, maximum_altitude))
-		{
-			*state = set_state(GOING_DOWN);
-			logger->log("State changed to "+ state_to_string(*state) +".");
-		}
-		else
-		{
-			logger->log("15 km mark passed going up.");
-
-			if (wait_up_for(20000, maximum_altitude))
-			{
-				*state = set_state(GOING_DOWN);
-				logger->log("State changed to "+ state_to_string(*state) +".");
-			}
-			else
-			{
-				logger->log("20 km mark passed going up.");
-
-				if (wait_up_for(25000, maximum_altitude))
-				{
-					*state = set_state(GOING_DOWN);
-					logger->log("State changed to "+ state_to_string(*state) +".");
-				}
-				else
-				{
-					logger->log("25 km mark passed going up.");
-
-					if (wait_up_for(30000, maximum_altitude))
-					{
-						*state = set_state(GOING_DOWN);
-						logger->log("State changed to "+ state_to_string(*state) +".");
-					}
-					else
-					{
-						logger->log("30 km mark passed going up.");
-
-						if (wait_up_for(35000, maximum_altitude))
-						{
-							*state = set_state(GOING_DOWN);
-							logger->log("State changed to "+ state_to_string(*state) +".");
-						}
-						else
-						{
-							logger->log("35 km mark passed going up.");
-
-							while ( ! has_bursted(maximum_altitude))
-							{
-								double current_altitude;
-								for (int i = 0;
-									i < 10 && ( ! GPS::get_instance().is_fixed() ||
-									GPS::get_instance().get_VDOP() > MIN_DOP); ++i)
-								{
-									this_thread::sleep_for(500ms);
-								}
-
-								if ((current_altitude = GPS::get_instance().get_altitude()) > maximum_altitude)
-								{
-									maximum_altitude = current_altitude;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+		maximum_altitude = current_altitude;
 	}
 }
-
 logger->log("Balloon burst at about "+ to_string((int) maximum_altitude) +" m.");

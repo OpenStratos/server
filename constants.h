@@ -31,7 +31,13 @@
 	#define GPS_ENABLE_GPIO 2
 	#define GPS_BAUDRATE 9600
 	#define GPS_ENDL "\r\n"
-	#define MIN_DOP 10
+
+	#define IDEAL_DOP 1
+	#define EXCELENT_DOP 2
+	#define GOOD_DOP 5
+	#define MODERATE_DOP 10
+	#define FAIR_DOP 20
+	#define MAX_DOP MODERATE_DOP
 
 	#define GSM_LOC_SERV "gprs-service.com"
 	#define GSM_UART "/dev/ttyUSB0"

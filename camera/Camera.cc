@@ -232,7 +232,7 @@ const string os::generate_exif_data()
 {
 	string exif;
 	for (int i = 0;
-		i < 10 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MIN_DOP);
+		i < 10 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MAX_DOP);
 		++i)
 	{
 		this_thread::sleep_for(500ms);
