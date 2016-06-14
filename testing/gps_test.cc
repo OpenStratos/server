@@ -134,7 +134,6 @@ describe("GPS", []()
 
 	it("RMC frame parser pass test", [&]()
 	{
-
 		double latitude = GPS::get_instance().get_latitude();
 		double longitude = GPS::get_instance().get_longitude();
 		float speed = GPS::get_instance().get_velocity().speed;
@@ -160,5 +159,10 @@ describe("GPS", []()
 		AssertThat(GPS::get_instance().get_longitude(), Equals(longitude));
 		AssertThat(GPS::get_instance().get_velocity().speed, Equals(speed));
 		AssertThat(GPS::get_instance().get_velocity().course, Equals(course));
+	});
+
+	it("incomplete frame parser test", [&]()
+	{
+		GPS::get_instance().parse("$GNGSA,A,2,,N,00256.61767,W,0.124,,140616,,,A*74");
 	});
 });

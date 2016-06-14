@@ -389,13 +389,28 @@ bool GSM::get_battery_status(double& main_bat_percentage, double& gsm_bat_percen
 				gsm_data.push_back(data);
 			}
 
-			int gsm_bat_voltage = stoi(gsm_data[2]);
-			int main_bat_voltage = stoi(adc_response.substr(9, 4));
-			gsm_bat_percentage = (gsm_bat_voltage/1000.0-BAT_GSM_MIN)/(BAT_GSM_MAX-BAT_GSM_MIN);
-			main_bat_percentage = (main_bat_voltage/1000.0-BAT_MAIN_MIN)/(BAT_MAIN_MAX-BAT_MAIN_MIN);
+			if (gsm_data.size() >= 3)
+			{
+				try
+				{
+					int gsm_bat_voltage = stoi(gsm_data[2]);
+					int main_bat_voltage = stoi(adc_response.substr(9, 4));
+					gsm_bat_percentage = (gsm_bat_voltage/1000.0-BAT_GSM_MIN)/(BAT_GSM_MAX-BAT_GSM_MIN);
+					main_bat_percentage = (main_bat_voltage/1000.0-BAT_MAIN_MIN)/(BAT_MAIN_MAX-BAT_MAIN_MIN);
+				}
+				catch (const invalid_argument& ia)
+				{
+					this->occupied = false;
+					return false;
+				}
 
-			this->occupied = false;
-			return true;
+				this->occupied = false;
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
 	}
 	else

@@ -54,8 +54,12 @@ void os::system_thread_fn(State& state)
 
 		gpu_temp_process = popen("/opt/vc/bin/vcgencmd measure_temp", "r");
 		if (fgets(gpu_response, 11, gpu_temp_process) != NULL) {
-			temp_logger.log("CPU: "+to_string(stoi(cpu_temp_str)/1000.0)+
-			" GPU: "+string(gpu_response).substr(5, 4));
+			try
+			{
+				temp_logger.log("CPU: "+to_string(stoi(cpu_temp_str)/1000.0)+
+								" GPU: "+string(gpu_response).substr(5, 4));
+			}
+			catch (const invalid_argument& ia) {}
 		}
 		pclose(gpu_temp_process);
 
@@ -73,9 +77,15 @@ void os::system_thread_fn(State& state)
 				s_data.push_back(data);
 			}
 
-			// Note that s_data[1] is ""
-			cpu_logger.log(to_string((stof(s_data[2])+stof(s_data[4]))/
-				(stof(s_data[2])+stof(s_data[4])+stof(s_data[5]))));
+			if (s_data.size() >= 6)
+			{
+				try {
+					// Note that s_data[1] is ""
+					cpu_logger.log(to_string((stof(s_data[2])+stof(s_data[4]))/
+						(stof(s_data[2])+stof(s_data[4])+stof(s_data[5]))));
+				}
+				catch (const invalid_argument& ia) {}
+			}
 		}
 		pclose(cpu_command_process);
 

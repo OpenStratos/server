@@ -266,17 +266,24 @@ void GPS::parse(const string& frame)
 		this->frame_logger->log(frame);
 		string frame_type = frame.substr(3, frame.find_first_of(',')-3);
 
-		if (frame_type == "GGA")
+		try
 		{
-			this->parse_GGA(frame);
+			if (frame_type == "GGA")
+			{
+				this->parse_GGA(frame);
+			}
+			else if (frame_type == "GSA")
+			{
+				this->parse_GSA(frame);
+			}
+			else if (frame_type == "RMC")
+			{
+				this->parse_RMC(frame);
+			}
 		}
-		else if (frame_type == "GSA")
+		catch (const invalid_argument& ia)
 		{
-			this->parse_GSA(frame);
-		}
-		else if (frame_type == "RMC")
-		{
-			this->parse_RMC(frame);
+			this->logger->log("Failed to parse frame: " + frame);
 		}
 
 		double gps_time = (double) this->time.tv_sec + this->time.tv_usec * 0.000001;
@@ -303,6 +310,12 @@ void GPS::parse_GGA(const string& frame)
 	while(getline(ss, data, ','))
 	{
 		s_data.push_back(data);
+	}
+
+	if (s_data.size() != 15)
+	{
+		this->logger->log("Failed to parse frame: " + frame);
+		return;
 	}
 
 	// Is the data valid?
@@ -390,6 +403,12 @@ void GPS::parse_GSA(const string& frame)
 		s_data.push_back(data);
 	}
 
+	if (s_data.size() != 17)
+	{
+		this->logger->log("Failed to parse frame: " + frame);
+		return;
+	}
+
 	// Is the data valid?
 	bool active = s_data[2] == "2" || s_data[2] == "3";
 
@@ -435,6 +454,12 @@ void GPS::parse_RMC(const string& frame)
 	while(getline(ss, data, ','))
 	{
 		s_data.push_back(data);
+	}
+
+	if (s_data.size() != 12)
+	{
+		this->logger->log("Failed to parse frame: " + frame);
+		return;
 	}
 
 	// Is the data valid?
