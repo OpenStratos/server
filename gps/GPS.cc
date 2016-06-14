@@ -403,7 +403,7 @@ void GPS::parse_GSA(const string& frame)
 		s_data.push_back(data);
 	}
 
-	if (s_data.size() != 17)
+	if (s_data.size() != 18)
 	{
 		this->logger->log("Failed to parse frame: " + frame);
 		return;
@@ -456,7 +456,7 @@ void GPS::parse_RMC(const string& frame)
 		s_data.push_back(data);
 	}
 
-	if (s_data.size() != 12)
+	if (s_data.size() != 13)
 	{
 		this->logger->log("Failed to parse frame: " + frame);
 		return;
