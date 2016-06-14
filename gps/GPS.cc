@@ -108,11 +108,6 @@ bool GPS::initialize()
 	this->logger->log("Setting GPS to pedestrian mode");
 	this->enter_pedestrian_mode();
 
-	this->logger->log("Starting GPS frame thread...");
-	thread t(&GPS::gps_thread, this);
-	t.detach();
-	this->logger->log("GPS frame thread running.");
-
 	#ifndef OS_TESTING
 		this->logger->log("Sending configuration frames...");
 
@@ -144,6 +139,11 @@ bool GPS::initialize()
 
 		this->logger->log("Configuration frames sent.");
 	#endif
+
+	this->logger->log("Starting GPS frame thread...");
+	thread t(&GPS::gps_thread, this);
+	t.detach();
+	this->logger->log("GPS frame thread running.");
 
 	return true;
 }
