@@ -98,6 +98,11 @@ switch (last_state)
 			}
 			logger.log("GSM initialized.");
 
+			if (state == GOING_UP || state == GOING_DOWN)
+			{
+				GSM::get_instance().turn_off();
+			}
+
 			if (state != LANDED)
 			{
 				logger.log("Trying to start recording...");
@@ -107,11 +112,11 @@ switch (last_state)
 				}
 				else
 				{
-					logger.log("Error starting recording");
+					logger.log("Error starting recording.");
 				}
 			}
 
-			logger.log("Going to the main while.");
+			logger.log("Entering main while from safe mode.");
 			main_while(&logger, &state);
 			shut_down(&logger);
 		}
@@ -159,9 +164,9 @@ switch (last_state)
 		{
 			this_thread::sleep_for(5min);
 
-			GSM::get_instance().get_location(latitude, longitude);
-			GSM::get_instance().send_SMS("MAYDAY\r\nLat: "+ to_string(latitude) +"\r\n"+
-				"Lon: "+ to_string(longitude), SMS_PHONE) && ++count;
+			GSM::get_instance().get_location(latitude, longitude) &&
+			GSM::get_instance().send_SMS("MAYDAY\r\nLat: "+ to_string(latitude) +
+				"\r\nLon: "+ to_string(longitude), SMS_PHONE) && ++count;
 		}
 		logger.log("Mayday messages sent.");
 
@@ -195,24 +200,90 @@ switch (last_state)
 
 			this_thread::sleep_for(5s);
 			for (int i = 0;
-				GPS::get_instance().get_HDOP() > 5 && i < 10;
+				GPS::get_instance().get_PDOP() > MIN_DOP && i < 10;
 				++i)
 			{
 				this_thread::sleep_for(500ms);
 			}
 
+			logger.log("Sending mayday message with GPS information...");
 			while ( ! GSM::get_instance().send_SMS("MAYDAY\r\nLat: " +
 				to_string(GPS::get_instance().get_latitude()) +
 				"\r\nLon: "+ to_string(GPS::get_instance().get_longitude()) +
 				"\r\nAlt: "+ to_string(GPS::get_instance().get_altitude()) +
 				"\r\nFix: OK", SMS_PHONE))
 			{
+				logger.log("Error sending mayday message.");
 				this_thread::sleep_for(1min);
 			}
 
-			this_thread::sleep_for(30s);
+			logger.log("GPS fix acquired. Sleeping one minute for stability.");
+			this_thread::sleep_for(1min);
+			logger.log("Getting real state from GPS information.");
 			state = (state == LANDED) ? LANDED : get_real_state();
+			logger.log("Seems that the current state is "+state_to_string(state)+".");
 
+			double main_battery = 0, gsm_battery = 0;
+			bool bat_status = false;
+			if ((bat_status = GSM::get_instance().get_battery_status(main_battery, gsm_battery)))
+			{
+				logger.log("Battery status received.");
+			}
+			else
+			{
+				logger.log("Error getting battery status.");
+			}
+
+			while (GPS::get_instance().get_PDOP() > MIN_DOP)
+			{
+				this_thread::sleep_for(500ms);
+				if (++count > 10)
+				{
+					break;
+				}
+			}
+
+			if (count < 10)
+			{
+				logger.log("Sending complete information SMS.");
+				if ( ! GSM::get_instance().send_SMS(
+					"Recovered.\r\nAlt: "+ to_string((int) GPS::get_instance().get_altitude()) +
+					" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +
+					"\r\nLon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
+					"\r\nPDOP: "+to_string(GPS::get_instance().get_PDOP()) +
+					"\r\nSat: "+ to_string(GPS::get_instance().get_satellites()) +
+					"\r\nFix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
+					(bat_status ? "\r\nMain bat: "+ to_string((int) (main_battery*100)) +
+						"%\r\nGSM bat: "+ to_string((int) (gsm_battery*100)) +"%" : "\r\nBat: ERR"), SMS_PHONE) &&
+					// Second attempt
+					! GSM::get_instance().send_SMS(
+						"Recovered.\r\nAlt: "+ to_string((int) GPS::get_instance().get_altitude()) +
+						" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +
+						"\r\nLon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
+						"\r\nPDOP: "+to_string(GPS::get_instance().get_PDOP()) +
+						"\r\nSat: "+ to_string(GPS::get_instance().get_satellites()) +
+						"\r\nFix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
+						(bat_status ? "\r\nMain bat: "+ to_string((int) (main_battery*100)) +
+							"%\r\nGSM bat: "+ to_string((int) (gsm_battery*100)) +"%" : "\r\nBat: ERR"), SMS_PHONE))
+				{
+					logger.log("Error sending GPS information messages.");
+				}
+			}
+
+			if (state != LANDED)
+			{
+				logger.log("Trying to start recording...");
+				if (Camera::get_instance().record())
+				{
+					logger.log("Recording.");
+				}
+				else
+				{
+					logger.log("Error starting recording.");
+				}
+			}
+
+			logger.log("Entering main while again after recovery.");
 			main_while(&logger, &state);
 			shut_down(&logger);
 		}

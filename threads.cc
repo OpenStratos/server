@@ -158,14 +158,28 @@ void os::battery_thread_fn(State& state)
 		}
 		else
 		{
-			this_thread::sleep_for(15min);
-			GSM::get_instance().turn_on();
+			for (int i = 0; i < 5; ++i)
+			{
+				this_thread::sleep_for(2min);
+				if (state == SHUT_DOWN)
+				{
+					return;
+				}
+			}
+			if ( ! GSM::get_instance().is_on())
+			{
+				GSM::get_instance().turn_on();
+				this_thread::sleep_for(30s);
+			}
 
 			GSM::get_instance().get_battery_status(main_battery, gsm_battery);
 			logger.log("Main: "+ to_string(main_battery));
 			logger.log("GSM: "+ to_string(gsm_battery));
 
-			GSM::get_instance().turn_off();
+			if (state == GOING_DOWN || GPS::get_instance().get_altitude() > 1200)
+			{
+				GSM::get_instance().turn_off();
+			}
 		}
 
 		this_thread::sleep_for(3min);
