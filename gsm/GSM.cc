@@ -161,7 +161,7 @@ bool GSM::send_SMS(const string& message, const string& number)
 		this->serial->println(message);
 		this->command_logger->log("Sent: '"+message+"'");
 
-		for (int i = 0; i <= count(message.begin(), message.end(), '\n'); i++)
+		for (int i = 0; i <= count(message.begin(), message.end(), '\n'); ++i)
 		{
 			// Eat message echo
 			this->command_logger->log(

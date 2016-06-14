@@ -81,7 +81,9 @@ else
 	}
 
 	logger->log("Trying to send first SMS...");
-	for (int i = 0; GPS::get_instance().get_PDOP() > 5 && i < 5; i++)
+	for (int i = 0;
+		i < 5 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MIN_DOP);
+		++i)
 	{
 		this_thread::sleep_for(500ms);
 	}
@@ -139,7 +141,9 @@ if ( ! wait_down_for(1200))
 		}
 
 		logger->log("Trying to send second SMS...");
-		for (int i = 0; GPS::get_instance().get_PDOP() > 5 && i < 5; i++)
+		for (int i = 0;
+			i < 5 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MIN_DOP);
+			++i)
 		{
 			this_thread::sleep_for(500ms);
 		}
@@ -199,7 +203,9 @@ if ( ! wait_down_for(500))
 		}
 
 		logger->log("Trying to send third SMS...");
-		for (int i = 0; GPS::get_instance().get_PDOP() > 5 && i < 5; i++)
+		for (int i = 0;
+			i < 5 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MIN_DOP);
+			++i)
 		{
 			this_thread::sleep_for(500ms);
 		}

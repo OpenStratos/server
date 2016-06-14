@@ -12,7 +12,9 @@ else
 }
 
 logger->log("Trying to send launch confirmation SMS...");
-for (int i = 0; GPS::get_instance().get_PDOP() > 5 && i < 5; i++)
+for (int i = 0;
+	i < 5 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MIN_DOP);
+	++i)
 {
 	this_thread::sleep_for(500ms);
 }
@@ -33,7 +35,9 @@ else
 	logger->log("Launch confirmation SMS sent.");
 }
 
-for (int i = 0; GPS::get_instance().get_PDOP() > 5 && i < 5; i++)
+for (int i = 0;
+	i < 5 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MIN_DOP);
+	++i)
 {
 	this_thread::sleep_for(500ms);
 }
@@ -53,7 +57,9 @@ else
 }
 
 logger->log("Trying to send \"going up\" SMS...");
-for (int i = 0; GPS::get_instance().get_PDOP() > 5 && i < 5; i++)
+for (int i = 0;
+	i < 5 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MIN_DOP);
+	++i)
 {
 	this_thread::sleep_for(500ms);
 }
@@ -153,7 +159,7 @@ else
 							while ( ! has_bursted(maximum_altitude))
 							{
 								double current_altitude;
-								for (int i = 0; GPS::get_instance().get_VDOP() > 5 && i < 5; i++)
+								for (int i = 0; GPS::get_instance().get_VDOP() > 5 && i < 5; ++i)
 								{
 									this_thread::sleep_for(500ms);
 								}

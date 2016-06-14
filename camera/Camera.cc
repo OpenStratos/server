@@ -221,7 +221,7 @@ int os::get_file_count(const string& path)
 
 	while ((ep = readdir(dp)) != NULL)
 	{
-		i++;
+		++i;
 	}
 	closedir(dp);
 
@@ -231,7 +231,9 @@ int os::get_file_count(const string& path)
 const string os::generate_exif_data()
 {
 	string exif;
-	while (GPS::get_instance().get_PDOP() > 5)
+	for (int i = 0;
+		i < 10 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MIN_DOP);
+		++i)
 	{
 		this_thread::sleep_for(500ms);
 	}

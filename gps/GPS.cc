@@ -193,7 +193,7 @@ void GPS::gps_thread()
 
 			if (available > 0)
 			{
-				for (int i = 0; i < available; i++)
+				for (int i = 0; i < available; ++i)
 				{
 					char c = this->serial->read_char();
 					response += c;
@@ -257,7 +257,7 @@ bool GPS::is_valid(string frame)
 
 void GPS::parse(const string& frame)
 {
-	if (frame.length() > 1 && is_valid(frame))
+	if (frame.length() > 1 && this->is_valid(frame))
 	{
 		struct timeval os_clock;
 		gettimeofday(&os_clock, NULL);
@@ -676,7 +676,7 @@ bool GPS::receive_check_ublox_ack(vector<unsigned char> message)
 	ack_packet[8] = 0x00;
 	ack_packet[9] = 0x00;
 
-	for (int i = 0; i<8; i++)
+	for (int i = 0; i<8; ++i)
 	{
 		ack_packet[8]+= ack_packet[i];
 		ack_packet[9]+= ack_packet[8];

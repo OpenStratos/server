@@ -196,7 +196,7 @@ switch (last_state)
 			this_thread::sleep_for(5s);
 			for (int i = 0;
 				GPS::get_instance().get_HDOP() > 5 && i < 10;
-				i++)
+				++i)
 			{
 				this_thread::sleep_for(500ms);
 			}

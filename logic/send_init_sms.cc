@@ -11,8 +11,8 @@ else
 	logger->log("Error getting battery status.");
 }
 
-logger->log("Checking GPS PDOP < 5...");
-while (GPS::get_instance().get_PDOP() > 5)
+logger->log("Waiting for GPS PDOP < "+to_string(MIN_DOP)+"...");
+while ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MIN_DOP)
 {
 	this_thread::sleep_for(1s);
 }
