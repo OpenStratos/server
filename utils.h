@@ -5,7 +5,7 @@
 
 #include <string>
 #include <thread>
-#ifdef SIM
+#if defined SIM || defined REAL_SIM
 	#include <chrono>
 #endif
 
