@@ -5,13 +5,13 @@ sudo: required
 addons:
   apt:
     sources:
-    - ubuntu-toolchain-r-test
+      - ubuntu-toolchain-r-test
     packages:
-    - autoconf
-    - automake
-    - m4
-    - gcc-4.9
-    - g++-4.9
+      - autoconf
+      - automake
+      - m4
+      - gcc-4.9
+      - g++-4.9
 
 before_install:
   - git submodule update --init --recursive > /dev/null
@@ -20,8 +20,29 @@ before_install:
 install:
   - "bash -ex ./install-wiringpi.sh"
 
+before_script:
+  - "bash -ex ./prepare.sh"
+  - export TZ=UTC
+
 script:
-  - "bash -ex ./build.sh"
+  - make utesting && ./utesting
+  - make clean && ./configure CPPFLAGS="-DDEBUG" && make utesting && ./utesting
+  - make clean && ./configure CPPFLAGS="-DNO_SMS" && make utesting && ./utesting
+  - make clean && ./configure CPPFLAGS="-DDEBUG -DNO_SMS" && make utesting && ./utesting
+  - make clean && make
+  - make clean && ./configure CPPFLAGS="-DNO_POWER_OFF" && make
+  - make clean && ./configure CPPFLAGS="-DDEBUG" && make
+  - make clean && ./configure CPPFLAGS="-DNO_POWER_OFF -DDEBUG" && make
+  - make clean && ./configure CPPFLAGS="-DNO_SMS" && make
+  - make clean && ./configure CPPFLAGS="-DDEBUG -DNO_SMS" && make
+  - make clean && ./configure CPPFLAGS="-DSIM" && make
+  - make clean && ./configure CPPFLAGS="-DDEBUG -DSIM" && make
+  - make clean && ./configure CPPFLAGS="-DREAL_SIM" && make
+  - make clean && ./configure CPPFLAGS="-DDEBUG -DREAL_SIM" && make
+  - make clean && ./configure CPPFLAGS="-DNO_SMS -DREAL_SIM" && make
+  - make clean && ./configure CPPFLAGS="-DDEBUG -DNO_SMS -DREAL_SIM" && make
+  - make clean && ./configure CPPFLAGS="-DNO_SMS -D_SIM" && make
+  - make clean && ./configure CPPFLAGS="-DDEBUG -DNO_SMS -D_SIM" && make
 
 branches:
   only:
@@ -34,8 +55,7 @@ branches:
 notifications:
   email:
     recipients:
-      - iban.eguia@opendeusto.es
-      - jordan.aranda@me.com
+      - razican@protonmail.ch
       - eneko.cruz@opendeusto.es
     on_success: change
     on_failure: always

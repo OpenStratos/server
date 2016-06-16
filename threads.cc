@@ -23,15 +23,15 @@ void os::system_thread_fn(State& state)
 	gettimeofday(&timer, NULL);
 	struct tm * now = gmtime(&timer.tv_sec);
 
-	Logger cpu_logger("data/logs/system/CPU."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+	Logger cpu_logger("data/logs/system/CPU."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon+1) +"-"+
 		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
 		to_string(now->tm_sec) +".log", "CPU");
 
-	Logger ram_logger("data/logs/system/RAM."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+	Logger ram_logger("data/logs/system/RAM."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon+1) +"-"+
 		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
 		to_string(now->tm_sec) +".log", "RAM");
 
-	Logger temp_logger("data/logs/system/Temp."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon) +"-"+
+	Logger temp_logger("data/logs/system/Temp."+ to_string(now->tm_year+1900) +"-"+ to_string(now->tm_mon+1) +"-"+
 		to_string(now->tm_mday) +"."+ to_string(now->tm_hour) +"-"+ to_string(now->tm_min) +"-"+
 		to_string(now->tm_sec) +".log", "Temp");
 
@@ -42,33 +42,52 @@ void os::system_thread_fn(State& state)
 
 	while (state != SHUT_DOWN)
 	{
+		if (get_available_disk_space() < 2000000000)
+		{
+			Camera::get_instance().stop();
+		}
+
 		ifstream cpu_temp_file("/sys/class/thermal/thermal_zone0/temp");
 		string cpu_temp_str((istreambuf_iterator<char>(cpu_temp_file)),
 			istreambuf_iterator<char>());
 		cpu_temp_file.close();
 
 		gpu_temp_process = popen("/opt/vc/bin/vcgencmd measure_temp", "r");
-		fgets(gpu_response, 11, gpu_temp_process);
+		if (fgets(gpu_response, 11, gpu_temp_process) != NULL) {
+			try
+			{
+				temp_logger.log("CPU: "+to_string(stoi(cpu_temp_str)/1000.0)+
+								" GPU: "+string(gpu_response).substr(5, 4));
+			}
+			catch (const invalid_argument& ia) {}
+		}
 		pclose(gpu_temp_process);
 
-		temp_logger.log("CPU: "+to_string(stoi(cpu_temp_str)/1000.0)+" GPU: "+
-			string(gpu_response).substr(5, 4));
-
 		cpu_command_process = popen("grep 'cpu ' /proc/stat", "r");
-		fgets(cpu_command, 100, cpu_command_process);
+		if (fgets(cpu_command, 100, cpu_command_process) != NULL)
+		{
+			const string cpu_command_str = string(cpu_command);
+			stringstream ss(cpu_command_str);
+			string data;
+			vector<string> s_data;
+
+			// We put all fields in a vector
+			while(getline(ss, data, ' '))
+			{
+				s_data.push_back(data);
+			}
+
+			if (s_data.size() >= 6)
+			{
+				try {
+					// Note that s_data[1] is ""
+					cpu_logger.log(to_string((stof(s_data[2])+stof(s_data[4]))/
+						(stof(s_data[2])+stof(s_data[4])+stof(s_data[5]))));
+				}
+				catch (const invalid_argument& ia) {}
+			}
+		}
 		pclose(cpu_command_process);
-
-		const string cpu_command_str = string(cpu_command);
-		stringstream ss(cpu_command_str);
-		string data;
-		vector<string> s_data;
-
-		// We put all fields in a vector
-		while(getline(ss, data, ' ')) s_data.push_back(data);
-
-		// Note that s_data[1] is ""
-		cpu_logger.log(to_string((stof(s_data[2])+stof(s_data[4]))/
-			(stof(s_data[2])+stof(s_data[4])+stof(s_data[5]))));
 
 		sysinfo(&info);
 		ram_logger.log(to_string(((double) info.freeram)/info.totalram));
@@ -141,11 +160,36 @@ void os::battery_thread_fn(State& state)
 
 	while (state != SHUT_DOWN)
 	{
-		if (GSM::get_instance().get_status())
+		if (GSM::get_instance().is_on())
 		{
 			GSM::get_instance().get_battery_status(main_battery, gsm_battery);
 			logger.log("Main: "+ to_string(main_battery));
 			logger.log("GSM: "+ to_string(gsm_battery));
+		}
+		else
+		{
+			for (int i = 0; i < 5; ++i)
+			{
+				this_thread::sleep_for(2min);
+				if (state == SHUT_DOWN)
+				{
+					return;
+				}
+			}
+			if ( ! GSM::get_instance().is_on())
+			{
+				GSM::get_instance().turn_on();
+				this_thread::sleep_for(30s);
+			}
+
+			GSM::get_instance().get_battery_status(main_battery, gsm_battery);
+			logger.log("Main: "+ to_string(main_battery));
+			logger.log("GSM: "+ to_string(gsm_battery));
+
+			if (state == GOING_DOWN || GPS::get_instance().get_altitude() > 1200)
+			{
+				GSM::get_instance().turn_off();
+			}
 		}
 
 		this_thread::sleep_for(3min);

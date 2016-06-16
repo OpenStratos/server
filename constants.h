@@ -1,7 +1,10 @@
 #ifndef CONSTANTS_H_
 	#define CONSTANTS_H_
 
-	#define FLIGHT_LENGTH 4.4333 // Hours
+	#define FLIGHT_LENGTH 1.1 // Hours
+	#define FLIGHT_MAX_HEIGHT 12500 // Meters
+	#define ASCENT_VELOCITY 5.74 // m/s
+	#define DESCENT_VELOCITY FLIGHT_MAX_HEIGHT/(FLIGHT_LENGTH*3600-FLIGHT_MAX_HEIGHT/ASCENT_VELOCITY) // m/s
 
 	#define BAT_GSM_MAX 4.2
 	#define BAT_GSM_MIN 3.7
@@ -16,9 +19,9 @@
 	#define VIDEO_BRIGHTNESS 50
 	#define VIDEO_EXPOSURE "antishake"
 
-	#define PHOTO_WIDTH 2592
-	#define PHOTO_HEIGHT 1944
-	#define PHOTO_QUALITY 90
+	#define PHOTO_WIDTH 3280
+	#define PHOTO_HEIGHT 2464
+	#define PHOTO_QUALITY 98
 	#define PHOTO_RAW true
 	#define PHOTO_CONTRAST 50
 	#define PHOTO_BRIGHTNESS 50
@@ -28,6 +31,13 @@
 	#define GPS_ENABLE_GPIO 2
 	#define GPS_BAUDRATE 9600
 	#define GPS_ENDL "\r\n"
+
+	#define IDEAL_DOP 1
+	#define EXCELENT_DOP 2
+	#define GOOD_DOP 5
+	#define MODERATE_DOP 10
+	#define FAIR_DOP 20
+	#define MAX_DOP MODERATE_DOP
 
 	#define GSM_LOC_SERV "gprs-service.com"
 	#define GSM_UART "/dev/ttyUSB0"

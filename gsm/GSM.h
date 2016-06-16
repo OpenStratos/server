@@ -1,4 +1,4 @@
-#ifndef GSM_GMS_H_
+#ifndef GSM_GSM_H_
 #define GSM_GSM_H_
 
 #include <string>
@@ -34,11 +34,11 @@ namespace os {
 		bool initialize();
 		bool send_SMS(const string& message, const string& number);
 		bool get_location(double& latitude, double& longitude);
-		bool get_status() const;
+		bool is_on() const;
 		bool get_battery_status(double& main_bat_percentage, double& gsm_bat_percentage);
 		bool has_connectivity();
 		bool turn_on() const;
 		bool turn_off() const;
 	};
 }
-#endif
+#endif // GSM_GSM_H_

@@ -41,9 +41,13 @@ Camera::~Camera()
 	{
 		this->logger->log("Stopping video recording...");
 		if ( ! this->stop())
-			this->logger->log("Error soping video recording.");
+		{
+			this->logger->log("Error stoping video recording.");
+		}
 		else
+		{
 			this->logger->log("Video recording stopped.");
+		}
 	}
 	this->logger->log("Shut down finished");
 	delete this->logger;
@@ -59,7 +63,10 @@ void Camera::record_thread(int time)
 
 bool Camera::record(int time)
 {
-	if (time != 0) this->logger->log("Recording for "+to_string(time/1000)+" seconds...");
+	if (time != 0)
+	{
+		this->logger->log("Recording for "+to_string(time/1000)+" seconds...");
+	}
 	if ( ! this->recording)
 	{
 		this->logger->log("Not already recording, creating command...");
@@ -91,11 +98,18 @@ bool Camera::record(int time)
 			t.detach();
 		}
 
-		if (result) this->logger->log("Video recording correctly started.");
-		else this->logger->log("Error starting video recording.");
+		if (result)
+		{
+			this->logger->log("Video recording correctly started.");
+		}
+		else
+		{
+			this->logger->log("Error starting video recording.");
+		}
 
 		return result;
 	}
+	return false;
 }
 
 bool Camera::record()
@@ -107,21 +121,25 @@ bool Camera::record()
 bool Camera::take_picture(const string& exif)
 {
 	bool was_recording = this->recording;
-	if (was_recording) this->logger->log("Recording video, stopping...");
-	if (was_recording && ! this->stop()) return false;
-	this->logger->log("Video recording stopped.");
+	this->logger->log("Taking picture...");
+	if (was_recording)
+	{
+		this->logger->log("The video is recording.");
+	}
+	if (was_recording && ! this->stop())
+	{
+		return false;
+	}
 
 	string filename = "data/img/img-"+ to_string(get_file_count("data/img/")) +".jpg";
 	#ifdef OS_TESTING
 		filename = "data/img/test.jpg";
 	#endif
 
-	string exif_command = exif != "" ? " -x "+ exif : "";
-
-	string command = "raspistill -n -o "+ filename +" " + (PHOTO_RAW ? "-r" : "") + " -w "+ to_string(PHOTO_WIDTH)
+	string command = "raspistill -n -t 1 -o "+ filename +" " + (PHOTO_RAW ? "-r" : "") + " -w "+ to_string(PHOTO_WIDTH)
 				+" -h "+ to_string(PHOTO_HEIGHT) +" -q "+ to_string(PHOTO_QUALITY)
 				+" -co "+ to_string(PHOTO_CONTRAST) +" -br "+ to_string(PHOTO_BRIGHTNESS)
-				+" -ex "+ PHOTO_EXPOSURE + exif_command;
+				+" -ex "+ PHOTO_EXPOSURE + exif;
 
 	this->logger->log("Picture command: '"+command+"'");
 
@@ -133,10 +151,19 @@ bool Camera::take_picture(const string& exif)
 	int st = system(command.c_str());
 	bool result = st == 0;
 
-	if (result) this->logger->log("Picture taken correctly.");
-	else this->logger->log("Error taking picture.");
+	if (result)
+	{
+		this->logger->log("Picture taken correctly.");
+	}
+	else
+	{
+		this->logger->log("Error taking picture.");
+	}
 
-	if (was_recording) this->logger->log("Video recording was active before taking picture. Resuming...");
+	if (was_recording)
+	{
+		this->logger->log("Video recording was active before taking picture. Resuming...");
+	}
 	if (was_recording && ! this->record())
 	{
 		this->logger->log("Error resuming video recording.");
@@ -159,6 +186,7 @@ bool Camera::stop()
 		if (system("pkill raspivid") == 0)
 		{
 			this->logger->log("Video recording stopped correctly.");
+			this_thread::sleep_for(50ms);
 			this->recording = false;
 			return true;
 		}
@@ -166,13 +194,14 @@ bool Camera::stop()
 
 		if ( ! this->is_really_recording())
 		{
-			this->logger->log("Warning: video was already stopped.");
+			this->logger->log("Warning: video had already stopped.");
 			this->recording = false;
 			return true;
 		}
 		return false;
 	#else
 		this->logger->log("Test mode. Video recording stop simulated.");
+		this_thread::sleep_for(50ms);
 		this->recording = false;
 		return true;
 	#endif
@@ -190,8 +219,11 @@ int os::get_file_count(const string& path)
 	struct dirent *ep;
 	dp = opendir(path.c_str());
 
-	while (ep = readdir(dp)) i++;
-	(void) closedir(dp);
+	while ((ep = readdir(dp)) != NULL)
+	{
+		++i;
+	}
+	closedir(dp);
 
 	return i-2;
 }
@@ -199,8 +231,12 @@ int os::get_file_count(const string& path)
 const string os::generate_exif_data()
 {
 	string exif;
-	while (GPS::get_instance().get_PDOP() > 5)
-		this_thread::sleep_for(1s);
+	for (int i = 0;
+		i < 10 && ( ! GPS::get_instance().is_fixed() || GPS::get_instance().get_PDOP() > MAX_DOP);
+		++i)
+	{
+		this_thread::sleep_for(500ms);
+	}
 
 	double gps_lat = GPS::get_instance().get_latitude();
 	double gps_lon = GPS::get_instance().get_longitude();
@@ -209,14 +245,22 @@ const string os::generate_exif_data()
 	float gps_pdop = GPS::get_instance().get_PDOP();
 	euc_vec gps_velocity = GPS::get_instance().get_velocity();
 
-	exif += "GPSLatitudeRef="+to_string(gps_lat > 0 ? 'N' : 'S');
-	exif += " GPSLatitude="+to_string(abs((int) gps_lat*1000000))+"/1000000,0/1,0/1";
-	exif += " GPSLongitudeRef="+to_string(gps_lon > 0 ? 'E' : 'W');
-	exif += " GPSLongitude="+to_string(abs((int) gps_lon*1000000))+"/1000000,0/1,0/1";
-	exif += " GPSAltitudeRef=0 GPSAltitude="+to_string(gps_alt);
-	exif += " GPSSatellites="+to_string(gps_sat);
-	exif += " GPSDOP="+to_string(gps_pdop);
-	exif += " GPSSpeedRef=K GPSSpeed="+to_string(gps_velocity.speed*3.6);
-	exif += " GPSTrackRef=T GPSTrack="+to_string(gps_velocity.course);
-	exif += " GPSDifferential=0";
+	exif += " -x GPS.GPSLatitudeRef="+string(gps_lat > 0 ? "N" : "S");
+	exif += " -x GPS.GPSLatitude="+to_string(
+			abs((int) (gps_lat*1000000))
+		)+"/1000000";
+	exif += " -x GPS.GPSLongitudeRef="+string(gps_lat > 0 ? "E" : "W");
+	exif += " -x GPS.GPSLongitude="+to_string(
+			abs((int) (gps_lon*1000000))
+		)+"/1000000";
+	exif += " -x GPS.GPSAltitudeRef=0 -x GPS.GPSAltitude="+to_string((int) (gps_alt*100))+"/100";
+	exif += " -x GPS.GPSSatellites="+to_string(gps_sat);
+	exif += " -x GPS.GPSDOP="+to_string((int) (gps_pdop*1000))+"/1000";
+	exif += " -x GPS.GPSSpeedRef=K -x GPS.GPSSpeed="+
+			to_string((int) (gps_velocity.speed*3.6*1000))+"/1000";
+	exif += " -x GPS.GPSTrackRef=T -x GPS.GPSTrack="+
+			to_string((int) (gps_velocity.course*1000))+"/1000";
+	exif += " -x GPS.GPSDifferential=0";
+
+	return exif;
 }

@@ -6,6 +6,8 @@
 #include <string>
 #include <atomic>
 
+#include <sys/time.h>
+
 #include "serial/Serial.h"
 #include "logger/Logger.h"
 
@@ -13,11 +15,11 @@ using namespace std;
 
 namespace os {
 
-	struct euc_vec
+	typedef struct
 	{
 		float speed;
 		float course;
-	};
+	} euc_vec;
 
 	class GPS
 	{
@@ -29,7 +31,7 @@ namespace os {
 		atomic_bool should_stop;
 		atomic_bool stopped;
 
-		tm time;
+		timeval time;
 		bool active;
 		uint_fast8_t satellites;
 		double latitude;
@@ -48,13 +50,20 @@ namespace os {
 		void parse_GSA(const string& frame);
 		void parse_RMC(const string& frame);
 
+		void enter_pedestrian_mode();	/*Before launch*/
+		void enter_airborne_1g_mode();	/*While in flight*/
+		void enter_stationary_mode();	/*When landed*/
+
+		void send_ublox_packet(vector<unsigned char> message);
+		bool receive_check_ublox_ack(vector<unsigned char> message);
+
 	public:
 		GPS(GPS& copy) = delete;
 		~GPS();
 		static GPS& get_instance();
 		static bool is_valid(string frame);
 
-		tm get_time() const {return this->time;}
+		timeval get_time() const {return this->time;}
 		bool is_fixed() const {return this->active;}
 		uint_fast8_t get_satellites() const {return this->satellites;}
 		double get_latitude() const {return this->latitude;}
@@ -66,9 +75,15 @@ namespace os {
 		euc_vec get_velocity() const {return this->velocity;}
 
 		bool initialize();
+		bool is_on() const;
 		bool turn_on() const;
 		bool turn_off() const;
 		void parse(const string& frame);
+
+		void notify_takeoff();
+		void notify_landing();
+		void notify_initialization();
+		void notify_safe_mode();
 	};
 }
 
