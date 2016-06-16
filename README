@@ -1,6 +1,6 @@
 # OpenStratos #
 
-[![Build Status](https://travis-ci.org/OpenStratos/server.svg?branch=master)](https://travis-ci.org/OpenStratos/server)
+[![Build Status](https://travis-ci.org/OpenStratos/server.svg?branch=develop)](https://travis-ci.org/OpenStratos/server)
 
 Balloon control software implemented in C++14. It will be in charge of the management of the
 balloon and will communicate via SMS to the provided phone. It will initialize all needed
