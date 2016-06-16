@@ -46,7 +46,18 @@ switch (last_state)
 	case GOING_DOWN:
 	case LANDED:
 	{
-		logger.log("OpenStratos might have been launched, trying to recover.");
+		if (last_state == FIX_ACQUIRED || last_state == WAITING_LAUNCH)
+		{
+			logger.log("OpenStratos might have been launched, trying to recover.");
+		}
+		else if (last_state == LANDED)
+		{
+			logger.log("OpenStratos had already landed, trying to recover and make sure it sends recovery messages.");
+		}
+		else
+		{
+			logger.log("OpenStratos has already been launched, trying to recover.");
+		}
 
 		logger.log("Initializing WiringPi...");
 		wiringPiSetup();

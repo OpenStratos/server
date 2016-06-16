@@ -166,16 +166,14 @@ namespace os {
 		#elif defined REAL_SIM && !defined SIM
 			if (altitude > FLIGHT_MAX_HEIGHT)
 			{
-				double sleep = (1/ASCENT_VELOCITY * (FLIGHT_MAX_HEIGHT -
-								maximum_altitude));
+				double sleep = (FLIGHT_MAX_HEIGHT - maximum_altitude)/ASCENT_VELOCITY;
 				this_thread::sleep_for(std::chrono::duration<double>(sleep));
 				maximum_altitude = FLIGHT_MAX_HEIGHT;
 				return true;
 			}
 			else
 			{
-				double sleep = 1/ASCENT_VELOCITY * (altitude -
-								maximum_altitude);
+				double sleep = (altitude - maximum_altitude)/ASCENT_VELOCITY;
 				this_thread::sleep_for(std::chrono::duration<double>(sleep));
 				maximum_altitude = altitude;
 				return false;
