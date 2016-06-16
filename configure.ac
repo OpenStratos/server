@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT(OpenStratos, 1.1.0-dev, https://github.com/OpenStratos/server/issues)
+AC_INIT(OpenStratos, 1.1.0, https://github.com/OpenStratos/server/issues)
 AC_CONFIG_SRCDIR([openstratos.cc])
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_HEADERS([config.h])
