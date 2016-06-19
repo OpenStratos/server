@@ -283,11 +283,13 @@ void GPS::parse(const string& frame)
 		}
 		catch (const invalid_argument& ia)
 		{
-			this->logger->log("Failed to parse frame: " + frame);
+			#ifdef DEBUG
+				this->logger->log("Failed to parse frame: " + frame);
+			#endif
 		}
 
 		double gps_time = (double) this->time.tv_sec + this->time.tv_usec * 0.000001;
-		if (this->active && (gps_time > os_time + 3 || gps_time < os_time - 3))
+		if (this->active && (gps_time > os_time + 5 || gps_time < os_time - 5))
 		{
 			#ifndef OS_TESTING
 				settimeofday(&this->time, NULL);
@@ -314,12 +316,15 @@ void GPS::parse_GGA(const string& frame)
 
 	if (s_data.size() != 15)
 	{
-		this->logger->log("Failed to parse frame: " + frame);
+		#ifdef DEBUG
+			this->logger->log("Failed to parse frame: " + frame);
+		#endif
 		return;
 	}
 
 	// Is the data valid?
 	bool active = s_data[6] == "1" || s_data[6] == "2";
+
 	if (this->active && ! active)
 	{
 		this->logger->log("Fix lost.");
@@ -405,7 +410,9 @@ void GPS::parse_GSA(const string& frame)
 
 	if (s_data.size() != 18)
 	{
-		this->logger->log("Failed to parse frame: " + frame);
+		#ifdef DEBUG
+			this->logger->log("Failed to parse frame: " + frame);
+		#endif
 		return;
 	}
 
@@ -458,7 +465,9 @@ void GPS::parse_RMC(const string& frame)
 
 	if (s_data.size() != 13)
 	{
-		this->logger->log("Failed to parse frame: " + frame);
+		#ifdef DEBUG
+			this->logger->log("Failed to parse frame: " + frame);
+		#endif
 		return;
 	}
 

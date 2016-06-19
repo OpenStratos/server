@@ -36,8 +36,8 @@ for (int i = 0;
 if ( ! GSM::get_instance().send_SMS(
 	"Landed.\r\nAlt: "+ to_string((int) GPS::get_instance().get_altitude()) +
 	" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +
-	"\r\nLon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
-	"\r\nHDOP: "+to_string(GPS::get_instance().get_HDOP()) +
+	"\r\nLon: "+ to_string(GPS::get_instance().get_longitude()) +
+	"\r\nHDOP: "+to_string_prec(GPS::get_instance().get_HDOP(), 2) +
 	"\r\nSat: "+ to_string(GPS::get_instance().get_satellites()) +
 	"\r\nFix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
 	(bat_status ? "\r\nMain bat: "+ to_string((int) (main_battery*100)) +
@@ -75,8 +75,8 @@ for (int i = 0;
 while (( ! GSM::get_instance().send_SMS(
 	"Landed.\r\nAlt: "+ to_string((int) GPS::get_instance().get_altitude()) +
 	" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +
-	"\r\nLon: "+ to_string(GPS::get_instance().get_longitude()) +"\r\n"+
-	"\r\nHDOP: "+to_string(GPS::get_instance().get_HDOP()) +
+	"\r\nLon: "+ to_string(GPS::get_instance().get_longitude()) +
+	"\r\nHDOP: "+to_string_prec(GPS::get_instance().get_HDOP(), 2) +
 	"\r\nSat: "+ to_string(GPS::get_instance().get_satellites()) +
 	"\r\nFix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
 	(bat_status ? "\r\nMain bat: "+ to_string((int) (main_battery*100)) +

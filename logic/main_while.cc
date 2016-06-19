@@ -8,14 +8,17 @@ void os::main_while(Logger* logger, State* state)
 	{
 		if (*state == ACQUIRING_FIX)
 		{
-			#include "logic/acquire_fix.cc"
+			while ( ! GPS::get_instance().is_fixed())
+			{
+				this_thread::sleep_for(1s);
+			}
 			*state = set_state(FIX_ACQUIRED);
 			logger->log("State changed to "+ state_to_string(*state) +".");
 		}
 		else if (*state == FIX_ACQUIRED)
 		{
-			logger->log("Sleeping 30 seconds for fix stabilization...");
-			this_thread::sleep_for(30s);
+			logger->log("GPS fix acquired, waiting 10 seconds for stabilization and date change.");
+			this_thread::sleep_for(10s);
 
 			#include "logic/start_recording.cc"
 			#include "logic/send_init_sms.cc"
