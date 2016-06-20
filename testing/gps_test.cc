@@ -62,7 +62,10 @@ describe("GPS", []()
 
 		AssertThat(GPS::get_instance().is_fixed(), Equals(false));
 
-		AssertThat(gps_time, Equals(GPS::get_instance().get_time()));
+		timeval new_time = GPS::get_instance().get_time();
+
+		AssertThat(gps_time.tv_sec, Equals(new_time.tv_sec));
+		AssertThat(gps_time.tv_usec, Equals(new_time.tv_usec));
 		AssertThat(GPS::get_instance().get_satellites(), Equals(satellites));
 		AssertThat(GPS::get_instance().get_latitude(), Equals(latitude));
 		AssertThat(GPS::get_instance().get_longitude(), Equals(longitude));
@@ -138,7 +141,10 @@ describe("GPS", []()
 
 		AssertThat(GPS::get_instance().is_fixed(), Equals(false));
 
-		AssertThat(gps_time, Equals(GPS::get_instance().get_time()));
+		timeval new_time = GPS::get_instance().get_time();
+
+		AssertThat(gps_time.tv_sec, Equals(new_time.tv_sec));
+		AssertThat(gps_time.tv_usec, Equals(new_time.tv_usec));
 		AssertThat(GPS::get_instance().get_latitude(), Equals(latitude));
 		AssertThat(GPS::get_instance().get_longitude(), Equals(longitude));
 		AssertThat(GPS::get_instance().get_velocity().speed, Equals(speed));
