@@ -335,19 +335,20 @@ void GPS::parse_GGA(const string& frame)
 	}
 	this->active = active;
 
-	if (s_data[1].length() >= 6) // Update time
+	double hdop;
+	if (this->active && ! s_data[8].empty() && (hdop = stof(s_data[8])) < FAIR_DOP)
 	{
-		tm* time = gmtime(&this->time.tv_sec);
-		time->tm_hour = stoi(s_data[1].substr(0, 2));
-		time->tm_min = stoi(s_data[1].substr(2, 2));
-		time->tm_sec = stoi(s_data[1].substr(4, 2));
+		if (s_data[1].length() >= 6) // Update time
+		{
+			tm* time = gmtime(&this->time.tv_sec);
+			time->tm_hour = stoi(s_data[1].substr(0, 2));
+			time->tm_min = stoi(s_data[1].substr(2, 2));
+			time->tm_sec = stoi(s_data[1].substr(4, 2));
 
-		this->time.tv_sec = mktime(time);
-		this->time.tv_usec = s_data[1].length() > 6 ? stoi(s_data[1].substr(7, 2))*10000 : 0;
-	}
+			this->time.tv_sec = mktime(time);
+			this->time.tv_usec = s_data[1].length() > 6 ? stoi(s_data[1].substr(7, 2))*10000 : 0;
+		}
 
-	if (this->active)
-	{
 		if (s_data[2].length() > 2)
 		{
 			lat = s_data[2].substr(0, 2);
@@ -385,10 +386,9 @@ void GPS::parse_GGA(const string& frame)
 		{
 			this->satellites = stoi(s_data[7]);
 		}
-		if( ! s_data[8].empty())
-		{
-			this->hdop = stof(s_data[8]);
-		}
+
+		this->hdop = hdop;
+
 		if( ! s_data[9].empty())
 		{
 			this->altitude = stod(s_data[9]);
@@ -430,22 +430,40 @@ void GPS::parse_GSA(const string& frame)
 		this->active = true;
 	}
 
-	if (this->active)
+
+	if (this->active && ! s_data[15].empty() && (pdop = stof(s_data[15])) < FAIR_DOP)
 	{
+		double pdop = FAIR_DOP+100, hdop = FAIR_DOP+100, vdop = FAIR_DOP+100;
 		// Update DOP
 		if( ! s_data[15].empty())
 		{
-			this->pdop = stof(s_data[15]);
+			pdop = stof(s_data[15]);
+			if (pdop > FAIR_DOP)
+			{
+				return;
+			}
 		}
 		if( ! s_data[16].empty())
 		{
-			this->hdop = stof(s_data[16]);
+			hdop = stof(s_data[16]);
+			if (hdop > FAIR_DOP)
+			{
+				return;
+			}
 		}
 		string vdop = s_data[17].substr(0, s_data[17].find_first_of('*'));
 		if( ! vdop.empty())
 		{
-			this->vdop = stof(vdop);
+			vdop = stof(vdop);
+			if (pdop > FAIR_DOP)
+			{
+				return;
+			}
 		}
+
+		this->pdop = pdop;
+		this->hdop = hdop;
+		this->vdop = vdop;
 	}
 }
 
@@ -485,36 +503,36 @@ void GPS::parse_RMC(const string& frame)
 		this->active = true;
 	}
 
-	if (s_data[1].length() >= 6) // Update time
+	if (this->active)
 	{
-		tm* time = gmtime(&this->time.tv_sec);
-		time->tm_hour = stoi(s_data[1].substr(0, 2));
-		time->tm_min = stoi(s_data[1].substr(2, 2));
-		time->tm_sec = stoi(s_data[1].substr(4, 2));
-
-		if (s_data[9].length() == 6) // Update date
+		if (s_data[1].length() >= 6) // Update time
 		{
+			tm* time = gmtime(&this->time.tv_sec);
+			time->tm_hour = stoi(s_data[1].substr(0, 2));
+			time->tm_min = stoi(s_data[1].substr(2, 2));
+			time->tm_sec = stoi(s_data[1].substr(4, 2));
+
+			if (s_data[9].length() == 6) // Update date
+			{
+				time->tm_mday = stoi(s_data[9].substr(0, 2));
+				time->tm_mon = stoi(s_data[9].substr(2, 2))-1;
+				time->tm_year = stoi(s_data[9].substr(4, 2))+100;
+			}
+
+			this->time.tv_sec = mktime(time);
+			this->time.tv_usec = s_data[1].length() > 6 ? stoi(s_data[1].substr(7, 2))*10000 : 0;
+		}
+		else if (s_data[9].length() == 6) // Update date
+		{
+			tm* time = gmtime(&this->time.tv_sec);
+
 			time->tm_mday = stoi(s_data[9].substr(0, 2));
 			time->tm_mon = stoi(s_data[9].substr(2, 2))-1;
 			time->tm_year = stoi(s_data[9].substr(4, 2))+100;
+
+			this->time.tv_sec = mktime(time);
 		}
 
-		this->time.tv_sec = mktime(time);
-		this->time.tv_usec = s_data[1].length() > 6 ? stoi(s_data[1].substr(7, 2))*10000 : 0;
-	}
-	else if (s_data[9].length() == 6) // Update date
-	{
-		tm* time = gmtime(&this->time.tv_sec);
-
-		time->tm_mday = stoi(s_data[9].substr(0, 2));
-		time->tm_mon = stoi(s_data[9].substr(2, 2))-1;
-		time->tm_year = stoi(s_data[9].substr(4, 2))+100;
-
-		this->time.tv_sec = mktime(time);
-	}
-
-	if (this->active)
-	{
 		if(s_data[3].length() > 2)
 		{
 			lat = s_data[3].substr(0, 2);
