@@ -51,6 +51,7 @@ describe("GPS", []()
 
 	it("GGA frame parser pass test", [&]()
 	{
+		timeval gps_time = GPS::get_instance().get_time();
 		int satellites = GPS::get_instance().get_satellites();
 		double latitude = GPS::get_instance().get_latitude();
 		double longitude = GPS::get_instance().get_longitude();
@@ -61,14 +62,7 @@ describe("GPS", []()
 
 		AssertThat(GPS::get_instance().is_fixed(), Equals(false));
 
-		timeval gps_time = GPS::get_instance().get_time();
-		tm* ptm = gmtime(&gps_time.tv_sec);
-
-		AssertThat(ptm->tm_hour, Equals(5));
-		AssertThat(ptm->tm_min, Equals(43));
-		AssertThat(ptm->tm_sec, Equals(20));
-		AssertThat(gps_time.tv_usec, Equals(700000));
-
+		AssertThat(gps_time, Equals(GPS::get_instance().get_time()));
 		AssertThat(GPS::get_instance().get_satellites(), Equals(satellites));
 		AssertThat(GPS::get_instance().get_latitude(), Equals(latitude));
 		AssertThat(GPS::get_instance().get_longitude(), Equals(longitude));
@@ -134,6 +128,7 @@ describe("GPS", []()
 
 	it("RMC frame parser pass test", [&]()
 	{
+		timeval gps_time = GPS::get_instance().get_time();
 		double latitude = GPS::get_instance().get_latitude();
 		double longitude = GPS::get_instance().get_longitude();
 		float speed = GPS::get_instance().get_velocity().speed;
@@ -143,18 +138,7 @@ describe("GPS", []()
 
 		AssertThat(GPS::get_instance().is_fixed(), Equals(false));
 
-		timeval gps_time = GPS::get_instance().get_time();
-		tm* ptm = gmtime(&gps_time.tv_sec);
-
-		AssertThat(ptm->tm_hour, Equals(9));
-		AssertThat(ptm->tm_min, Equals(30));
-		AssertThat(ptm->tm_sec, Equals(24));
-		AssertThat(gps_time.tv_usec, Equals(500000));
-
-		AssertThat(ptm->tm_mday, Equals(6));
-		AssertThat(ptm->tm_mon, Equals(4));
-		AssertThat(ptm->tm_year, Equals(115));
-
+		AssertThat(gps_time, Equals(GPS::get_instance().get_time()));
 		AssertThat(GPS::get_instance().get_latitude(), Equals(latitude));
 		AssertThat(GPS::get_instance().get_longitude(), Equals(longitude));
 		AssertThat(GPS::get_instance().get_velocity().speed, Equals(speed));
