@@ -451,11 +451,11 @@ void GPS::parse_GSA(const string& frame)
 				return;
 			}
 		}
-		string vdop = s_data[17].substr(0, s_data[17].find_first_of('*'));
-		if( ! vdop.empty())
+		string vdop_str = s_data[17].substr(0, s_data[17].find_first_of('*'));
+		if( ! vdop_str.empty())
 		{
-			vdop = stof(vdop);
-			if (pdop > FAIR_DOP)
+			vdop = stof(vdop_str);
+			if (vdop > FAIR_DOP)
 			{
 				return;
 			}

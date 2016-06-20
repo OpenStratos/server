@@ -106,8 +106,7 @@ namespace os {
 			chrono::high_resolution_clock::time_point start = chrono::high_resolution_clock::now();
 		#endif
 		double first_altitude = GPS::get_instance().get_altitude();
-		if (first_altitude > launch_altitude + 25*GPS::get_instance().get_VDOP() ||
-			first_altitude > 5000)
+		if (first_altitude > launch_altitude + 50*GPS::get_instance().get_VDOP())
 		{
 			return true;
 		}
@@ -151,7 +150,9 @@ namespace os {
 			chrono::high_resolution_clock::time_point start = chrono::high_resolution_clock::now();
 		#endif
 		double first_altitude = GPS::get_instance().get_altitude();
-		if (first_altitude < 5000 && maximum_altitude < 5000)
+		if (first_altitude > maximum_altitude ||
+			(maximum_altitude < 4000 &&
+				first_altitude > maximum_altitude - 150*GPS::get_instance().get_VDOP()))
 		{
 			return false;
 		}
@@ -196,6 +197,10 @@ namespace os {
 		}
 
 		double first_altitude = GPS::get_instance().get_altitude();
+		if (first_altitude > 4000)
+		{
+			return false;
+		}
 		this_thread::sleep_for(5s);
 
 		for (int i = 0; i < 10 && ( ! GPS::get_instance().is_fixed() ||
