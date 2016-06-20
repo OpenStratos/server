@@ -6,6 +6,9 @@
 	#define ASCENT_VELOCITY 5.74 // m/s
 	#define DESCENT_VELOCITY FLIGHT_MAX_HEIGHT/(FLIGHT_LENGTH*3600-FLIGHT_MAX_HEIGHT/ASCENT_VELOCITY) // m/s
 
+	#define MIN_MAIN_BAT 0.95
+	#define MIN_GSM_BAT 0.95
+
 	#define BAT_GSM_MAX 4.2
 	#define BAT_GSM_MIN 3.7
 	#define BAT_MAIN_MAX 8.4*2660/(2660+7420) // Measured Ohms in voltage divider
