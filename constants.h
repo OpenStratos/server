@@ -1,9 +1,9 @@
 #ifndef CONSTANTS_H_
 	#define CONSTANTS_H_
 
-	#define FLIGHT_LENGTH 1.1 // Hours
-	#define FLIGHT_MAX_HEIGHT 12500 // Meters
-	#define ASCENT_VELOCITY 5.74 // m/s
+	#define FLIGHT_LENGTH 4 // Hours
+	#define FLIGHT_MAX_HEIGHT 34000 // Meters
+	#define ASCENT_VELOCITY 2.85 // m/s
 	#define DESCENT_VELOCITY FLIGHT_MAX_HEIGHT/(FLIGHT_LENGTH*3600-FLIGHT_MAX_HEIGHT/ASCENT_VELOCITY) // m/s
 
 	#define MIN_MAIN_BAT 0.95
