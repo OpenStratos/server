@@ -103,7 +103,7 @@ void Serial::write_byte(uint8_t b) const
 
 void Serial::write_vec(vector<uint8_t> bytes) const
 {
-	int result write(this->fd, bytes.data(), bytes.size());
+	int result = write(this->fd, bytes.data(), bytes.size());
 
 	if (result == 0 || result == -1) {
 		#ifdef DEBUG
