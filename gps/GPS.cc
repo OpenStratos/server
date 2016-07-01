@@ -188,9 +188,9 @@ void GPS::gps_thread()
 		#ifndef OS_TESTING
 			int available = this->serial->available();
 
-			if (available > 0)
+			if (available > 0 && ! this->management)
 			{
-				for (int i = 0; i < available; ++i)
+				for (int i = 0; i < available && ! this->management; ++i)
 				{
 					char c = this->serial->read_char();
 					response += c;
@@ -594,6 +594,7 @@ void GPS::enter_airborne_1g_mode()
 	ms_now = ms_start;
 
 	// Prevent lock and timeout if not set after six seconds
+	this->management = true;
 	while( ! gps_dynamic_model_set_success && (ms_now - ms_start)<6000)
 	{
 		gettimeofday(&time_now, NULL);
@@ -602,6 +603,7 @@ void GPS::enter_airborne_1g_mode()
 		this->send_ublox_packet(setdm6);
 		gps_dynamic_model_set_success = this->receive_check_ublox_ack(setdm6);
 	}
+	this->management = false;
 
 	if (gps_dynamic_model_set_success)
 	{
@@ -633,6 +635,7 @@ void GPS::enter_stationary_mode()
 	ms_now = ms_start;
 
 	// Prevent lock and timeout if not set after six seconds
+	this->management = true;
 	while( ! gps_dynamic_model_set_success && (ms_now - ms_start)<6000)
 	{
 		gettimeofday(&time_now, NULL);
@@ -641,6 +644,7 @@ void GPS::enter_stationary_mode()
 		this->send_ublox_packet(setdm2);
 		gps_dynamic_model_set_success = this->receive_check_ublox_ack(setdm2);
 	}
+	this->management = false;
 
 	if (gps_dynamic_model_set_success)
 	{
@@ -672,6 +676,7 @@ void GPS::enter_pedestrian_mode()
 	ms_now = ms_start;
 
 	// Prevent lock and timeout if not set after six seconds
+	this->management = true;
 	while( ! gps_dynamic_model_set_success && (ms_now - ms_start)<6000)
 	{
 		gettimeofday(&time_now, NULL);
@@ -680,6 +685,7 @@ void GPS::enter_pedestrian_mode()
 		this->send_ublox_packet(setdm3);
 		gps_dynamic_model_set_success = this->receive_check_ublox_ack(setdm3);
 	}
+	this->management = false;
 
 	if (gps_dynamic_model_set_success)
 	{
