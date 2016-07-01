@@ -249,7 +249,7 @@ const string os::generate_exif_data()
 	exif += " -x GPS.GPSLatitude="+to_string(
 			abs((int) (gps_lat*1000000))
 		)+"/1000000";
-	exif += " -x GPS.GPSLongitudeRef="+string(gps_lat > 0 ? "E" : "W");
+	exif += " -x GPS.GPSLongitudeRef="+string(gps_lon > 0 ? "E" : "W");
 	exif += " -x GPS.GPSLongitude="+to_string(
 			abs((int) (gps_lon*1000000))
 		)+"/1000000";
