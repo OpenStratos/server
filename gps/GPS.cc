@@ -111,7 +111,7 @@ bool GPS::initialize()
 	#ifndef OS_TESTING
 		this->logger->log("Sending configuration frames...");
 
-		vector<unsigned char> messages[] =
+		vector<uint8_t> messages[] =
 		{
 			// Set refresh:
 			{ 0xB5, 0x62, 0x06, 0x08, 0x06, 0x00, 0x64, 0x00, 0x01, 0x00, 0x01, 0x00, 0x7A, 0x12 },
@@ -125,14 +125,11 @@ bool GPS::initialize()
 			{ 0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0xF0, 0x05, 0x00, 0xFF, 0x19 },
 		};
 
-		for (vector<unsigned char> mes: messages)
+		for (vector<uint8_t> mes: messages)
 		{
 			for(uint8_t tries = 0; tries<100; tries++)
 			{
-				for (unsigned char c: mes)
-				{
-					this->serial->write(c);
-				}
+				this->serial->write_vec(mes);
 				this_thread::sleep_for(10ms);
 			}
 		}
@@ -583,7 +580,7 @@ void GPS::enter_airborne_1g_mode()
 	struct timeval time_now, time_start;
 	long ms_now, ms_start;
 
-	vector<unsigned char> setdm6 = // Byte at offset 2 determines new operation mode.
+	vector<uint8_t> setdm6 = // Byte at offset 2 determines new operation mode.
 	{
 		0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,
 		0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
@@ -622,7 +619,7 @@ void GPS::enter_stationary_mode()
 	struct timeval time_now, time_start;
 	long ms_now, ms_start;
 
-	vector<unsigned char> setdm2 = // Byte at offset 2 determines new operation mode.
+	vector<uint8_t> setdm2 = // Byte at offset 2 determines new operation mode.
 	{
 		0xB5, 0x62, 0x02, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,
 		0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
@@ -661,7 +658,7 @@ void GPS::enter_pedestrian_mode()
 	struct timeval time_now, time_start;
 	long ms_now, ms_start;
 
-	vector<unsigned char> setdm3 = // Byte at offset 2 determines new operation mode.
+	vector<uint8_t> setdm3 = // Byte at offset 2 determines new operation mode.
 	{
 		0xB5, 0x62, 0x03, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,
 		0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
@@ -694,12 +691,12 @@ void GPS::enter_pedestrian_mode()
 	}
 }
 
-void GPS::send_ublox_packet(vector<unsigned char> message)
+void GPS::send_ublox_packet(vector<uint8_t> message)
 {
 	if (this->serial->is_open())
 	{
 		this->serial->flush();
-		this->serial->write((unsigned char) 0xFF);
+		this->serial->write_byte(0xFF);
 		this_thread::sleep_for(500ms);
 		this->serial->write_vec(message);
 	}
@@ -709,11 +706,11 @@ void GPS::send_ublox_packet(vector<unsigned char> message)
 	}
 }
 
-bool GPS::receive_check_ublox_ack(vector<unsigned char> message)
+bool GPS::receive_check_ublox_ack(vector<uint8_t> message)
 {
-	unsigned char ack_packet[10];
+	uint8_t ack_packet[10];
 	unsigned int bytes_ordered;
-	unsigned char byte;
+	uint8_t byte;
 	struct timeval time_now, time_start;
 	long ms_now, ms_start;
 
@@ -752,7 +749,7 @@ bool GPS::receive_check_ublox_ack(vector<unsigned char> message)
 
 		if (this->serial->available())
 		{
-			byte = (unsigned char) this->serial->read_char();
+			byte = this->serial->read_byte();
 			if (byte == ack_packet[bytes_ordered])
 			{
 				bytes_ordered++;

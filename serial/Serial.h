@@ -35,10 +35,11 @@ namespace os {
 
 		void println(const string& str) const;
 		void println() const;
-		void write(unsigned char c) const;
-		void write_vec(vector<unsigned char> chars) const;
+		void write_byte(uint8_t b) const;
+		void write_vec(vector<uint8_t> bytes) const;
 		void close();
 		bool is_open() const;
+        uint8_t read_byte() const;
 		char read_char() const;
 		int available() const;
 		const string read_line() const;

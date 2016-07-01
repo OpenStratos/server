@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include <unistd.h>
 #include <sys/time.h>
 
 #include <wiringSerial.h>
@@ -89,17 +90,14 @@ void Serial::println() const
 	#endif
 }
 
-void Serial::write(unsigned char c) const
+void Serial::write_byte(uint8_t b) const
 {
-	serialPutchar(this->fd, c);
+	write(this->fd, &b, 1);
 }
 
-void Serial::write_vec(vector<unsigned char> chars) const
+void Serial::write_vec(vector<uint8_t> bytes) const
 {
-	for (unsigned char c: chars)
-	{
-		this->write(c);
-	}
+	write(this->fd, bytes.data(), bytes.size());
 }
 
 void Serial::close()
@@ -121,6 +119,13 @@ bool Serial::is_open() const
 int Serial::available() const
 {
 	return serialDataAvail(this->fd);
+}
+
+uint8_t Serial::read_byte() const
+{
+	uint8_t b = 0;
+	read(this->fd, &b, 1);
+	return b;
 }
 
 char Serial::read_char() const
