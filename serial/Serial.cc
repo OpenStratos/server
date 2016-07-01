@@ -92,12 +92,24 @@ void Serial::println() const
 
 void Serial::write_byte(uint8_t b) const
 {
-	write(this->fd, &b, 1);
+	int result = write(this->fd, &b, 1);
+
+	if (result == 0 || result == -1) {
+		#ifdef DEBUG
+			this->logger->log("Error writing byte");
+		#endif
+	}
 }
 
 void Serial::write_vec(vector<uint8_t> bytes) const
 {
-	write(this->fd, bytes.data(), bytes.size());
+	int result write(this->fd, bytes.data(), bytes.size());
+
+	if (result == 0 || result == -1) {
+		#ifdef DEBUG
+			this->logger->log("Error writing byte vector.");
+		#endif
+	}
 }
 
 void Serial::close()
@@ -124,7 +136,13 @@ int Serial::available() const
 uint8_t Serial::read_byte() const
 {
 	uint8_t b = 0;
-	read(this->fd, &b, 1);
+	int result = read(this->fd, &b, 1);
+
+	if (result == 0 || result == -1) {
+		#ifdef DEBUG
+			this->logger->log("Error reading byte");
+		#endif
+	}
 	return b;
 }
 
