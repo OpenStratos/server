@@ -171,7 +171,7 @@ bool GSM::send_SMS(const string& message, const string& number)
 
 		this->serial->println();
 		this->serial->read_line(); // Eat prompt
-		this->serial->write('\x1A');
+		this->serial->write_byte(0x1A);
 		this->serial->read_line(60); // Eat prompt (timeout 60 seconds)
 
 		// Read +CMGS response
