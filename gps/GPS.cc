@@ -715,7 +715,7 @@ void GPS::enter_pedestrian_mode()
 	}
 }
 
-void GPS::send_ublox_packet(vector<uint8_t> &message)
+void GPS::send_ublox_packet(const vector<uint8_t> &message)
 {
 	if (this->serial->is_open())
 	{
@@ -730,7 +730,7 @@ void GPS::send_ublox_packet(vector<uint8_t> &message)
 	}
 }
 
-bool GPS::receive_check_ublox_ack(vector<uint8_t> &message)
+bool GPS::receive_check_ublox_ack(const vector<uint8_t> &message)
 {
 	uint8_t ack_packet[10];
 	unsigned int bytes_ordered;
