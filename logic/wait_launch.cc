@@ -25,6 +25,3 @@ while ( ! has_launched(launch_altitude))
 
 logger->log("Balloon launched.");
 logger->log("Current altitude: "+ to_string((int) GPS::get_instance().get_altitude()) + "m");
-
-logger->log("Notifying GPS about launch...");
-GPS::get_instance().notify_takeoff();

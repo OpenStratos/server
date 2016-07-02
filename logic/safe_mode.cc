@@ -207,9 +207,6 @@ switch (last_state)
 			{
 				logger.log("GPS fix acquired.");
 
-				logger.log("Notifying GPS about entering safe mode...");
-				GPS::get_instance().notify_safe_mode();
-
 				this_thread::sleep_for(5s);
 				for (int i = 0;
 					GPS::get_instance().get_PDOP() > FAIR_DOP && i < 10;

@@ -108,9 +108,6 @@ bool GPS::initialize()
 	}
 	this->logger->log("Serial connection started.");
 
-	this->logger->log("Setting GPS to pedestrian mode");
-	this->enter_pedestrian_mode();
-
 	#ifndef OS_TESTING
 		this->logger->log("Sending configuration frames...");
 
@@ -136,8 +133,17 @@ bool GPS::initialize()
 				this_thread::sleep_for(10ms);
 			}
 		}
-
 		this->logger->log("Configuration frames sent.");
+
+		this->logger->log("Setting GPS to airborne (<1g) mode");
+		if (this->enter_airborne_1g_mode())
+		{
+			this->logger->log("GPS entered airborne (<1g) mode successfully");
+		}
+		else
+		{
+			this->logger->log("GPS failed to enter airborne (<1g) mode");
+		}
 	#endif
 
 	this->logger->log("Starting GPS frame thread...");
@@ -577,7 +583,7 @@ void GPS::parse_RMC(const string& frame)
 	}
 }
 
-void GPS::enter_airborne_1g_mode()
+bool GPS::enter_airborne_1g_mode()
 {
 	bool gps_dynamic_model_set_success = false;
 	struct timeval time_now, time_start;
@@ -613,106 +619,7 @@ void GPS::enter_airborne_1g_mode()
 	}
 	this->management = false;
 
-	if (gps_dynamic_model_set_success)
-	{
-		this->logger->log("GPS entered airborne (<1g) mode successfully");
-	}
-	else
-	{
-		this->logger->log("GPS failed to enter airborne (<1g) mode");
-	}
-}
-
-void GPS::enter_stationary_mode()
-{
-	bool gps_dynamic_model_set_success = false;
-	struct timeval time_now, time_start;
-	long ms_now, ms_start;
-
-	vector<uint8_t> setdm2 =
-	{
-		// Header, class, ID, Length
-		0xB5, 0x62, 0x06, 0x24, 0x24, 0x00,
-		// Payload:
-		// Mask, Dynmodel, FixType
-		0xFF, 0xFF, 0x02, 0x03,
-		0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64,
-		0x00, 0x2C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00,
-		// Checksum
-		0x12, 0x54
-	};
-
-	gettimeofday(&time_start, NULL);
-	ms_start = (long)((time_start.tv_sec)*1000 + (time_start.tv_usec)/1000);
-	ms_now = ms_start;
-
-	// Prevent lock and timeout if not set after six seconds
-	this->management = true;
-	while( ! gps_dynamic_model_set_success && (ms_now - ms_start)<6000)
-	{
-		gettimeofday(&time_now, NULL);
-		ms_now = (long)((time_now.tv_sec)*1000 + (time_now.tv_usec)/1000);
-
-		this->send_ublox_packet(setdm2);
-		gps_dynamic_model_set_success = this->receive_check_ublox_ack(setdm2);
-	}
-	this->management = false;
-
-	if (gps_dynamic_model_set_success)
-	{
-		this->logger->log("GPS entered stationary mode successfully");
-	}
-	else
-	{
-		this->logger->log("GPS failed to enter stationary mode");
-	}
-}
-
-void GPS::enter_pedestrian_mode()
-{
-	bool gps_dynamic_model_set_success = false;
-	struct timeval time_now, time_start;
-	long ms_now, ms_start;
-
-	vector<uint8_t> setdm3 =
-	{
-		// Header, class, ID, Length
-		0xB5, 0x62, 0x06, 0x24, 0x24, 0x00,
-		// Payload:
-		// Mask, Dynmodel, FixType
-		0xFF, 0xFF, 0x03, 0x03,
-		0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64,
-		0x00, 0x2C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00,
-		// Checksum
-		0x13, 0x76
-	};
-
-	gettimeofday(&time_start, NULL);
-	ms_start = (long)((time_start.tv_sec)*1000 + (time_start.tv_usec)/1000);
-	ms_now = ms_start;
-
-	// Prevent lock and timeout if not set after six seconds
-	this->management = true;
-	while( ! gps_dynamic_model_set_success && (ms_now - ms_start)<6000)
-	{
-		gettimeofday(&time_now, NULL);
-		ms_now = (long)((time_now.tv_sec)*1000 + (time_now.tv_usec)/1000);
-
-		this->send_ublox_packet(setdm3);
-		gps_dynamic_model_set_success = this->receive_check_ublox_ack(setdm3);
-	}
-	this->management = false;
-
-	if (gps_dynamic_model_set_success)
-	{
-		this->logger->log("GPS entered pedestrian mode successfully");
-	}
-	else
-	{
-		this->logger->log("GPS failed to enter pedestrian mode");
-	}
+	return gps_dynamic_model_set_success;
 }
 
 void GPS::send_ublox_packet(const vector<uint8_t> &message)
@@ -785,28 +692,4 @@ bool GPS::receive_check_ublox_ack(const vector<uint8_t> &message)
 		}
 	}
 	return false;
-}
-
-void GPS::notify_initialization()
-{
-	this->logger->log("Initialization notified. Switching to pedestrian mode");
-	this->enter_pedestrian_mode();
-}
-
-void GPS::notify_takeoff()
-{
-	this->logger->log("Takeoff notified. Switching to airborne mode");
-	this->enter_airborne_1g_mode();
-}
-
-void GPS::notify_safe_mode()
-{
-	this->logger->log("Safe mode entry notified. Switching to airborne mode");
-	this->enter_airborne_1g_mode();
-}
-
-void GPS::notify_landing()
-{
-	this->logger->log("Landing notified. Switching to stationary mode");
-	this->enter_stationary_mode();
 }
