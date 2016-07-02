@@ -55,8 +55,8 @@ namespace os {
 		void enter_airborne_1g_mode();	/*While in flight*/
 		void enter_stationary_mode();	/*When landed*/
 
-		void send_ublox_packet(vector<unsigned char> message);
-		bool receive_check_ublox_ack(vector<unsigned char> message);
+		void send_ublox_packet(const vector<uint8_t> &message);
+		bool receive_check_ublox_ack(const vector<uint8_t> &message);
 
 	public:
 		GPS(GPS& copy) = delete;
