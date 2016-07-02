@@ -197,9 +197,9 @@ void GPS::gps_thread()
 		#ifndef OS_TESTING
 			int available = this->serial->available();
 
-			if (available > 0 && ! this->management)
+			if (available > 0)
 			{
-				for (int i = 0; i < available && ! this->management; ++i)
+				for (int i = 0; i < available; ++i)
 				{
 					char c = this->serial->read_char();
 					response += c;
@@ -608,7 +608,6 @@ bool GPS::enter_airborne_1g_mode()
 	ms_now = ms_start;
 
 	// Prevent lock and timeout if not set after six seconds
-	this->management = true;
 	while( ! gps_dynamic_model_set_success && (ms_now - ms_start)<6000)
 	{
 		gettimeofday(&time_now, NULL);
@@ -617,7 +616,6 @@ bool GPS::enter_airborne_1g_mode()
 		this->send_ublox_packet(setdm6);
 		gps_dynamic_model_set_success = this->receive_check_ublox_ack(setdm6);
 	}
-	this->management = false;
 
 	return gps_dynamic_model_set_success;
 }

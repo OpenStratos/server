@@ -30,7 +30,6 @@ namespace os {
 
 		atomic_bool should_stop;
 		atomic_bool stopped;
-		atomic_bool management;
 
 		timeval time;
 		bool active;
