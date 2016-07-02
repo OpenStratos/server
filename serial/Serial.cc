@@ -101,7 +101,7 @@ void Serial::write_byte(uint8_t b) const
 	}
 }
 
-void Serial::write_vec(vector<uint8_t> &bytes) const
+void Serial::write_vec(const vector<uint8_t> &bytes) const
 {
 	int result = write(this->fd, bytes.data(), bytes.size());
 
