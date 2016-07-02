@@ -52,9 +52,12 @@ GPS::~GPS()
 		delete this->frame_logger;
 		this->logger->log("Frame logger deallocated.");
 	}
-	this->logger->log("Turning off GPS...");
-	this->turn_off();
-	this->logger->log("GPS off.");
+	if (this->is_on())
+	{
+		this->logger->log("Turning off GPS...");
+		this->turn_off();
+		this->logger->log("GPS off.");
+	}
 	delete this->logger;
 }
 
