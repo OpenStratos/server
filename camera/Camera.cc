@@ -79,7 +79,10 @@ bool Camera::record(int time)
 			+ to_string(VIDEO_HEIGHT) +" -b "+ to_string(VIDEO_BITRATE*1000000)
 			+ " -fps "+ to_string(VIDEO_FPS) +" -co "+ to_string(VIDEO_CONTRAST)
 			+ " -ex "+ VIDEO_EXPOSURE +" -br "+ to_string(VIDEO_BRIGHTNESS) +" &";
-		this->logger->log("Video command: '"+command+"'");
+
+		#ifdef DEBUG
+			this->logger->log("Video command: '"+command+"'");
+		#endif
 
 		#ifndef RASPICAM
 			this->logger->log("Test mode, video recording simulated.");
@@ -141,7 +144,9 @@ bool Camera::take_picture(const string& exif)
 				+" -co "+ to_string(PHOTO_CONTRAST) +" -br "+ to_string(PHOTO_BRIGHTNESS)
 				+" -ex "+ PHOTO_EXPOSURE + exif;
 
-	this->logger->log("Picture command: '"+command+"'");
+	#ifdef DEBUG
+		this->logger->log("Picture command: '"+command+"'");
+	#endif
 
 	#ifndef RASPICAM
 		this->logger->log("Test mode, picture taking simulated.");
