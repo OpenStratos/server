@@ -69,7 +69,7 @@ if ( ! GSM::get_instance().send_SMS(
 	"Alt: "+ to_string((int) GPS::get_instance().get_altitude()) +
 	" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +
 	"\r\nLon: "+ to_string(GPS::get_instance().get_longitude()) +
-	"\r\nPDOP: "+ to_string(GPS::get_instance().get_PDOP()) +
+	"\r\nPDOP: "+ to_string_prec(GPS::get_instance().get_PDOP(), 2) +
 	"\r\nSat: "+ to_string(GPS::get_instance().get_satellites()) +
 	"\r\nFix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
 	(bat_status ? "\r\nMain bat: "+ to_string((int) (main_battery*100)) +
@@ -79,7 +79,7 @@ if ( ! GSM::get_instance().send_SMS(
 		"Alt: "+ to_string((int) GPS::get_instance().get_altitude()) +
 		" m\r\nLat: "+ to_string(GPS::get_instance().get_latitude()) +
 		"\r\nLon: "+ to_string(GPS::get_instance().get_longitude()) +
-		"\r\nPDOP: "+ to_string(GPS::get_instance().get_PDOP()) +
+		"\r\nPDOP: "+ to_string_prec(GPS::get_instance().get_PDOP, 2()) +
 		"\r\nSat: "+ to_string(GPS::get_instance().get_satellites()) +
 		"\r\nFix: "+ (GPS::get_instance().is_fixed() ? "OK" : "ERR") +
 		(bat_status ? "\r\nMain bat: "+ to_string((int) (main_battery*100)) +
