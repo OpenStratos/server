@@ -75,7 +75,7 @@ bool Camera::record(int time)
 		#ifdef OS_TESTING
 			filename = "data/video/test.h264";
 		#endif
-		string command = "raspivid -n -o "+ filename +" -t "+ to_string(time) +" -w "+ to_string(VIDEO_WIDTH) +" -h "+
+		string command = "raspivid -n -o "+ filename +" -t "+ to_string(time) +" -w "+ to_string(VIDEO_WIDTH) +" -h "
 			+ to_string(VIDEO_HEIGHT) +" -rot "+ to_string(CAMERA_ROTATION) +" -b "+ to_string(VIDEO_BITRATE*1000000)
 			+ " -fps "+ to_string(VIDEO_FPS) +" -co "+ to_string(VIDEO_CONTRAST)
 			+ " -ex "+ VIDEO_EXPOSURE +" -br "+ to_string(VIDEO_BRIGHTNESS) +" &";
