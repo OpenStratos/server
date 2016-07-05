@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include <string>
+#include <iomanip>
 #include <thread>
 #if defined SIM || defined REAL_SIM
 	#include <chrono>
@@ -29,6 +30,14 @@ namespace os {
 		SAFE_MODE,
 	};
 
+	template <typename T>
+	string to_string_prec(const T value, const int n = 6)
+	{
+		ostringstream out;
+		out << std::setprecision(n) << value;
+		return out.str();
+	}
+
 	void check_or_create(const string& path, Logger* logger = NULL);
 
 	inline bool file_exists(const string& name)
@@ -44,6 +53,7 @@ namespace os {
 
 		return ((float) fs.f_bsize)*fs.f_bavail;
 	}
+
 
 	State set_state(State new_state);
 	State get_last_state();
@@ -92,16 +102,34 @@ namespace os {
 			return false;
 		}
 
+		#if !defined SIM && !defined REAL_SIM
+			chrono::high_resolution_clock::time_point start = chrono::high_resolution_clock::now();
+		#endif
 		double first_altitude = GPS::get_instance().get_altitude();
-		if (first_altitude > launch_altitude + 25) return true;
+		if (first_altitude > launch_altitude + 50*GPS::get_instance().get_VDOP())
+		{
+			return true;
+		}
 
 		this_thread::sleep_for(5s);
+
+		for (int i = 0; i < 10 && ( ! GPS::get_instance().is_fixed() ||
+						GPS::get_instance().get_VDOP() > MAX_DOP); ++i)
+		{
+			this_thread::sleep_for(500ms);
+		}
+		if ( ! GPS::get_instance().is_fixed())
+		{
+			return false;
+		}
 
 		#if defined SIM || defined REAL_SIM
 			return true;
 		#else
+			chrono::high_resolution_clock::time_point end = chrono::high_resolution_clock::now();
+			int sec = chrono::duration_cast<chrono::seconds>(end-start).count();
 			double second_altitude = GPS::get_instance().get_altitude();
-			return second_altitude > first_altitude + 8;
+			return second_altitude > first_altitude + (10*GPS::get_instance().get_VDOP()*sec)/5;
 		#endif
 	}
 
@@ -118,16 +146,40 @@ namespace os {
 			return false;
 		}
 
+		#if !defined SIM && !defined REAL_SIM
+			chrono::high_resolution_clock::time_point start = chrono::high_resolution_clock::now();
+		#endif
 		double first_altitude = GPS::get_instance().get_altitude();
-		if (first_altitude < maximum_altitude - 1000) return true;
+		if (first_altitude > maximum_altitude ||
+			(maximum_altitude < 4000 &&
+				first_altitude > maximum_altitude - 150*GPS::get_instance().get_VDOP()))
+		{
+			return false;
+		}
+		if (first_altitude < maximum_altitude - 1000)
+		{
+			return true;
+		}
 
-		this_thread::sleep_for(6s);
+		this_thread::sleep_for(5s);
+
+		for (int i = 0; i < 10 && ( ! GPS::get_instance().is_fixed() ||
+						GPS::get_instance().get_VDOP() > MAX_DOP); ++i)
+		{
+			this_thread::sleep_for(500ms);
+		}
+		if ( ! GPS::get_instance().is_fixed())
+		{
+			return false;
+		}
 
 		#if defined SIM || defined REAL_SIM
 			return true;
 		#else
+			chrono::high_resolution_clock::time_point end = chrono::high_resolution_clock::now();
+			int sec = chrono::duration_cast<chrono::seconds>(end-start).count();
 			double second_altitude = GPS::get_instance().get_altitude();
-			return second_altitude < first_altitude - 10;
+			return second_altitude < first_altitude - (15*GPS::get_instance().get_VDOP()*sec)/5;
 		#endif
 	}
 
@@ -139,10 +191,28 @@ namespace os {
 			this_thread::sleep_for(500ms);
 		}
 
-		if ( ! GPS::get_instance().is_fixed()) return false;
+		if ( ! GPS::get_instance().is_fixed())
+		{
+			return false;
+		}
 
 		double first_altitude = GPS::get_instance().get_altitude();
+		if (first_altitude > 4000)
+		{
+			return false;
+		}
 		this_thread::sleep_for(5s);
+
+		for (int i = 0; i < 10 && ( ! GPS::get_instance().is_fixed() ||
+						GPS::get_instance().get_VDOP() > MAX_DOP); ++i)
+		{
+			this_thread::sleep_for(500ms);
+		}
+		if ( ! GPS::get_instance().is_fixed())
+		{
+			return false;
+		}
+
 		double second_altitude = GPS::get_instance().get_altitude();
 
 		return abs(first_altitude-second_altitude) < 5;

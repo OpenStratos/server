@@ -37,11 +37,6 @@ if ( ! GPS::get_instance().initialize())
 }
 logger.log("GPS initialized.");
 
-// Notify the GPS about its initialization, so that it sets itself to the
-// appropriate mode
-logger.log("Notifying GPS about initialization...");
-GPS::get_instance().notify_initialization();
-
 logger.log("Initializing GSM...");
 if ( ! GSM::get_instance().initialize())
 {
@@ -91,7 +86,7 @@ if ( ! GSM::get_instance().get_battery_status(main_battery, gsm_battery) &&
 logger.log("Batteries checked => Main battery: "+ (main_battery > -1 ? to_string(main_battery*100)+"%" : "disconnected") +
 	" - GSM battery: "+ to_string(gsm_battery*100) +"%");
 
-if ((main_battery < 0.95  && main_battery > -1) || gsm_battery < 0.95)
+if ((main_battery < MIN_MAIN_BAT  && main_battery > -1) || gsm_battery < MIN_GSM_BAT)
 {
 	logger.log("Error: Not enough battery.");
 

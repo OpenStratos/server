@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include <unistd.h>
 #include <sys/time.h>
 
 #include <wiringSerial.h>
@@ -89,16 +90,25 @@ void Serial::println() const
 	#endif
 }
 
-void Serial::write(unsigned char c) const
+void Serial::write_byte(uint8_t b) const
 {
-	serialPutchar(this->fd, c);
+	int result = write(this->fd, &b, 1);
+
+	if (result == 0 || result == -1) {
+		#ifdef DEBUG
+			this->logger->log("Error writing byte");
+		#endif
+	}
 }
 
-void Serial::write_vec(vector<unsigned char> chars) const
+void Serial::write_vec(const vector<uint8_t> &bytes) const
 {
-	for (unsigned char c: chars)
-	{
-		this->write(c);
+	int result = write(this->fd, bytes.data(), bytes.size());
+
+	if (result == 0 || result == -1) {
+		#ifdef DEBUG
+			this->logger->log("Error writing byte vector.");
+		#endif
 	}
 }
 
@@ -121,6 +131,19 @@ bool Serial::is_open() const
 int Serial::available() const
 {
 	return serialDataAvail(this->fd);
+}
+
+uint8_t Serial::read_byte() const
+{
+	uint8_t b = 0;
+	int result = read(this->fd, &b, 1);
+
+	if (result == 0 || result == -1) {
+		#ifdef DEBUG
+			this->logger->log("Error reading byte");
+		#endif
+	}
+	return b;
 }
 
 char Serial::read_char() const

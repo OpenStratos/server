@@ -1,15 +1,20 @@
 #ifndef CONSTANTS_H_
 	#define CONSTANTS_H_
 
-	#define FLIGHT_LENGTH 1.1 // Hours
-	#define FLIGHT_MAX_HEIGHT 12500 // Meters
-	#define ASCENT_VELOCITY 5.74 // m/s
+	#define FLIGHT_LENGTH 4.5 // Hours
+	#define FLIGHT_MAX_HEIGHT 34500 // Meters
+	#define ASCENT_VELOCITY 2.60 // m/s
 	#define DESCENT_VELOCITY FLIGHT_MAX_HEIGHT/(FLIGHT_LENGTH*3600-FLIGHT_MAX_HEIGHT/ASCENT_VELOCITY) // m/s
+
+	#define MIN_MAIN_BAT 0.85
+	#define MIN_GSM_BAT 0.75
 
 	#define BAT_GSM_MAX 4.2
 	#define BAT_GSM_MIN 3.7
 	#define BAT_MAIN_MAX 8.4*2660/(2660+7420) // Measured Ohms in voltage divider
 	#define BAT_MAIN_MIN 7.4*BAT_MAIN_MAX/8.4
+
+	#define CAMERA_ROTATION 180
 
 	#define VIDEO_WIDTH 1920
 	#define VIDEO_HEIGHT 1080
@@ -28,7 +33,7 @@
 	#define PHOTO_EXPOSURE "antishake"
 
 	#define GPS_UART "/dev/ttyAMA0"
-	#define GPS_ENABLE_GPIO 2
+	#define GPS_ENABLE_GPIO 3
 	#define GPS_BAUDRATE 9600
 	#define GPS_ENDL "\r\n"
 

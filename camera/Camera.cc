@@ -75,11 +75,14 @@ bool Camera::record(int time)
 		#ifdef OS_TESTING
 			filename = "data/video/test.h264";
 		#endif
-		string command = "raspivid -n -o "+ filename +" -t " + to_string(time) + " -w "+ to_string(VIDEO_WIDTH) +" -h "
-			+ to_string(VIDEO_HEIGHT) +" -b "+ to_string(VIDEO_BITRATE*1000000)
+		string command = "raspivid -n -o "+ filename +" -t "+ to_string(time) +" -w "+ to_string(VIDEO_WIDTH) +" -h "+
+			+ to_string(VIDEO_HEIGHT) +" -rot "+ to_string(CAMERA_ROTATION) +" -b "+ to_string(VIDEO_BITRATE*1000000)
 			+ " -fps "+ to_string(VIDEO_FPS) +" -co "+ to_string(VIDEO_CONTRAST)
 			+ " -ex "+ VIDEO_EXPOSURE +" -br "+ to_string(VIDEO_BRIGHTNESS) +" &";
-		this->logger->log("Video command: '"+command+"'");
+
+		#ifdef DEBUG
+			this->logger->log("Video command: '"+command+"'");
+		#endif
 
 		#ifndef RASPICAM
 			this->logger->log("Test mode, video recording simulated.");
@@ -137,11 +140,13 @@ bool Camera::take_picture(const string& exif)
 	#endif
 
 	string command = "raspistill -n -t 1 -o "+ filename +" " + (PHOTO_RAW ? "-r" : "") + " -w "+ to_string(PHOTO_WIDTH)
-				+" -h "+ to_string(PHOTO_HEIGHT) +" -q "+ to_string(PHOTO_QUALITY)
+				+" -h "+ to_string(PHOTO_HEIGHT) +" -rot "+ to_string(CAMERA_ROTATION) +" -q "+ to_string(PHOTO_QUALITY)
 				+" -co "+ to_string(PHOTO_CONTRAST) +" -br "+ to_string(PHOTO_BRIGHTNESS)
 				+" -ex "+ PHOTO_EXPOSURE + exif;
 
-	this->logger->log("Picture command: '"+command+"'");
+	#ifdef DEBUG
+		this->logger->log("Picture command: '"+command+"'");
+	#endif
 
 	#ifndef RASPICAM
 		this->logger->log("Test mode, picture taking simulated.");
@@ -249,7 +254,7 @@ const string os::generate_exif_data()
 	exif += " -x GPS.GPSLatitude="+to_string(
 			abs((int) (gps_lat*1000000))
 		)+"/1000000";
-	exif += " -x GPS.GPSLongitudeRef="+string(gps_lat > 0 ? "E" : "W");
+	exif += " -x GPS.GPSLongitudeRef="+string(gps_lon > 0 ? "E" : "W");
 	exif += " -x GPS.GPSLongitude="+to_string(
 			abs((int) (gps_lon*1000000))
 		)+"/1000000";

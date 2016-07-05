@@ -52,9 +52,12 @@ GPS::~GPS()
 		delete this->frame_logger;
 		this->logger->log("Frame logger deallocated.");
 	}
-	this->logger->log("Turning off GPS...");
-	this->turn_off();
-	this->logger->log("GPS off.");
+	if (this->is_on())
+	{
+		this->logger->log("Turning off GPS...");
+		this->turn_off();
+		this->logger->log("GPS off.");
+	}
 	delete this->logger;
 }
 
@@ -105,13 +108,10 @@ bool GPS::initialize()
 	}
 	this->logger->log("Serial connection started.");
 
-	this->logger->log("Setting GPS to pedestrian mode");
-	this->enter_pedestrian_mode();
-
 	#ifndef OS_TESTING
 		this->logger->log("Sending configuration frames...");
 
-		vector<unsigned char> messages[] =
+		vector<uint8_t> messages[] =
 		{
 			// Set refresh:
 			{ 0xB5, 0x62, 0x06, 0x08, 0x06, 0x00, 0x64, 0x00, 0x01, 0x00, 0x01, 0x00, 0x7A, 0x12 },
@@ -125,19 +125,25 @@ bool GPS::initialize()
 			{ 0xB5, 0x62, 0x06, 0x01, 0x03, 0x00, 0xF0, 0x05, 0x00, 0xFF, 0x19 },
 		};
 
-		for (vector<unsigned char> mes: messages)
+		for (vector<uint8_t> mes: messages)
 		{
 			for(uint8_t tries = 0; tries<100; tries++)
 			{
-				for (unsigned char c: mes)
-				{
-					this->serial->write(c);
-				}
+				this->serial->write_vec(mes);
 				this_thread::sleep_for(10ms);
 			}
 		}
-
 		this->logger->log("Configuration frames sent.");
+
+		this->logger->log("Setting GPS to airborne (<1g) mode");
+		if (this->enter_airborne_1g_mode())
+		{
+			this->logger->log("GPS entered airborne (<1g) mode successfully");
+		}
+		else
+		{
+			this->logger->log("GPS failed to enter airborne (<1g) mode");
+		}
 	#endif
 
 	this->logger->log("Starting GPS frame thread...");
@@ -283,11 +289,13 @@ void GPS::parse(const string& frame)
 		}
 		catch (const invalid_argument& ia)
 		{
-			this->logger->log("Failed to parse frame: " + frame);
+			#ifdef DEBUG
+				this->logger->log("Failed to parse frame: " + frame);
+			#endif
 		}
 
 		double gps_time = (double) this->time.tv_sec + this->time.tv_usec * 0.000001;
-		if (this->active && (gps_time > os_time + 3 || gps_time < os_time - 3))
+		if (this->active && (gps_time > os_time + 5 || gps_time < os_time - 5))
 		{
 			#ifndef OS_TESTING
 				settimeofday(&this->time, NULL);
@@ -314,12 +322,15 @@ void GPS::parse_GGA(const string& frame)
 
 	if (s_data.size() != 15)
 	{
-		this->logger->log("Failed to parse frame: " + frame);
+		#ifdef DEBUG
+			this->logger->log("Failed to parse frame: " + frame);
+		#endif
 		return;
 	}
 
 	// Is the data valid?
 	bool active = s_data[6] == "1" || s_data[6] == "2";
+
 	if (this->active && ! active)
 	{
 		this->logger->log("Fix lost.");
@@ -330,19 +341,20 @@ void GPS::parse_GGA(const string& frame)
 	}
 	this->active = active;
 
-	if (s_data[1].length() >= 6) // Update time
+	double hdop;
+	if (this->active && ! s_data[8].empty() && (hdop = stof(s_data[8])) < FAIR_DOP)
 	{
-		tm* time = gmtime(&this->time.tv_sec);
-		time->tm_hour = stoi(s_data[1].substr(0, 2));
-		time->tm_min = stoi(s_data[1].substr(2, 2));
-		time->tm_sec = stoi(s_data[1].substr(4, 2));
+		if (s_data[1].length() >= 6) // Update time
+		{
+			tm* time = gmtime(&this->time.tv_sec);
+			time->tm_hour = stoi(s_data[1].substr(0, 2));
+			time->tm_min = stoi(s_data[1].substr(2, 2));
+			time->tm_sec = stoi(s_data[1].substr(4, 2));
 
-		this->time.tv_sec = mktime(time);
-		this->time.tv_usec = s_data[1].length() > 6 ? stoi(s_data[1].substr(7, 2))*10000 : 0;
-	}
+			this->time.tv_sec = mktime(time);
+			this->time.tv_usec = s_data[1].length() > 6 ? stoi(s_data[1].substr(7, 2))*10000 : 0;
+		}
 
-	if (this->active)
-	{
 		if (s_data[2].length() > 2)
 		{
 			lat = s_data[2].substr(0, 2);
@@ -380,10 +392,9 @@ void GPS::parse_GGA(const string& frame)
 		{
 			this->satellites = stoi(s_data[7]);
 		}
-		if( ! s_data[8].empty())
-		{
-			this->hdop = stof(s_data[8]);
-		}
+
+		this->hdop = hdop;
+
 		if( ! s_data[9].empty())
 		{
 			this->altitude = stod(s_data[9]);
@@ -405,7 +416,9 @@ void GPS::parse_GSA(const string& frame)
 
 	if (s_data.size() != 18)
 	{
-		this->logger->log("Failed to parse frame: " + frame);
+		#ifdef DEBUG
+			this->logger->log("Failed to parse frame: " + frame);
+		#endif
 		return;
 	}
 
@@ -423,22 +436,40 @@ void GPS::parse_GSA(const string& frame)
 		this->active = true;
 	}
 
-	if (this->active)
+
+	if (this->active && ! s_data[15].empty() && (pdop = stof(s_data[15])) < FAIR_DOP)
 	{
+		double pdop = FAIR_DOP+100, hdop = FAIR_DOP+100, vdop = FAIR_DOP+100;
 		// Update DOP
 		if( ! s_data[15].empty())
 		{
-			this->pdop = stof(s_data[15]);
+			pdop = stof(s_data[15]);
+			if (pdop > FAIR_DOP)
+			{
+				return;
+			}
 		}
 		if( ! s_data[16].empty())
 		{
-			this->hdop = stof(s_data[16]);
+			hdop = stof(s_data[16]);
+			if (hdop > FAIR_DOP)
+			{
+				return;
+			}
 		}
-		string vdop = s_data[17].substr(0, s_data[17].find_first_of('*'));
-		if( ! vdop.empty())
+		string vdop_str = s_data[17].substr(0, s_data[17].find_first_of('*'));
+		if( ! vdop_str.empty())
 		{
-			this->vdop = stof(vdop);
+			vdop = stof(vdop_str);
+			if (vdop > FAIR_DOP)
+			{
+				return;
+			}
 		}
+
+		this->pdop = pdop;
+		this->hdop = hdop;
+		this->vdop = vdop;
 	}
 }
 
@@ -458,7 +489,9 @@ void GPS::parse_RMC(const string& frame)
 
 	if (s_data.size() != 13)
 	{
-		this->logger->log("Failed to parse frame: " + frame);
+		#ifdef DEBUG
+			this->logger->log("Failed to parse frame: " + frame);
+		#endif
 		return;
 	}
 
@@ -476,36 +509,36 @@ void GPS::parse_RMC(const string& frame)
 		this->active = true;
 	}
 
-	if (s_data[1].length() >= 6) // Update time
+	if (this->active)
 	{
-		tm* time = gmtime(&this->time.tv_sec);
-		time->tm_hour = stoi(s_data[1].substr(0, 2));
-		time->tm_min = stoi(s_data[1].substr(2, 2));
-		time->tm_sec = stoi(s_data[1].substr(4, 2));
-
-		if (s_data[9].length() == 6) // Update date
+		if (s_data[1].length() >= 6) // Update time
 		{
+			tm* time = gmtime(&this->time.tv_sec);
+			time->tm_hour = stoi(s_data[1].substr(0, 2));
+			time->tm_min = stoi(s_data[1].substr(2, 2));
+			time->tm_sec = stoi(s_data[1].substr(4, 2));
+
+			if (s_data[9].length() == 6) // Update date
+			{
+				time->tm_mday = stoi(s_data[9].substr(0, 2));
+				time->tm_mon = stoi(s_data[9].substr(2, 2))-1;
+				time->tm_year = stoi(s_data[9].substr(4, 2))+100;
+			}
+
+			this->time.tv_sec = mktime(time);
+			this->time.tv_usec = s_data[1].length() > 6 ? stoi(s_data[1].substr(7, 2))*10000 : 0;
+		}
+		else if (s_data[9].length() == 6) // Update date
+		{
+			tm* time = gmtime(&this->time.tv_sec);
+
 			time->tm_mday = stoi(s_data[9].substr(0, 2));
 			time->tm_mon = stoi(s_data[9].substr(2, 2))-1;
 			time->tm_year = stoi(s_data[9].substr(4, 2))+100;
+
+			this->time.tv_sec = mktime(time);
 		}
 
-		this->time.tv_sec = mktime(time);
-		this->time.tv_usec = s_data[1].length() > 6 ? stoi(s_data[1].substr(7, 2))*10000 : 0;
-	}
-	else if (s_data[9].length() == 6) // Update date
-	{
-		tm* time = gmtime(&this->time.tv_sec);
-
-		time->tm_mday = stoi(s_data[9].substr(0, 2));
-		time->tm_mon = stoi(s_data[9].substr(2, 2))-1;
-		time->tm_year = stoi(s_data[9].substr(4, 2))+100;
-
-		this->time.tv_sec = mktime(time);
-	}
-
-	if (this->active)
-	{
 		if(s_data[3].length() > 2)
 		{
 			lat = s_data[3].substr(0, 2);
@@ -550,19 +583,24 @@ void GPS::parse_RMC(const string& frame)
 	}
 }
 
-void GPS::enter_airborne_1g_mode()
+bool GPS::enter_airborne_1g_mode()
 {
-	int gps_dynamic_model_set_success = 0;
+	bool gps_dynamic_model_set_success = false;
 	struct timeval time_now, time_start;
 	long ms_now, ms_start;
 
-	vector<unsigned char> setdm6 = // Byte at offset 2 determines new operation mode.
+	vector<uint8_t> setdm6 =
 	{
-		0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,
-		0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
-		0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C,
-		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC
+		// Header, class, ID, Length
+		0xB5, 0x62, 0x06, 0x24, 0x24, 0x00,
+		// Payload:
+		// Mask, Dynmodel, FixType
+		0xFF, 0xFF, 0x06, 0x03,
+		0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64,
+		0x00, 0x2C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00,
+		// Checksum
+		0x16, 0xDC
 	};
 
 	gettimeofday(&time_start, NULL);
@@ -579,100 +617,15 @@ void GPS::enter_airborne_1g_mode()
 		gps_dynamic_model_set_success = this->receive_check_ublox_ack(setdm6);
 	}
 
-	if (gps_dynamic_model_set_success)
-	{
-		this->logger->log("GPS entered airborne (<1g) mode successfully");
-	}
-	else
-	{
-		this->logger->log("GPS failed to enter airborne (<1g) mode");
-	}
+	return gps_dynamic_model_set_success;
 }
 
-void GPS::enter_stationary_mode()
-{
-	int gps_dynamic_model_set_success = 0;
-	struct timeval time_now, time_start;
-	long ms_now, ms_start;
-
-	vector<unsigned char> setdm2 = // Byte at offset 2 determines new operation mode.
-	{
-		0xB5, 0x62, 0x02, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,
-		0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
-		0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C,
-		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC
-	};
-
-	gettimeofday(&time_start, NULL);
-	ms_start = (long)((time_start.tv_sec)*1000 + (time_start.tv_usec)/1000);
-	ms_now = ms_start;
-
-	// Prevent lock and timeout if not set after six seconds
-	while( ! gps_dynamic_model_set_success && (ms_now - ms_start)<6000)
-	{
-		gettimeofday(&time_now, NULL);
-		ms_now = (long)((time_now.tv_sec)*1000 + (time_now.tv_usec)/1000);
-
-		this->send_ublox_packet(setdm2);
-		gps_dynamic_model_set_success = this->receive_check_ublox_ack(setdm2);
-	}
-
-	if (gps_dynamic_model_set_success)
-	{
-		this->logger->log("GPS entered stationary mode successfully");
-	}
-	else
-	{
-		this->logger->log("GPS failed to enter stationary mode");
-	}
-}
-
-void GPS::enter_pedestrian_mode()
-{
-	int gps_dynamic_model_set_success = 0;
-	struct timeval time_now, time_start;
-	long ms_now, ms_start;
-
-	vector<unsigned char> setdm3 = // Byte at offset 2 determines new operation mode.
-	{
-		0xB5, 0x62, 0x03, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06,
-		0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
-		0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C,
-		0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC
-	};
-
-	gettimeofday(&time_start, NULL);
-	ms_start = (long)((time_start.tv_sec)*1000 + (time_start.tv_usec)/1000);
-	ms_now = ms_start;
-
-	// Prevent lock and timeout if not set after six seconds
-	while( ! gps_dynamic_model_set_success && (ms_now - ms_start)<6000)
-	{
-		gettimeofday(&time_now, NULL);
-		ms_now = (long)((time_now.tv_sec)*1000 + (time_now.tv_usec)/1000);
-
-		this->send_ublox_packet(setdm3);
-		gps_dynamic_model_set_success = this->receive_check_ublox_ack(setdm3);
-	}
-
-	if (gps_dynamic_model_set_success)
-	{
-		this->logger->log("GPS entered pedestrian mode successfully");
-	}
-	else
-	{
-		this->logger->log("GPS failed to enter pedestrian mode");
-	}
-}
-
-void GPS::send_ublox_packet(vector<unsigned char> message)
+void GPS::send_ublox_packet(const vector<uint8_t> &message)
 {
 	if (this->serial->is_open())
 	{
 		this->serial->flush();
-		this->serial->write((unsigned char) 0xFF);
+		this->serial->write_byte(0xFF);
 		this_thread::sleep_for(500ms);
 		this->serial->write_vec(message);
 	}
@@ -682,11 +635,11 @@ void GPS::send_ublox_packet(vector<unsigned char> message)
 	}
 }
 
-bool GPS::receive_check_ublox_ack(vector<unsigned char> message)
+bool GPS::receive_check_ublox_ack(const vector<uint8_t> &message)
 {
-	unsigned char ack_packet[10];
+	uint8_t ack_packet[10];
 	unsigned int bytes_ordered;
-	unsigned char byte;
+	uint8_t byte;
 	struct timeval time_now, time_start;
 	long ms_now, ms_start;
 
@@ -701,7 +654,7 @@ bool GPS::receive_check_ublox_ack(vector<unsigned char> message)
 	ack_packet[8] = 0x00;
 	ack_packet[9] = 0x00;
 
-	for (int i = 0; i<8; ++i)
+	for (int i = 2; i<8; ++i)
 	{
 		ack_packet[8]+= ack_packet[i];
 		ack_packet[9]+= ack_packet[8];
@@ -715,17 +668,17 @@ bool GPS::receive_check_ublox_ack(vector<unsigned char> message)
 	// Prevent lock and timeout if not set after three seconds
 	while (ms_now - ms_start <= 3000)
 	{
-		gettimeofday(&time_now, NULL);
-		ms_now = (long)((time_now.tv_sec)*1000 + (time_now.tv_usec)/1000);
-
 		if (bytes_ordered > 9)
 		{
 			return true;
 		}
 
+		gettimeofday(&time_now, NULL);
+		ms_now = (long)((time_now.tv_sec)*1000 + (time_now.tv_usec)/1000);
+
 		if (this->serial->available())
 		{
-			byte = (unsigned char) this->serial->read_char();
+			byte = this->serial->read_byte();
 			if (byte == ack_packet[bytes_ordered])
 			{
 				bytes_ordered++;
@@ -737,28 +690,4 @@ bool GPS::receive_check_ublox_ack(vector<unsigned char> message)
 		}
 	}
 	return false;
-}
-
-void GPS::notify_initialization()
-{
-	this->logger->log("Initialization notified. Switching to pedestrian mode");
-	this->enter_pedestrian_mode();
-}
-
-void GPS::notify_takeoff()
-{
-	this->logger->log("Takeoff notified. Switching to airborne mode");
-	this->enter_airborne_1g_mode();
-}
-
-void GPS::notify_safe_mode()
-{
-	this->logger->log("Safe mode entry notified. Switching to airborne mode");
-	this->enter_airborne_1g_mode();
-}
-
-void GPS::notify_landing()
-{
-	this->logger->log("Landing notified. Switching to stationary mode");
-	this->enter_stationary_mode();
 }
