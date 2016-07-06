@@ -175,7 +175,7 @@ bool GSM::send_SMS(const string& message, const string& number)
 		this->serial->read_line(60); // Eat prompt (timeout 60 seconds)
 
 		// Read +CMGS response
-		string response = this->serial->read_line();
+		string response = this->serial->read_line(10);
 		this->command_logger->log("Received: '"+response+"'");
 		if (response.find("+CMGS") == string::npos)
 		{
